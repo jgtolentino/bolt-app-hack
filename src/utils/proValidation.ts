@@ -285,4 +285,72 @@ export class ProAccountValidator {
 
     return report;
   }
+
+  // New function to generate 750K transactions
+  static async generate750KTransactions(): Promise<ProValidationResult> {
+    const startTime = Date.now();
+    
+    try {
+      console.log('🚀 Starting 750K transaction generation...');
+      
+      // Call the database function to generate transactions
+      const { data, error } = await supabase.rpc('generate_full_dataset', {
+        total_transactions: 750000,
+        batch_size: 10000
+      });
+      
+      if (error) throw error;
+      
+      const executionTime = Date.now() - startTime;
+      
+      return {
+        section: '750K Transaction Generation',
+        status: 'success',
+        data: {
+          result: data,
+          generationTime: executionTime
+        },
+        executionTime,
+        message: `Successfully initiated 750K transaction generation: ${data}`
+      };
+    } catch (error) {
+      return {
+        section: '750K Transaction Generation',
+        status: 'error',
+        data: { error: error instanceof Error ? error.message : 'Unknown error' },
+        executionTime: Date.now() - startTime,
+        message: 'Failed to generate 750K transactions'
+      };
+    }
+  }
+
+  // Function to monitor generation progress
+  static async monitorGenerationProgress(): Promise<ProValidationResult> {
+    const startTime = Date.now();
+    
+    try {
+      const { data, error } = await supabase.rpc('monitor_generation_progress');
+      
+      if (error) throw error;
+      
+      const executionTime = Date.now() - startTime;
+      const progress = data?.[0] || {};
+      
+      return {
+        section: 'Generation Progress',
+        status: 'success',
+        data: progress,
+        recordCount: progress.total_transactions || 0,
+        executionTime,
+        message: `Progress: ${progress.target_percentage || 0}% complete (${progress.total_transactions || 0}/750,000 transactions)`
+      };
+    } catch (error) {
+      return {
+        section: 'Generation Progress',
+        status: 'error',
+        data: { error: error instanceof Error ? error.message : 'Unknown error' },
+        executionTime: Date.now() - startTime
+      };
+    }
+  }
 }
