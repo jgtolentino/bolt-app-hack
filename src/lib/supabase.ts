@@ -4,38 +4,81 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Validate that required environment variables are present
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables. Please check your .env file.')
-  console.error('Required variables: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY')
-  throw new Error('Supabase configuration is incomplete. Please set up your environment variables.')
-}
+// Check if environment variables are placeholder values
+const isPlaceholderUrl = !supabaseUrl || 
+  supabaseUrl === 'https://your-project.supabase.co' || 
+  supabaseUrl.includes('your-project')
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    // Fallback to email/password if OAuth providers are not configured
-    flowType: 'pkce'
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  },
-  db: {
-    schema: 'public'
-  },
-  global: {
-    // Supabase Pro plan allows up to 1 million rows per request
-    // Set a reasonable default that works well for most queries
-    headers: { 
-      'X-Supabase-Range': '0-50000',
-      'X-Supabase-Prefer': 'count=exact'
+const isPlaceholderKey = !supabaseAnonKey || 
+  supabaseAnonKey === 'your-anon-key' || 
+  supabaseAnonKey.length < 20
+
+// Declare supabase variable at top level
+let supabase: any
+
+// Validate that required environment variables are present and not placeholders
+if (!supabaseUrl || !supabaseAnonKey || isPlaceholderUrl || isPlaceholderKey) {
+  const errorMessage = `
+🔗 Supabase Connection Required
+
+Your Supabase credentials are not configured. To connect:
+
+1. Click the "Connect to Supabase" button in the top right corner
+2. Or manually update your .env file with:
+   - VITE_SUPABASE_URL=your-actual-supabase-url
+   - VITE_SUPABASE_ANON_KEY=your-actual-anon-key
+
+Current values:
+- URL: ${supabaseUrl || 'not set'}
+- Key: ${supabaseAnonKey ? 'set but invalid' : 'not set'}
+  `
+  
+  console.error(errorMessage)
+  
+  // Create a mock client that will show helpful errors
+  const mockClient = {
+    from: () => ({
+      select: () => Promise.reject(new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner.')),
+      insert: () => Promise.reject(new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner.')),
+      update: () => Promise.reject(new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner.')),
+      delete: () => Promise.reject(new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner.'))
+    }),
+    auth: {
+      signUp: () => Promise.reject(new Error('Supabase not connected')),
+      signIn: () => Promise.reject(new Error('Supabase not connected')),
+      signOut: () => Promise.reject(new Error('Supabase not connected')),
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
     }
   }
-})
+  
+  // Assign the mock client to the variable
+  supabase = mockClient
+} else {
+  // Create the real Supabase client
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce'
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
+    },
+    db: {
+      schema: 'public'
+    },
+    global: {
+      headers: { 
+        'X-Supabase-Range': '0-50000',
+        'X-Supabase-Prefer': 'count=exact'
+      }
+    }
+  })
+}
 
 // Enhanced function for Supabase Pro - can handle much larger datasets
 export async function fetchAllRecords<T>(
@@ -43,6 +86,11 @@ export async function fetchAllRecords<T>(
   pageSize = 10000, // Increased page size for Pro plan
   maxRecords = 1000000 // Pro plan can handle up to 1M records
 ): Promise<T[]> {
+  // Check if Supabase is properly configured
+  if (isPlaceholderUrl || isPlaceholderKey) {
+    throw new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner to set up your database connection.')
+  }
+
   let allRecords: T[] = [];
   let page = 0;
   let hasMore = true;
@@ -55,29 +103,46 @@ export async function fetchAllRecords<T>(
     
     console.log(`📄 Fetching page ${page + 1} (records ${start}-${end})`);
     
-    // Apply range for this page
-    const { data, error, count } = await query
-      .range(start, end);
-    
-    if (error) {
-      console.error('Error fetching records:', error);
-      throw error;
-    }
-    
-    if (data && data.length > 0) {
-      allRecords = [...allRecords, ...data];
-      page++;
+    try {
+      // Apply range for this page
+      const { data, error, count } = await query
+        .range(start, end);
       
-      // If we got fewer records than requested, we've reached the end
-      hasMore = data.length === pageSize;
-      
-      // Log progress for large datasets
-      if (count && count > 10000) {
-        const progress = Math.min(100, (allRecords.length / count) * 100);
-        console.log(`📊 Progress: ${progress.toFixed(1)}% (${allRecords.length}/${count} records)`);
+      if (error) {
+        console.error('Error fetching records:', error);
+        
+        // Provide more helpful error messages
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('Unable to connect to Supabase. Please check your internet connection and Supabase configuration.')
+        }
+        
+        throw error;
       }
-    } else {
-      hasMore = false;
+      
+      if (data && data.length > 0) {
+        allRecords = [...allRecords, ...data];
+        page++;
+        
+        // If we got fewer records than requested, we've reached the end
+        hasMore = data.length === pageSize;
+        
+        // Log progress for large datasets
+        if (count && count > 10000) {
+          const progress = Math.min(100, (allRecords.length / count) * 100);
+          console.log(`📊 Progress: ${progress.toFixed(1)}% (${allRecords.length}/${count} records)`);
+        }
+      } else {
+        hasMore = false;
+      }
+    } catch (error) {
+      console.error('Network error while fetching records:', error);
+      
+      // Provide user-friendly error message
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Connection failed. Please ensure Supabase is properly configured and your internet connection is stable.')
+      }
+      
+      throw error;
     }
   }
   
@@ -120,6 +185,12 @@ export async function processBatchQuery<T>(
 // Test Supabase connection with Pro plan features
 export const testSupabaseConnection = async () => {
   try {
+    // Check if credentials are configured
+    if (isPlaceholderUrl || isPlaceholderKey) {
+      console.warn('⚠️ Supabase credentials not configured. Please connect to Supabase.')
+      return false
+    }
+
     // Test basic connection
     const { data, error, count } = await supabase
       .from('geography')
@@ -127,6 +198,11 @@ export const testSupabaseConnection = async () => {
     
     if (error) {
       console.warn('Supabase connection test failed:', error.message)
+      
+      if (error.message.includes('Failed to fetch')) {
+        console.warn('💡 This usually means your Supabase URL or API key is incorrect, or there are network connectivity issues.')
+      }
+      
       return false
     }
     
@@ -145,7 +221,83 @@ export const testSupabaseConnection = async () => {
     return true
   } catch (error) {
     console.warn('Supabase connection test failed:', error)
+    
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.warn('💡 Network error: Please check your internet connection and Supabase configuration.')
+    }
+    
     return false
+  }
+}
+
+// Function to fetch substitution patterns
+export async function fetchSubstitutionPatterns(filters: any = {}) {
+  try {
+    let query = supabase
+      .from('v_substitution_analysis')
+      .select('*');
+    
+    // Apply filters if provided
+    if (filters.category) {
+      query = query.eq('original_category', filters.category);
+    }
+    
+    if (filters.brand) {
+      query = query.eq('original_brand', filters.brand);
+    }
+    
+    if (filters.region) {
+      query = query.eq('region', filters.region);
+    }
+    
+    if (filters.minRate) {
+      query = query.gte('acceptance_rate', filters.minRate);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    // Transform data to match the SubstitutionPattern interface
+    return data.map((item: any) => ({
+      source: item.original_sku,
+      target: item.substituted_sku,
+      value: item.substitution_count,
+      percentage: item.acceptance_rate,
+      sourceCategory: item.original_category,
+      targetCategory: item.substituted_category,
+      sourceBrand: item.original_brand,
+      targetBrand: item.substituted_brand,
+      priceImpact: item.price_impact.toLowerCase(),
+      region: item.region
+    }));
+  } catch (error) {
+    console.error('Error fetching substitution patterns:', error);
+    return [];
+  }
+}
+
+// Function to record a substitution
+export async function recordSubstitution(
+  originalSku: string,
+  substitutedSku: string,
+  geographyId?: string,
+  accepted: boolean = true
+) {
+  try {
+    const { data, error } = await supabase.rpc('record_substitution', {
+      original_sku: originalSku,
+      substituted_sku: substitutedSku,
+      geography_id: geographyId,
+      accepted: accepted
+    });
+    
+    if (error) throw error;
+    
+    return { success: true, message: data };
+  } catch (error) {
+    console.error('Error recording substitution:', error);
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
   }
 }
 
@@ -332,6 +484,41 @@ export interface Database {
           created_at?: string
         }
       }
+      substitution_patterns: {
+        Row: {
+          id: string
+          original_product_id: string
+          substituted_product_id: string
+          geography_id: string | null
+          substitution_count: number
+          acceptance_rate: number
+          last_updated: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          original_product_id: string
+          substituted_product_id: string
+          geography_id?: string | null
+          substitution_count?: number
+          acceptance_rate?: number
+          last_updated?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          original_product_id?: string
+          substituted_product_id?: string
+          geography_id?: string | null
+          substitution_count?: number
+          acceptance_rate?: number
+          last_updated?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       v_transaction_summary: {
@@ -413,6 +600,22 @@ export interface Database {
           preferred_payment_methods: string | null
         }
       }
+      v_substitution_analysis: {
+        Row: {
+          original_sku: string | null
+          original_brand: string | null
+          original_category: string | null
+          substituted_sku: string | null
+          substituted_brand: string | null
+          substituted_category: string | null
+          substitution_count: number | null
+          acceptance_rate: number | null
+          region: string | null
+          city_municipality: string | null
+          substitution_type: string | null
+          price_impact: string | null
+        }
+      }
     }
     Functions: {
       get_geographic_performance: {
@@ -469,9 +672,12 @@ export interface Database {
           growth_rate: number
         }[]
       }
-      generate_philippine_transactions: {
+      record_substitution: {
         Args: {
-          num_transactions: number
+          original_sku: string
+          substituted_sku: string
+          geography_id?: string
+          accepted?: boolean
         }
         Returns: string
       }
@@ -481,3 +687,6 @@ export interface Database {
     }
   }
 }
+
+// Export the supabase client
+export { supabase }

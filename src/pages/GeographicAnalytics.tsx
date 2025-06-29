@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useFilterStore } from '../stores/filterStore';
 import { useDataStore } from '../stores/dataStore';
+import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import GeographicMap from '../components/maps/GeographicMap';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -15,7 +16,7 @@ import {
 
 const GeographicAnalytics: React.FC = () => {
   const navigate = useNavigate();
-  const { region, city_municipality, barangay, setFilter } = useFilterStore();
+  const { region, city_municipality, barangay, setFilter, filters } = useFilterStore();
   const { geographicData, loadGeographicData } = useDataStore();
   const [activeTab, setActiveTab] = useState('regional-performance');
   const [viewMode, setViewMode] = useState<'map' | 'grid' | 'list'>('map');
@@ -669,18 +670,37 @@ const GeographicAnalytics: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Main Map View */}
-      {viewMode === 'map' && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <GeographicMap data={geographicData} height={500} />
-        </motion.div>
-      )}
+      {/* Main Content with AI Insights */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Main Map View */}
+        {viewMode === 'map' && (
+          <motion.div
+            className="xl:col-span-3"
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.5 }}
+          >
+            <GeographicMap data={geographicData} height={500} />
+          </motion.div>
+        )}
 
-      {/* Tab Navigation - ALL TABS FUNCTIONAL */}
+        {/* AI Insights Panel */}
+        <motion.div
+          className="xl:col-span-1"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <AIInsightsPanel 
+            context="geography" 
+            data={geoData}
+            filters={filters}
+            className="sticky top-4"
+          />
+        </motion.div>
+      </div>
+
+      {/* Tab Navigation */}
       <motion.div
         className="flex space-x-1 bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg p-1"
         initial={{ opacity: 0, y: 10 }}
@@ -703,7 +723,7 @@ const GeographicAnalytics: React.FC = () => {
         ))}
       </motion.div>
 
-      {/* Tab Content - ALL TABS IMPLEMENTED */}
+      {/* Tab Content */}
       <motion.div
         key={activeTab}
         initial={{ opacity: 0, y: 20 }}

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useFilterStore } from '../stores/filterStore';
+import { useDataStore } from '../stores/dataStore';
+import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import { 
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ScatterChart, Scatter, ComposedChart, Area
@@ -12,13 +14,20 @@ import {
 } from 'lucide-react';
 import TreemapChart from '../components/charts/TreemapChart';
 import HorizontalBarChart from '../components/charts/HorizontalBarChart';
+import SubstitutionPatternsChart from '../components/charts/SubstitutionPatternsChart';
 
 const ProductAnalysis: React.FC = () => {
   const navigate = useNavigate();
-  const { client, category, brand, sku, region, city_municipality, barangay, setFilter } = useFilterStore();
+  const { client, category, brand, sku, region, city_municipality, barangay, setFilter, filters } = useFilterStore();
+  const { substitutionPatternsData, loadSubstitutionPatterns } = useDataStore();
   const [activeTab, setActiveTab] = useState('category-performance');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Load substitution patterns data when component mounts
+  useEffect(() => {
+    loadSubstitutionPatterns();
+  }, []);
 
   // Mock data - replace with API calls
   const [productData, setProductData] = useState({
@@ -62,6 +71,20 @@ const ProductAnalysis: React.FC = () => {
       { region: 'Region III', beverages: 78000, snacks: 68000, dairy: 52000, total: 198000 },
       { region: 'Region IV-A', beverages: 72000, snacks: 58000, dairy: 48000, total: 178000 },
       { region: 'Region VI', beverages: 45000, snacks: 38000, dairy: 32000, total: 115000 }
+    ],
+    substitutionPatterns: [
+      { source: 'Coca-Cola 355ml', target: 'Pepsi 355ml', value: 450, percentage: 65 },
+      { source: 'Coca-Cola 355ml', target: 'Royal 355ml', value: 120, percentage: 18 },
+      { source: 'Coca-Cola 355ml', target: 'Sprite 355ml', value: 80, percentage: 12 },
+      { source: 'Oishi Prawn Crackers', target: 'Jack n Jill Piattos', value: 320, percentage: 48 },
+      { source: 'Oishi Prawn Crackers', target: 'Nova Chips', value: 180, percentage: 27 },
+      { source: 'Alaska Evap Milk', target: 'Bear Brand Milk', value: 280, percentage: 42 },
+      { source: 'Alaska Evap Milk', target: 'Nestle Evap Milk', value: 210, percentage: 32 },
+      { source: 'Palmolive Shampoo', target: 'Head & Shoulders', value: 150, percentage: 38 },
+      { source: 'Palmolive Shampoo', target: 'Pantene', value: 120, percentage: 30 },
+      { source: 'Surf Powder', target: 'Tide Powder', value: 200, percentage: 45 },
+      { source: 'Surf Powder', target: 'Ariel Powder', value: 180, percentage: 40 },
+      { source: 'Lucky Me Pancit Canton', target: 'Nissin Pancit Canton', value: 350, percentage: 58 }
     ]
   });
 
@@ -180,6 +203,13 @@ const ProductAnalysis: React.FC = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Substitution Patterns Chart */}
+      <SubstitutionPatternsChart 
+        data={substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns}
+        title="Brand Substitution Patterns"
+        height={400}
+      />
     </div>
   );
 
@@ -305,6 +335,13 @@ const ProductAnalysis: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* SKU Substitution Patterns */}
+      <SubstitutionPatternsChart 
+        data={substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns}
+        title="SKU Substitution Patterns"
+        height={400}
+      />
     </div>
   );
 
@@ -436,12 +473,19 @@ const ProductAnalysis: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Substitution Patterns */}
+      <SubstitutionPatternsChart 
+        data={substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns}
+        title="Product Substitution Patterns"
+        height={400}
+      />
     </div>
   );
 
   const renderProductMix = () => (
     <div className="space-y-6">
-      {/* Product Mix Treemap - FIXED */}
+      {/* Product Mix Treemap */}
       <div className="chart-container">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Product Mix Visualization</h3>
@@ -450,7 +494,6 @@ const ProductAnalysis: React.FC = () => {
           </div>
         </div>
         
-        {/* Use the fixed TreemapChart component */}
         <TreemapChart 
           data={productData.productMix}
           title=""
@@ -477,6 +520,13 @@ const ProductAnalysis: React.FC = () => {
           sortDescending={true}
         />
       </div>
+
+      {/* Substitution Patterns */}
+      <SubstitutionPatternsChart 
+        data={substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns}
+        title="Product Substitution Patterns"
+        height={400}
+      />
     </div>
   );
 
@@ -539,7 +589,7 @@ const ProductAnalysis: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Tab Navigation - FIXED */}
+      {/* Tab Navigation */}
       <motion.div
         className="flex space-x-1 bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg p-1 overflow-x-auto"
         initial={{ opacity: 0, y: 10 }}
@@ -562,18 +612,40 @@ const ProductAnalysis: React.FC = () => {
         ))}
       </motion.div>
 
-      {/* Tab Content - FIXED */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {activeTab === 'category-performance' && renderCategoryPerformance()}
-        {activeTab === 'brand-comparison' && renderBrandComparison()}
-        {activeTab === 'sku-deep-dive' && renderSKUDeepDive()}
-        {activeTab === 'product-mix' && renderProductMix()}
-      </motion.div>
+      {/* Main Content with AI Insights */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Tab Content */}
+        <motion.div
+          key={activeTab}
+          className="xl:col-span-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {activeTab === 'category-performance' && renderCategoryPerformance()}
+          {activeTab === 'brand-comparison' && renderBrandComparison()}
+          {activeTab === 'sku-deep-dive' && renderSKUDeepDive()}
+          {activeTab === 'product-mix' && renderProductMix()}
+        </motion.div>
+
+        {/* AI Insights Panel */}
+        <motion.div
+          className="xl:col-span-1"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <AIInsightsPanel 
+            context="products" 
+            data={{
+              ...productData,
+              substitutionPatterns: substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns
+            }}
+            filters={filters}
+            className="sticky top-4"
+          />
+        </motion.div>
+      </div>
 
       {/* Quick Actions */}
       <motion.div

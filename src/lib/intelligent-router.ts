@@ -50,7 +50,7 @@ export class IntelligentModelRouter {
     const retailSpecificPatterns = [
       /sari[- ]?sari/i, /barangay/i, /ncr/i, /luzon/i, /visayas/i, /mindanao/i,
       /payday/i, /fiesta/i, /christmas\s+season/i, /holy\s+week/i,
-      /fmcg/i, /cpg/i, /competitor/i, /market\s+share/i, /utang/i, /lista/i
+      /fmcg/i, /cpg/i, /competitor/i, /market\s+share/i
     ]
     
     // Calculate complexity score
@@ -122,11 +122,11 @@ export class IntelligentModelRouter {
     } else if (complexityScore <= 4) {
       recommendedModel = 'openai-complex'
       estimatedTokens = 500
-      estimatedCost = 0.01     // OpenAI GPT-3.5
+      estimatedCost = 0.0015   // OpenAI GPT-3.5 input pricing
     } else {
       recommendedModel = 'openai-advanced'
       estimatedTokens = 1000
-      estimatedCost = 0.03     // OpenAI GPT-4
+      estimatedCost = 0.03     // OpenAI GPT-4 input pricing
     }
     
     const confidence = Math.min(Math.max((Math.abs(complexityScore) / 10) * 100, 60), 95)
@@ -147,12 +147,13 @@ export class IntelligentModelRouter {
     const today = new Date().toISOString().split('T')[0]
     
     if (!usage[today]) {
-      usage[today] = { groq: 0, openai: 0, cost: 0, tokens: 0 }
+      usage[today] = { groq: 0, openai: 0, cost: 0, tokens: 0, queries: 0 }
     }
     
-    usage[today][model === 'groq-fast' ? 'groq' : 'openai'] += 1
+    usage[today][model.includes('groq') ? 'groq' : 'openai'] += 1
     usage[today].cost += cost
     usage[today].tokens += tokens
+    usage[today].queries += 1
     
     localStorage.setItem('ai_usage', JSON.stringify(usage))
     

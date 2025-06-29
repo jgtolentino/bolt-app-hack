@@ -134,3 +134,37 @@ export interface UtangListaAnalytics {
     payment_history: 'excellent' | 'good' | 'fair' | 'poor';
   }>;
 }
+
+// Substitution Pattern types
+export interface SubstitutionPattern {
+  source: string;
+  target: string;
+  value: number;
+  percentage: number;
+  sourceCategory?: string;
+  targetCategory?: string;
+  sourceBrand?: string;
+  targetBrand?: string;
+  priceImpact?: 'upsell' | 'downsell' | 'same';
+  region?: string;
+}
+
+// Basket Combination types
+export interface BasketCombination {
+  products: string[];
+  count: number;
+  percentage: number;
+  avgValue: number;
+  region?: string;
+  timeOfDay?: string;
+}
+
+// Request Type data
+export interface RequestTypeData {
+  type: 'branded' | 'unbranded' | 'pointing' | 'uncertain';
+  count: number;
+  percentage: number;
+  avgValue: number;
+  products?: string[];
+  categories?: string[];
+}

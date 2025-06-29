@@ -1,4 +1,4 @@
-import { supabase, fetchAllRecords } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 export interface ProValidationResult {
   section: string;
@@ -286,63 +286,28 @@ export class ProAccountValidator {
     return report;
   }
 
-  // New function to generate 750K transactions
-  static async generate750KTransactions(): Promise<ProValidationResult> {
-    const startTime = Date.now();
-    
-    try {
-      console.log('🚀 Starting 750K transaction generation...');
-      
-      // Call the database function to generate transactions
-      const { data, error } = await supabase.rpc('generate_full_dataset', {
-        total_transactions: 750000,
-        batch_size: 10000
-      });
-      
-      if (error) throw error;
-      
-      const executionTime = Date.now() - startTime;
-      
-      return {
-        section: '750K Transaction Generation',
-        status: 'success',
-        data: {
-          result: data,
-          generationTime: executionTime
-        },
-        executionTime,
-        message: `Successfully initiated 750K transaction generation: ${data}`
-      };
-    } catch (error) {
-      return {
-        section: '750K Transaction Generation',
-        status: 'error',
-        data: { error: error instanceof Error ? error.message : 'Unknown error' },
-        executionTime: Date.now() - startTime,
-        message: 'Failed to generate 750K transactions'
-      };
-    }
-  }
-
   // Function to monitor generation progress
   static async monitorGenerationProgress(): Promise<ProValidationResult> {
     const startTime = Date.now();
     
     try {
-      const { data, error } = await supabase.rpc('monitor_generation_progress');
+      const { data, error } = await supabase.rpc('get_transaction_stats');
       
       if (error) throw error;
       
       const executionTime = Date.now() - startTime;
-      const progress = data?.[0] || {};
+      const totalTransactions = data?.total_count || 0;
       
       return {
         section: 'Generation Progress',
         status: 'success',
-        data: progress,
-        recordCount: progress.total_transactions || 0,
+        data: {
+          ...data,
+          target_percentage: Math.min(100, Math.round((totalTransactions / 750000) * 100))
+        },
+        recordCount: totalTransactions,
         executionTime,
-        message: `Progress: ${progress.target_percentage || 0}% complete (${progress.total_transactions || 0}/750,000 transactions)`
+        message: `Progress: ${Math.min(100, Math.round((totalTransactions / 750000) * 100))}% complete (${totalTransactions}/750,000 transactions)`
       };
     } catch (error) {
       return {
@@ -353,4 +318,30 @@ export class ProAccountValidator {
       };
     }
   }
+}
+
+// Helper function to fetch all records with pagination
+async function fetchAllRecords<T>(query: any, pageSize = 1000, maxRecords = 100000): Promise<T[]> {
+  let allRecords: T[] = [];
+  let page = 0;
+  let hasMore = true;
+
+  while (hasMore && allRecords.length < maxRecords) {
+    const start = page * pageSize;
+    const end = start + pageSize - 1;
+    
+    const { data, error } = await query.range(start, end);
+    
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      allRecords = [...allRecords, ...data];
+      page++;
+      hasMore = data.length === pageSize;
+    } else {
+      hasMore = false;
+    }
+  }
+  
+  return allRecords;
 }
