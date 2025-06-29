@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react'
 import { IntelligentModelRouter } from '../../lib/intelligent-router'
 import { PhilippineRetailAI } from '../../lib/philippine-retail-ai'
+import { AIFeatures } from '../../lib/ai-features'
 import { motion } from 'framer-motion'
 import { 
   Bot, Send, Zap, TrendingUp, MapPin, Package, Users, 
-  DollarSign, BarChart3, PieChart, Target, Clock, AlertTriangle 
+  DollarSign, BarChart3, PieChart, Target, Clock, AlertTriangle,
+  CreditCard
 } from 'lucide-react'
 import { formatCurrency } from '../../utils/formatters'
 

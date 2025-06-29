@@ -5,7 +5,7 @@ import { ProductionAIChat } from '../components/ai/ProductionAIChat';
 import { RealtimeTransactionFeed } from '../components/dashboard/RealtimeTransactionFeed';
 import {
   Bot, Zap, AlertTriangle, TrendingUp, Download, RefreshCcw,
-  Cpu, Database, Globe, Shield
+  Cpu, Database, Globe, Shield, CreditCard
 } from 'lucide-react';
 
 const AIAssistant: React.FC = () => {

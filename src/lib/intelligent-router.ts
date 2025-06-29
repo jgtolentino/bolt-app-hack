@@ -147,12 +147,13 @@ export class IntelligentModelRouter {
     const today = new Date().toISOString().split('T')[0]
     
     if (!usage[today]) {
-      usage[today] = { groq: 0, openai: 0, cost: 0, tokens: 0 }
+      usage[today] = { groq: 0, openai: 0, cost: 0, tokens: 0, queries: 0 }
     }
     
     usage[today][model === 'groq-fast' ? 'groq' : 'openai'] += 1
     usage[today].cost += cost
     usage[today].tokens += tokens
+    usage[today].queries += 1
     
     localStorage.setItem('ai_usage', JSON.stringify(usage))
     
