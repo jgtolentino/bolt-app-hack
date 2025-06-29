@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import TreemapChart from '../components/charts/TreemapChart';
 import HorizontalBarChart from '../components/charts/HorizontalBarChart';
+import SubstitutionPatternsChart from '../components/charts/SubstitutionPatternsChart';
 
 const ProductAnalysis: React.FC = () => {
   const navigate = useNavigate();
@@ -63,6 +64,20 @@ const ProductAnalysis: React.FC = () => {
       { region: 'Region III', beverages: 78000, snacks: 68000, dairy: 52000, total: 198000 },
       { region: 'Region IV-A', beverages: 72000, snacks: 58000, dairy: 48000, total: 178000 },
       { region: 'Region VI', beverages: 45000, snacks: 38000, dairy: 32000, total: 115000 }
+    ],
+    substitutionPatterns: [
+      { source: 'Coca-Cola 355ml', target: 'Pepsi 355ml', value: 450, percentage: 65 },
+      { source: 'Coca-Cola 355ml', target: 'Royal 355ml', value: 120, percentage: 18 },
+      { source: 'Coca-Cola 355ml', target: 'Sprite 355ml', value: 80, percentage: 12 },
+      { source: 'Oishi Prawn Crackers', target: 'Jack n Jill Piattos', value: 320, percentage: 48 },
+      { source: 'Oishi Prawn Crackers', target: 'Nova Chips', value: 180, percentage: 27 },
+      { source: 'Alaska Evap Milk', target: 'Bear Brand Milk', value: 280, percentage: 42 },
+      { source: 'Alaska Evap Milk', target: 'Nestle Evap Milk', value: 210, percentage: 32 },
+      { source: 'Palmolive Shampoo', target: 'Head & Shoulders', value: 150, percentage: 38 },
+      { source: 'Palmolive Shampoo', target: 'Pantene', value: 120, percentage: 30 },
+      { source: 'Surf Powder', target: 'Tide Powder', value: 200, percentage: 45 },
+      { source: 'Surf Powder', target: 'Ariel Powder', value: 180, percentage: 40 },
+      { source: 'Lucky Me Pancit Canton', target: 'Nissin Pancit Canton', value: 350, percentage: 58 }
     ]
   });
 
@@ -306,6 +321,13 @@ const ProductAnalysis: React.FC = () => {
           </table>
         </div>
       </div>
+
+      {/* Substitution Patterns Chart */}
+      <SubstitutionPatternsChart 
+        data={productData.substitutionPatterns}
+        title="Brand Substitution Patterns"
+        height={400}
+      />
     </div>
   );
 
@@ -437,6 +459,13 @@ const ProductAnalysis: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* SKU Substitution Patterns */}
+      <SubstitutionPatternsChart 
+        data={productData.substitutionPatterns}
+        title="SKU Substitution Patterns"
+        height={400}
+      />
     </div>
   );
 
@@ -477,6 +506,13 @@ const ProductAnalysis: React.FC = () => {
           sortDescending={true}
         />
       </div>
+
+      {/* Substitution Patterns */}
+      <SubstitutionPatternsChart 
+        data={productData.substitutionPatterns}
+        title="Product Substitution Patterns"
+        height={400}
+      />
     </div>
   );
 
