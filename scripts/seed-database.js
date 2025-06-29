@@ -1,7 +1,15 @@
 import { createClient } from '@supabase/supabase-js';
+import { config } from 'dotenv';
+import { fileURLToPath } from 'url';
+import { dirname, join } from 'path';
+
+// Load environment variables
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+config({ path: join(__dirname, '..', '.env.local') });
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseServiceKey = process.env.VITE_SUPABASE_SERVICE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.VITE_SUPABASE_SERVICE_KEY;
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
@@ -154,11 +162,20 @@ async function seedDatabase() {
     console.log('🔄 Starting transaction generation...');
     console.log('📊 First batch will ensure complete coverage of all regions and brands');
     
-    const { data, error } = await supabase
-      .rpc('generate_distributed_transactions', { 
-        total_transactions: 750000, 
-        batch_size: 2000 
+    // Try to use the most appropriate function available
+    let result = await supabase.rpc('generate_efficient_transactions', { 
+      target_count: 10000, 
+      max_batch_size: 2000 
+    });
+    
+    if (result.error && result.error.message.includes('Could not find')) {
+      console.log('⚠️ Primary function not found, trying alternative...');
+      result = await supabase.rpc('generate_sample_transactions', { 
+        count: 2000 
       });
+    }
+    
+    const { data, error } = result;
     
     if (error) {
       console.error('❌ Error generating transactions:', error);
@@ -167,9 +184,21 @@ async function seedDatabase() {
     
     console.log('✅ Transaction generation complete:', data);
     
-    // Check coverage statistics
-    const { data: stats, error: statsError } = await supabase
-      .rpc('monitor_batch_generation');
+    // Try to check coverage statistics if function exists
+    let stats = null;
+    let statsError = null;
+    
+    const statsResult = await supabase.rpc('get_transaction_stats');
+    if (!statsResult.error) {
+      stats = statsResult.data;
+    } else {
+      // Try alternative function
+      const altStatsResult = await supabase.rpc('monitor_batch_generation');
+      if (!altStatsResult.error) {
+        stats = altStatsResult.data;
+        statsError = altStatsResult.error;
+      }
+    }
     
     if (!statsError && stats && stats[0]) {
       console.log('\n📊 Final Database Statistics:');
