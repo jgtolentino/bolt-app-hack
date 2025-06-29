@@ -46,8 +46,15 @@ CREATE POLICY "Service role has full access"
   WITH CHECK (true);
 
 -- Drop and recreate functions with fixes
+-- Drop all versions of the functions to avoid ambiguity
 DROP FUNCTION IF EXISTS generate_transaction_batch(INTEGER, INTEGER);
+DROP FUNCTION IF EXISTS generate_transaction_batch(INTEGER);
+DROP FUNCTION IF EXISTS generate_transaction_batch();
+
 DROP FUNCTION IF EXISTS generate_full_dataset(INTEGER, INTEGER);
+DROP FUNCTION IF EXISTS generate_full_dataset(INTEGER);
+DROP FUNCTION IF EXISTS generate_full_dataset();
+
 DROP FUNCTION IF EXISTS monitor_generation_progress();
 
 -- Fixed generate_transaction_batch function

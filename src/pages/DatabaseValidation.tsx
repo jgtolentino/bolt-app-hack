@@ -2,16 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { DatabaseValidator, ValidationResult } from '../utils/databaseValidator';
 import { ProAccountValidator, ProValidationResult } from '../utils/proValidation';
-import { Database, CheckCircle, XCircle, AlertCircle, RefreshCcw, Download, Play, BarChart3, Zap } from 'lucide-react';
+import { AIValidator, AIValidationResult } from '../utils/aiValidation';
+import { Database, CheckCircle, XCircle, AlertCircle, RefreshCcw, Download, Play, BarChart3, Zap, Brain } from 'lucide-react';
 
 const DatabaseValidation: React.FC = () => {
   const [validationResults, setValidationResults] = useState<ValidationResult[]>([]);
   const [proResults, setProResults] = useState<ProValidationResult[]>([]);
+  const [aiResults, setAiResults] = useState<AIValidationResult[]>([]);
   const [generationProgress, setGenerationProgress] = useState<ProValidationResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastValidated, setLastValidated] = useState<Date | null>(null);
-  const [activeTab, setActiveTab] = useState<'validation' | 'generation' | 'pro-features'>('validation');
+  const [activeTab, setActiveTab] = useState<'validation' | 'generation' | 'pro-features' | 'ai-validation'>('validation');
 
   const runValidation = async () => {
     setIsLoading(true);
@@ -33,6 +35,18 @@ const DatabaseValidation: React.FC = () => {
       setProResults(results);
     } catch (error) {
       console.error('Pro validation failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const runAIValidation = async () => {
+    setIsLoading(true);
+    try {
+      const results = await AIValidator.runFullAIValidation();
+      setAiResults(results);
+    } catch (error) {
+      console.error('AI validation failed:', error);
     } finally {
       setIsLoading(false);
     }
@@ -88,6 +102,19 @@ const DatabaseValidation: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const downloadAIReport = () => {
+    const report = AIValidator.generateAIReport(aiResults);
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `ai-validation-report-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   useEffect(() => {
     runValidation();
   }, []);
@@ -98,7 +125,8 @@ const DatabaseValidation: React.FC = () => {
   const tabs = [
     { id: 'validation', label: 'Data Validation', icon: Database },
     { id: 'generation', label: '750K Generation', icon: Zap },
-    { id: 'pro-features', label: 'Pro Features', icon: BarChart3 }
+    { id: 'pro-features', label: 'Pro Features', icon: BarChart3 },
+    { id: 'ai-validation', label: 'AI Validation', icon: Brain }
   ];
 
   return (
@@ -502,6 +530,189 @@ const DatabaseValidation: React.FC = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'ai-validation' && (
+          <div className="space-y-6">
+            {/* AI Validation Control */}
+            <div className="chart-container">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                  <Brain className="w-5 h-5" />
+                  <span>AI-Powered Data Validation</span>
+                </h3>
+                <div className="flex space-x-2">
+                  <button
+                    onClick={runAIValidation}
+                    disabled={isLoading}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600 disabled:opacity-50"
+                  >
+                    <Brain className={`w-4 h-4 ${isLoading ? 'animate-pulse' : ''}`} />
+                    <span>{isLoading ? 'Analyzing...' : 'Run AI Analysis'}</span>
+                  </button>
+                  {aiResults.length > 0 && (
+                    <button
+                      onClick={downloadAIReport}
+                      className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>AI Report</span>
+                    </button>
+                  )}
+                </div>
+              </div>
+
+              {aiResults.length === 0 ? (
+                <div className="text-center py-12">
+                  <Brain className="w-16 h-16 text-purple-400 mx-auto mb-4" />
+                  <h4 className="text-lg font-medium text-gray-900 mb-2">AI-Powered Analytics</h4>
+                  <p className="text-gray-600 mb-6 max-w-md mx-auto">
+                    Use advanced AI to analyze data quality, detect anomalies, validate business rules, 
+                    and predict future trends in your retail data.
+                  </p>
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                    <div className="p-4 bg-purple-50 rounded-lg">
+                      <div className="text-purple-600 font-semibold">Data Quality</div>
+                      <div className="text-sm text-gray-600">AI-driven analysis</div>
+                    </div>
+                    <div className="p-4 bg-pink-50 rounded-lg">
+                      <div className="text-pink-600 font-semibold">Anomaly Detection</div>
+                      <div className="text-sm text-gray-600">Pattern recognition</div>
+                    </div>
+                    <div className="p-4 bg-indigo-50 rounded-lg">
+                      <div className="text-indigo-600 font-semibold">Business Rules</div>
+                      <div className="text-sm text-gray-600">Automated validation</div>
+                    </div>
+                    <div className="p-4 bg-blue-50 rounded-lg">
+                      <div className="text-blue-600 font-semibold">Trend Prediction</div>
+                      <div className="text-sm text-gray-600">Forecast analytics</div>
+                    </div>
+                  </div>
+                  <button
+                    onClick={runAIValidation}
+                    className="px-6 py-3 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg hover:from-purple-600 hover:to-pink-600"
+                  >
+                    Start AI Analysis
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  {/* AI Results */}
+                  {aiResults.map((result, index) => (
+                    <motion.div
+                      key={result.section}
+                      className="bg-white rounded-lg shadow-sm border p-6"
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.1 }}
+                    >
+                      <div className="flex items-center justify-between mb-4">
+                        <h4 className="font-semibold text-gray-900 flex items-center space-x-2">
+                          {result.status === 'success' && <CheckCircle className="w-5 h-5 text-green-500" />}
+                          {result.status === 'warning' && <AlertCircle className="w-5 h-5 text-yellow-500" />}
+                          {result.status === 'error' && <XCircle className="w-5 h-5 text-red-500" />}
+                          <span>{result.section}</span>
+                        </h4>
+                        {result.score !== undefined && (
+                          <div className="flex items-center space-x-2">
+                            <span className="text-sm text-gray-600">AI Score:</span>
+                            <span className={`font-bold ${
+                              result.score > 80 ? 'text-green-600' : 
+                              result.score > 60 ? 'text-yellow-600' : 'text-red-600'
+                            }`}>
+                              {result.score}%
+                            </span>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Insights */}
+                      {result.insights && result.insights.length > 0 && (
+                        <div className="mb-4">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">🔍 AI Insights</h5>
+                          <ul className="space-y-1">
+                            {result.insights.map((insight, i) => (
+                              <li key={i} className="text-sm text-gray-600 flex items-start">
+                                <span className="mr-2">•</span>
+                                <span>{insight}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Recommendations */}
+                      {result.recommendations && result.recommendations.length > 0 && (
+                        <div className="mb-4">
+                          <h5 className="text-sm font-medium text-gray-700 mb-2">💡 Recommendations</h5>
+                          <ul className="space-y-1">
+                            {result.recommendations.map((rec, i) => (
+                              <li key={i} className="text-sm text-gray-600 flex items-start">
+                                <span className="mr-2">→</span>
+                                <span>{rec}</span>
+                              </li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* Anomalies */}
+                      {result.anomalies && result.anomalies.length > 0 && (
+                        <div className="mt-4 p-4 bg-yellow-50 rounded-lg">
+                          <h5 className="text-sm font-medium text-yellow-800 mb-2">⚠️ Anomalies Detected</h5>
+                          <div className="space-y-2">
+                            {result.anomalies.slice(0, 3).map((anomaly, i) => (
+                              <div key={i} className="text-sm text-yellow-700">
+                                Transaction {anomaly.transaction?.id}: {anomaly.type} 
+                                (₱{formatNumber(anomaly.transaction?.total_amount || 0)})
+                              </div>
+                            ))}
+                            {result.anomalies.length > 3 && (
+                              <div className="text-sm text-yellow-600 italic">
+                                ...and {result.anomalies.length - 3} more anomalies
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Execution Time */}
+                      {result.executionTime && (
+                        <div className="mt-4 text-xs text-gray-500">
+                          Analysis completed in {result.executionTime}ms
+                        </div>
+                      )}
+                    </motion.div>
+                  ))}
+
+                  {/* AI Summary */}
+                  <div className="chart-container bg-gradient-to-r from-purple-50 to-pink-50">
+                    <h3 className="text-lg font-semibold text-gray-900 mb-4">AI Analysis Summary</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                      <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                        <div className="text-2xl font-bold text-green-600">
+                          {aiResults.filter(r => r.status === 'success').length}
+                        </div>
+                        <div className="text-sm text-gray-600">Passed Checks</div>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                        <div className="text-2xl font-bold text-yellow-600">
+                          {aiResults.filter(r => r.status === 'warning').length}
+                        </div>
+                        <div className="text-sm text-gray-600">Warnings</div>
+                      </div>
+                      <div className="text-center p-4 bg-white rounded-lg shadow-sm">
+                        <div className="text-2xl font-bold text-purple-600">
+                          {Math.round(aiResults.reduce((sum, r) => sum + (r.score || 0), 0) / aiResults.filter(r => r.score).length)}%
+                        </div>
+                        <div className="text-sm text-gray-600">Avg AI Score</div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
             </div>

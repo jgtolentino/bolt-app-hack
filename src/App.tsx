@@ -5,6 +5,7 @@ import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import GlobalFilters from './components/filters/GlobalFilters';
 import Overview from './pages/Overview';
+import DashboardOverview from './pages/DashboardOverview';
 import TransactionAnalysis from './pages/TransactionAnalysis';
 import ProductAnalysis from './pages/ProductAnalysis';
 import ConsumerInsights from './pages/ConsumerInsights';
@@ -37,7 +38,8 @@ function App() {
             transition={{ duration: 0.5 }}
           >
             <Routes>
-              <Route path="/" element={<Overview />} />
+              <Route path="/" element={<DashboardOverview />} />
+              <Route path="/overview" element={<Overview />} />
               <Route path="/transactions" element={<TransactionAnalysis />} />
               <Route path="/products" element={<ProductAnalysis />} />
               <Route path="/consumers" element={<ConsumerInsights />} />

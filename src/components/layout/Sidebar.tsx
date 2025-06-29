@@ -11,19 +11,21 @@ import {
   FileText,
   Home,
   ChevronRight,
-  Database
+  Database,
+  LayoutDashboard
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const navItems = [
-    { path: '/', icon: Home, label: 'Overview', description: 'Dashboard home' },
+    { path: '/', icon: LayoutDashboard, label: 'Dashboard', description: 'Command center' },
+    { path: '/overview', icon: Home, label: 'Overview', description: 'Analytics home' },
     { path: '/transactions', icon: TrendingUp, label: 'Transactions', description: 'Sales analytics' },
     { path: '/products', icon: Package, label: 'Products', description: 'Product performance' },
     { path: '/consumers', icon: Users, label: 'Consumers', description: 'Customer insights' },
     { path: '/geography', icon: MapPin, label: 'Geography', description: 'Location analytics' },
     { path: '/ai-assistant', icon: Bot, label: 'AI Assistant', description: 'Retail intelligence' },
     { path: '/reports', icon: FileText, label: 'Reports', description: 'Export & sharing' },
-    { path: '/validation', icon: Database, label: 'DB Validation', description: 'Data quality check' },
+    { path: '/validation', icon: Database, label: 'Data Validation', description: 'AI & quality checks' },
   ];
 
   return (
