@@ -13,6 +13,9 @@ const isPlaceholderKey = !supabaseAnonKey ||
   supabaseAnonKey === 'your-anon-key' || 
   supabaseAnonKey.length < 20
 
+// Declare supabase variable at top level
+let supabase: any
+
 // Validate that required environment variables are present and not placeholders
 if (!supabaseUrl || !supabaseAnonKey || isPlaceholderUrl || isPlaceholderKey) {
   const errorMessage = `
@@ -49,12 +52,11 @@ Current values:
     }
   }
   
-  // Export the mock client to prevent runtime errors
-  // @ts-ignore
-  export const supabase = mockClient
+  // Assign the mock client to the variable
+  supabase = mockClient
 } else {
   // Create the real Supabase client
-  export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
       autoRefreshToken: true,
       persistSession: true,
@@ -560,3 +562,6 @@ export interface Database {
     }
   }
 }
+
+// Export the supabase client
+export { supabase }
