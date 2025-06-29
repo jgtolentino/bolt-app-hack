@@ -29,14 +29,6 @@ export class AIFeatures {
       confidence_scores['underperformer_analysis'] = 0.88
     }
     
-    // Utang/Lista analysis
-    const utangListaData = data.find(item => item.payment_method === 'Utang/Lista')
-    if (utangListaData) {
-      insights.push(`Utang/Lista credit system represents ${utangListaData.percentage || 28.1}% of transactions, showing strong community trust`)
-      recommendations.push(`Implement digital tracking for Utang/Lista to improve collection rates`)
-      confidence_scores['utang_lista_analysis'] = 0.95
-    }
-    
     // Regional insights
     const regions = data.filter(item => item.region)
     if (regions.length > 0) {
@@ -65,7 +57,7 @@ export class AIFeatures {
     }
     
     // Payment method insights
-    insights.push(`Payment method distribution reflects Filipino retail patterns: Cash (52.8%), Utang/Lista (28.1%), GCash (18.9%)`)
+    insights.push(`Payment method distribution reflects Filipino retail patterns: Cash (52.8%), GCash (18.9%)`)
     recommendations.push(`Consider GCash integration to capture growing digital payment trend`)
     confidence_scores['payment_method_analysis'] = 0.93
     
@@ -128,15 +120,10 @@ Based on your Philippine retail data, I've identified several key insights:
 • Snacks category shows strong performance in Visayas regions
 • Personal Care underperforming in Region III (-5.2% vs target)
 
-**Utang/Lista System:**
-• 28.1% of transactions use Utang/Lista credit system
-• Average credit amount (₱217) higher than cash transactions (₱165)
-• Collection rate varies by region (NCR: 72%, Visayas: 65%)
-
 **Recommendations:**
 1. Expand beverage offerings in NCR (+15% potential growth)
-2. Implement digital Utang/Lista tracking to improve collection rates
-3. Target Region XI for expansion with localized product mix
+2. Target Region XI for expansion with localized product mix
+3. Implement targeted promotions during payday periods (15th/30th)
 
 *Confidence score: 92% based on current data patterns*`
     }
@@ -169,42 +156,9 @@ ${new Date().getMonth() >= 8 ?
 
 **Payment Method Trends:**
 • Cash remains dominant: 52.8% of transactions
-• Utang/Lista stable at 28.1% with seasonal variations
 • GCash adoption increasing: projected to reach 22% by next quarter
 
 **Confidence: 87%** based on 3-year historical data patterns and current economic indicators.`
-    }
-    
-    // Utang/Lista specific response
-    if (lowerQuery.includes('utang') || lowerQuery.includes('lista') || lowerQuery.includes('credit')) {
-      return `💳 **Utang/Lista Credit System Analysis**
-
-**Current Performance:**
-• Credit volume: ₱${(context.total_sales * 0.281).toLocaleString()} (28.1% of total sales)
-• Active accounts: ${context.credit_transactions || 125} customers
-• Average credit amount: ₱217 (higher than cash average of ₱165)
-• Collection rate: 68.5% overall (varies by region)
-
-**Risk Assessment:**
-• **Low Risk:** Strong community trust indicates reliable customer base
-• **Medium Risk:** 28.1% credit exposure requires monitoring
-• **Opportunity:** Higher transaction values suggest customer loyalty
-
-**Regional Variations:**
-• NCR: 72% collection rate (best performing)
-• Visayas: 65% collection rate (needs improvement)
-• Mindanao: 70% collection rate (improving trend)
-
-**Strategic Recommendations:**
-1. Implement digital tracking system for better credit management
-2. Set credit limits based on customer payment history
-3. Offer small incentives for early payment (5% discount)
-4. Monitor seasonal patterns in credit usage
-
-**Cultural Context:**
-Utang/Lista represents deep community trust and is essential for sari-sari store success in Philippine retail.
-
-*Confidence score: 95% based on extensive Philippine retail data*`
     }
     
     // Anomaly detection response
@@ -225,17 +179,10 @@ I've analyzed your transaction data and identified these significant anomalies:
 • Personal Care: -18.5% below trend in Region III
   → Competitor activity detected, recommend price matching
 
-**Utang/Lista Patterns:**
-• Collection rate dropped to 52% in Mindanao stores (normally 70%)
-  → Immediate attention required, possible economic factors
-• Credit limit utilization increased 15% in last 30 days
-  → Monitor closely, may indicate economic pressure
-
 **Recommended Actions:**
 1. Investigate NCR sales drop with store managers
 2. Review Personal Care pricing strategy in Region III
-3. Implement stricter credit controls in Mindanao temporarily
-4. Capitalize on weekend beverage sales with targeted promotions
+3. Capitalize on weekend beverage sales with targeted promotions
 
 *Anomaly detection confidence: 89% based on 6-month baseline*`
     }
@@ -262,13 +209,12 @@ Based on your query about "${query}", here's what I can tell you from the curren
 
 **Payment Methods:**
 • Cash: 52.8% of transactions
-• Utang/Lista: 28.1% (showing strong community trust)
 • GCash: 18.9% (growing digital adoption)
 
 **Recommendations:**
 1. Focus expansion on high-growth Region XI
 2. Optimize inventory for seasonal patterns
-3. Implement digital tracking for Utang/Lista system
+3. Implement digital payment options
 
 *Confidence score: 90% based on current data patterns*`
   }

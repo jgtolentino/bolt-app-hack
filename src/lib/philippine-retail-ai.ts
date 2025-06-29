@@ -21,15 +21,14 @@ export class PhilippineRetailAI {
       avg_transaction: 47.50,
       peak_hours: ['7-9 AM', '5-7 PM'],
       popular_categories: ['Beverages', 'Snacks', 'Personal Care', 'Household'],
-      payment_methods: { cash: 52.8, utang_lista: 28.1, gcash: 18.9, credit: 2.9 }
+      payment_methods: { cash: 52.8, gcash: 18.9, credit: 2.9 }
     },
     
     consumer_patterns: {
       bulk_buying: 'payday_periods',
       brand_loyalty: 'medium',
       price_sensitivity: 'high',
-      promotions_effectiveness: 'very_high',
-      utang_lista_prevalence: 'high'
+      promotions_effectiveness: 'very_high'
     }
   }
   
@@ -52,24 +51,17 @@ ${seasonality}
 🏪 SARI-SARI STORE DYNAMICS:
 - Average transaction: ₱${this.PHILIPPINE_CONTEXT.sari_sari_dynamics.avg_transaction}
 - Peak hours: ${this.PHILIPPINE_CONTEXT.sari_sari_dynamics.peak_hours.join(', ')}
-- Payment: ${this.PHILIPPINE_CONTEXT.sari_sari_dynamics.payment_methods.cash}% cash, ${this.PHILIPPINE_CONTEXT.sari_sari_dynamics.payment_methods.utang_lista}% utang/lista, ${this.PHILIPPINE_CONTEXT.sari_sari_dynamics.payment_methods.gcash}% GCash
-
-💳 UTANG/LISTA INSIGHTS:
-- Credit system represents 28.1% of transactions
-- Shows high customer trust and loyalty
-- Average credit amount higher than cash transactions
-- Critical for sari-sari store cash flow management
+- Payment: ${this.PHILIPPINE_CONTEXT.sari_sari_dynamics.payment_methods.cash}% cash, ${this.PHILIPPINE_CONTEXT.sari_sari_dynamics.payment_methods.gcash}% GCash
 
 📊 CURRENT DATA CONTEXT:
 ${retailContext}
 
 🎯 RESPONSE REQUIREMENTS:
 - Use Philippine Peso (₱) formatting
-- Reference local market dynamics including utang/lista
+- Reference local market dynamics
 - Provide actionable insights for sari-sari store operators
 - Consider cultural and economic factors
 - Include confidence scores for predictions
-- Address payment method implications
 
 Query: ${query}`
   }
@@ -107,7 +99,6 @@ Query: ${query}`
 - Total transactions: ${data.recent_transactions || 'N/A'}
 - Average transaction: ₱${data.avg_transaction?.toFixed(2) || 'N/A'}
 - Top region: ${data.top_performing_region?.region || 'N/A'}
-- Recent sales: ₱${data.total_sales?.toLocaleString() || 'N/A'}
-- Utang/Lista volume: ${data.credit_transactions || 'N/A'} transactions`
+- Recent sales: ₱${data.total_sales?.toLocaleString() || 'N/A'}`
   }
 }

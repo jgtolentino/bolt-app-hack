@@ -9,8 +9,7 @@ import ProductPerformanceChart from '../components/charts/ProductPerformanceChar
 import GeographicMap from '../components/maps/GeographicMap';
 import ZoomableContainer from '../components/ui/ZoomableContainer';
 import MobileZoomableContainer from '../components/ui/MobileZoomableContainer';
-import UtangListaWidget from '../components/dashboard/UtangListaWidget';
-import { TrendingUp, Users, MapPin, Bot, FileText, BarChart3, Database, Wifi, WifiOff, CreditCard } from 'lucide-react';
+import { TrendingUp, Users, MapPin, Bot, FileText, BarChart3, Database, Wifi, WifiOff } from 'lucide-react';
 
 const Overview: React.FC = () => {
   const navigate = useNavigate();
@@ -202,14 +201,58 @@ const Overview: React.FC = () => {
           <SalesTrendChart data={salesTrendData} height={400} />
         </motion.div>
 
-        {/* Utang/Lista Widget */}
+        {/* AI Insights */}
         <motion.div
           className="xl:col-span-1"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
-          <UtangListaWidget />
+          <div className="chart-container h-full">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">AI Insights</h3>
+              <button
+                onClick={() => navigate('/ai-assistant')}
+                className="text-sm text-primary-600 hover:text-primary-800"
+              >
+                View All →
+              </button>
+            </div>
+            
+            <div className="space-y-3 h-80 overflow-y-auto">
+              {quickInsights.map((insight, index) => (
+                <motion.div
+                  key={index}
+                  className="p-3 bg-white/50 rounded-lg border border-white/30 hover:bg-white/70 transition-colors cursor-pointer"
+                  whileHover={{ scale: 1.02 }}
+                  onClick={() => navigate('/ai-assistant')}
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className={`w-8 h-8 ${insight.color} rounded-lg flex items-center justify-center`}>
+                      <insight.icon className="w-4 h-4 text-white" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-gray-900">{insight.title}</h4>
+                      <p className="text-sm text-gray-600 mb-2">{insight.description}</p>
+                      <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded">
+                        {insight.action}
+                      </span>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            
+            <div className="mt-4 pt-4 border-t border-white/20">
+              <button
+                onClick={() => navigate('/ai-assistant')}
+                className="w-full py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-colors"
+              >
+                <Bot className="w-4 h-4 inline mr-2" />
+                Ask AI Assistant
+              </button>
+            </div>
+          </div>
         </motion.div>
       </div>
 
@@ -306,11 +349,11 @@ const Overview: React.FC = () => {
           <span>Consumer Insights</span>
         </button>
         <button
-          onClick={() => navigate('/utang-lista')}
+          onClick={() => navigate('/geography')}
           className="filter-button flex items-center space-x-2"
         >
-          <CreditCard className="w-4 h-4" />
-          <span>Utang/Lista</span>
+          <MapPin className="w-4 h-4" />
+          <span>Geographic Analysis</span>
         </button>
       </motion.div>
     </div>
