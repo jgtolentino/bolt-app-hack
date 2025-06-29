@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { supabase, fetchAllRecords } from '../lib/supabase';
-import { KPIMetric, TransactionData, GeographyData, OrganizationData, ChartDataPoint } from '../types';
+import { supabase, fetchAllRecords, fetchSubstitutionPatterns } from '../lib/supabase';
+import { KPIMetric, TransactionData, GeographyData, OrganizationData, ChartDataPoint, SubstitutionPattern } from '../types';
 
 interface DataStore {
   // Data mode
@@ -14,6 +14,7 @@ interface DataStore {
   salesTrendData: ChartDataPoint[];
   geographicData: GeographyData[];
   productPerformanceData: ChartDataPoint[];
+  substitutionPatternsData: SubstitutionPattern[];
   
   // Raw Data
   transactions: TransactionData[];
@@ -29,6 +30,7 @@ interface DataStore {
   loadKPIMetrics: () => Promise<void>;
   loadChartData: () => Promise<void>;
   loadGeographicData: () => Promise<void>;
+  loadSubstitutionPatterns: (filters?: any) => Promise<void>;
   refreshAllData: () => Promise<void>;
 }
 
@@ -44,6 +46,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
   salesTrendData: [],
   geographicData: [],
   productPerformanceData: [],
+  substitutionPatternsData: [],
   transactions: [],
   geography: [],
   organizations: [],
@@ -359,12 +362,55 @@ export const useDataStore = create<DataStore>((set, get) => ({
     }
   },
 
+  loadSubstitutionPatterns: async (filters = {}) => {
+    try {
+      set({ isLoadingData: true });
+      const { useRealData } = get();
+      
+      if (useRealData) {
+        try {
+          // Fetch real substitution patterns from Supabase
+          const data = await fetchSubstitutionPatterns(filters);
+          
+          if (data && data.length > 0) {
+            set({ substitutionPatternsData: data, isLoadingData: false });
+            return;
+          }
+        } catch (error) {
+          console.warn('Failed to load real substitution data, falling back to mock data:', error);
+        }
+      }
+      
+      // Fallback to mock data
+      const mockSubstitutionPatterns: SubstitutionPattern[] = [
+        { source: 'Coca-Cola 355ml', target: 'Pepsi 355ml', value: 450, percentage: 65, sourceCategory: 'Beverages', targetCategory: 'Beverages', priceImpact: 'same' },
+        { source: 'Coca-Cola 355ml', target: 'Royal 355ml', value: 120, percentage: 18, sourceCategory: 'Beverages', targetCategory: 'Beverages', priceImpact: 'downsell' },
+        { source: 'Coca-Cola 355ml', target: 'Sprite 355ml', value: 80, percentage: 12, sourceCategory: 'Beverages', targetCategory: 'Beverages', priceImpact: 'same' },
+        { source: 'Oishi Prawn Crackers', target: 'Jack n Jill Piattos', value: 320, percentage: 48, sourceCategory: 'Snacks', targetCategory: 'Snacks', priceImpact: 'upsell' },
+        { source: 'Oishi Prawn Crackers', target: 'Nova Chips', value: 180, percentage: 27, sourceCategory: 'Snacks', targetCategory: 'Snacks', priceImpact: 'downsell' },
+        { source: 'Alaska Evap Milk', target: 'Bear Brand Milk', value: 280, percentage: 42, sourceCategory: 'Dairy', targetCategory: 'Dairy', priceImpact: 'upsell' },
+        { source: 'Alaska Evap Milk', target: 'Nestle Evap Milk', value: 210, percentage: 32, sourceCategory: 'Dairy', targetCategory: 'Dairy', priceImpact: 'same' },
+        { source: 'Palmolive Shampoo', target: 'Head & Shoulders', value: 150, percentage: 38, sourceCategory: 'Personal Care', targetCategory: 'Personal Care', priceImpact: 'upsell' },
+        { source: 'Palmolive Shampoo', target: 'Pantene', value: 120, percentage: 30, sourceCategory: 'Personal Care', targetCategory: 'Personal Care', priceImpact: 'upsell' },
+        { source: 'Surf Powder', target: 'Tide Powder', value: 200, percentage: 45, sourceCategory: 'Home Care', targetCategory: 'Home Care', priceImpact: 'upsell' },
+        { source: 'Surf Powder', target: 'Ariel Powder', value: 180, percentage: 40, sourceCategory: 'Home Care', targetCategory: 'Home Care', priceImpact: 'upsell' },
+        { source: 'Lucky Me Pancit Canton', target: 'Nissin Pancit Canton', value: 350, percentage: 58, sourceCategory: 'Food', targetCategory: 'Food', priceImpact: 'same' }
+      ];
+
+      set({ substitutionPatternsData: mockSubstitutionPatterns, isLoadingData: false });
+    } catch (error) {
+      console.error('Failed to load substitution patterns:', error);
+      set({ isLoadingData: false });
+    }
+  },
+
   refreshAllData: async () => {
-    const { loadKPIMetrics, loadChartData, loadGeographicData } = get();
+    const { loadKPIMetrics, loadChartData, loadGeographicData, loadSubstitutionPatterns } = get();
     await Promise.all([
       loadKPIMetrics(),
       loadChartData(),
-      loadGeographicData()
+      loadGeographicData(),
+      loadSubstitutionPatterns()
     ]);
   },
 }));

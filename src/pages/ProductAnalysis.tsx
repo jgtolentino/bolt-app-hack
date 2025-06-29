@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useFilterStore } from '../stores/filterStore';
+import { useDataStore } from '../stores/dataStore';
 import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import { 
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -18,9 +19,15 @@ import SubstitutionPatternsChart from '../components/charts/SubstitutionPatterns
 const ProductAnalysis: React.FC = () => {
   const navigate = useNavigate();
   const { client, category, brand, sku, region, city_municipality, barangay, setFilter, filters } = useFilterStore();
+  const { substitutionPatternsData, loadSubstitutionPatterns } = useDataStore();
   const [activeTab, setActiveTab] = useState('category-performance');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // Load substitution patterns data when component mounts
+  useEffect(() => {
+    loadSubstitutionPatterns();
+  }, []);
 
   // Mock data - replace with API calls
   const [productData, setProductData] = useState({
@@ -196,6 +203,13 @@ const ProductAnalysis: React.FC = () => {
           </motion.div>
         ))}
       </div>
+
+      {/* Substitution Patterns Chart */}
+      <SubstitutionPatternsChart 
+        data={substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns}
+        title="Brand Substitution Patterns"
+        height={400}
+      />
     </div>
   );
 
@@ -322,10 +336,10 @@ const ProductAnalysis: React.FC = () => {
         </div>
       </div>
 
-      {/* Substitution Patterns Chart */}
+      {/* SKU Substitution Patterns */}
       <SubstitutionPatternsChart 
-        data={productData.substitutionPatterns}
-        title="Brand Substitution Patterns"
+        data={substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns}
+        title="SKU Substitution Patterns"
         height={400}
       />
     </div>
@@ -460,10 +474,10 @@ const ProductAnalysis: React.FC = () => {
         )}
       </div>
 
-      {/* SKU Substitution Patterns */}
+      {/* Substitution Patterns */}
       <SubstitutionPatternsChart 
-        data={productData.substitutionPatterns}
-        title="SKU Substitution Patterns"
+        data={substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns}
+        title="Product Substitution Patterns"
         height={400}
       />
     </div>
@@ -509,7 +523,7 @@ const ProductAnalysis: React.FC = () => {
 
       {/* Substitution Patterns */}
       <SubstitutionPatternsChart 
-        data={productData.substitutionPatterns}
+        data={substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns}
         title="Product Substitution Patterns"
         height={400}
       />
@@ -623,7 +637,10 @@ const ProductAnalysis: React.FC = () => {
         >
           <AIInsightsPanel 
             context="products" 
-            data={productData}
+            data={{
+              ...productData,
+              substitutionPatterns: substitutionPatternsData.length > 0 ? substitutionPatternsData : productData.substitutionPatterns
+            }}
             filters={filters}
             className="sticky top-4"
           />

@@ -230,6 +230,77 @@ export const testSupabaseConnection = async () => {
   }
 }
 
+// Function to fetch substitution patterns
+export async function fetchSubstitutionPatterns(filters: any = {}) {
+  try {
+    let query = supabase
+      .from('v_substitution_analysis')
+      .select('*');
+    
+    // Apply filters if provided
+    if (filters.category) {
+      query = query.eq('original_category', filters.category);
+    }
+    
+    if (filters.brand) {
+      query = query.eq('original_brand', filters.brand);
+    }
+    
+    if (filters.region) {
+      query = query.eq('region', filters.region);
+    }
+    
+    if (filters.minRate) {
+      query = query.gte('acceptance_rate', filters.minRate);
+    }
+    
+    const { data, error } = await query;
+    
+    if (error) throw error;
+    
+    // Transform data to match the SubstitutionPattern interface
+    return data.map((item: any) => ({
+      source: item.original_sku,
+      target: item.substituted_sku,
+      value: item.substitution_count,
+      percentage: item.acceptance_rate,
+      sourceCategory: item.original_category,
+      targetCategory: item.substituted_category,
+      sourceBrand: item.original_brand,
+      targetBrand: item.substituted_brand,
+      priceImpact: item.price_impact.toLowerCase(),
+      region: item.region
+    }));
+  } catch (error) {
+    console.error('Error fetching substitution patterns:', error);
+    return [];
+  }
+}
+
+// Function to record a substitution
+export async function recordSubstitution(
+  originalSku: string,
+  substitutedSku: string,
+  geographyId?: string,
+  accepted: boolean = true
+) {
+  try {
+    const { data, error } = await supabase.rpc('record_substitution', {
+      original_sku: originalSku,
+      substituted_sku: substitutedSku,
+      geography_id: geographyId,
+      accepted: accepted
+    });
+    
+    if (error) throw error;
+    
+    return { success: true, message: data };
+  } catch (error) {
+    console.error('Error recording substitution:', error);
+    return { success: false, message: error instanceof Error ? error.message : 'Unknown error' };
+  }
+}
+
 // Database types for Philippine retail analytics
 export interface Database {
   public: {
@@ -413,6 +484,41 @@ export interface Database {
           created_at?: string
         }
       }
+      substitution_patterns: {
+        Row: {
+          id: string
+          original_product_id: string
+          substituted_product_id: string
+          geography_id: string | null
+          substitution_count: number
+          acceptance_rate: number
+          last_updated: string
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          original_product_id: string
+          substituted_product_id: string
+          geography_id?: string | null
+          substitution_count?: number
+          acceptance_rate?: number
+          last_updated?: string
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          original_product_id?: string
+          substituted_product_id?: string
+          geography_id?: string | null
+          substitution_count?: number
+          acceptance_rate?: number
+          last_updated?: string
+          created_at?: string
+          updated_at?: string
+        }
+      }
     }
     Views: {
       v_transaction_summary: {
@@ -494,6 +600,22 @@ export interface Database {
           preferred_payment_methods: string | null
         }
       }
+      v_substitution_analysis: {
+        Row: {
+          original_sku: string | null
+          original_brand: string | null
+          original_category: string | null
+          substituted_sku: string | null
+          substituted_brand: string | null
+          substituted_category: string | null
+          substitution_count: number | null
+          acceptance_rate: number | null
+          region: string | null
+          city_municipality: string | null
+          substitution_type: string | null
+          price_impact: string | null
+        }
+      }
     }
     Functions: {
       get_geographic_performance: {
@@ -550,9 +672,12 @@ export interface Database {
           growth_rate: number
         }[]
       }
-      generate_philippine_transactions: {
+      record_substitution: {
         Args: {
-          num_transactions: number
+          original_sku: string
+          substituted_sku: string
+          geography_id?: string
+          accepted?: boolean
         }
         Returns: string
       }
