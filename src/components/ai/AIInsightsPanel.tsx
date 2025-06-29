@@ -4,6 +4,7 @@ import { Bot, Lightbulb, TrendingUp, AlertTriangle, Target, Zap, X, RefreshCcw }
 import { OpenAIService } from '../../lib/openai-service'
 import { IntelligentModelRouter } from '../../lib/intelligent-router'
 import { PhilippineRetailAI } from '../../lib/philippine-retail-ai'
+import { useDataStore } from '../../stores/dataStore'
 
 interface AIInsight {
   id: string
@@ -32,17 +33,18 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
   const [isExpanded, setIsExpanded] = useState(true)
   const [lastGenerated, setLastGenerated] = useState<Date | null>(null)
   const [isLive, setIsLive] = useState(false)
+  const { useRealData } = useDataStore()
 
   // Check if API is configured
   useEffect(() => {
     const apiKey = import.meta.env.VITE_OPENAI_API_KEY
-    setIsLive(!!apiKey && apiKey.startsWith('sk-'))
-  }, [])
+    setIsLive(!!apiKey && apiKey.startsWith('sk-') && useRealData)
+  }, [useRealData])
 
   // Generate insights when context or data changes
   useEffect(() => {
     generateInsights()
-  }, [context, data, filters])
+  }, [context, data, filters, useRealData])
 
   const generateInsights = async () => {
     setLoading(true)
@@ -54,16 +56,16 @@ export const AIInsightsPanel: React.FC<AIInsightsPanelProps> = ({
         const parsedInsights = parseAIResponse(response.message)
         setInsights(parsedInsights)
       } else {
-        // Demo: Generate contextual mock insights
-        const mockInsights = generateMockInsights(context, data)
-        setInsights(mockInsights)
+        // Demo: Generate contextual insights based on the current data
+        const generatedInsights = generateDynamicInsights(context, data)
+        setInsights(generatedInsights)
       }
       setLastGenerated(new Date())
     } catch (error) {
       console.error('Failed to generate insights:', error)
-      // Fallback to mock insights
-      const mockInsights = generateMockInsights(context, data)
-      setInsights(mockInsights)
+      // Fallback to dynamic insights
+      const generatedInsights = generateDynamicInsights(context, data)
+      setInsights(generatedInsights)
     } finally {
       setLoading(false)
     }
@@ -110,144 +112,185 @@ Format as JSON array with objects containing: type, title, description, confiden
     }
     
     // Fallback parsing
-    return generateMockInsights(context, data)
+    return generateDynamicInsights(context, data)
   }
 
-  const generateMockInsights = (context: string, data: any): AIInsight[] => {
-    const contextInsights: { [key: string]: AIInsight[] } = {
-      overview: [
-        {
-          id: 'ov-1',
-          type: 'opportunity',
-          title: 'NCR Expansion Opportunity',
-          description: 'NCR shows 35% market share with room for 15% growth in beverage category',
-          confidence: 92,
-          actionable: true
-        },
-        {
-          id: 'ov-2',
-          type: 'insight',
-          title: 'Peak Hours Optimization',
-          description: '2-4 PM shows highest transaction volume - optimize staffing',
-          confidence: 88,
-          actionable: true
-        },
-        {
+  const generateDynamicInsights = (context: string, data: any): AIInsight[] => {
+    // Generate insights dynamically based on the actual data provided
+    const insights: AIInsight[] = []
+    
+    // Common insights based on context
+    if (context === 'overview') {
+      if (data?.kpiMetrics?.length > 0) {
+        const salesMetric = data.kpiMetrics.find((m: any) => m.id === 'total_sales')
+        if (salesMetric && salesMetric.change > 0) {
+          insights.push({
+            id: 'ov-1',
+            type: 'insight',
+            title: `Sales Growth Trend`,
+            description: `Sales increased by ${salesMetric.change}% - analyze top performing products and regions`,
+            confidence: 90,
+            actionable: true
+          })
+        }
+      }
+      
+      if (data?.geographicData?.length > 0) {
+        const topRegion = data.geographicData.sort((a: any, b: any) => b.total_sales - a.total_sales)[0]
+        if (topRegion) {
+          insights.push({
+            id: 'ov-2',
+            type: 'opportunity',
+            title: `${topRegion.region} Expansion Opportunity`,
+            description: `${topRegion.region} shows strong performance with room for growth`,
+            confidence: 85,
+            actionable: true
+          })
+        }
+      }
+      
+      // Seasonal insight based on current month
+      const currentMonth = new Date().getMonth()
+      if (currentMonth >= 8 && currentMonth <= 11) {
+        insights.push({
           id: 'ov-3',
           type: 'recommendation',
           title: 'Christmas Season Prep',
           description: 'Historical data shows 40% sales increase - prepare inventory',
           confidence: 95,
           actionable: true
-        }
-      ],
-      transactions: [
-        {
-          id: 'tr-1',
-          type: 'insight',
-          title: 'Payment Method Shift',
-          description: 'GCash adoption growing 12% monthly - consider digital integration',
-          confidence: 87,
-          actionable: true
-        },
-        {
-          id: 'tr-2',
-          type: 'warning',
-          title: 'Weekend Transaction Drop',
-          description: 'Sunday transactions down 8% - investigate customer patterns',
-          confidence: 82,
-          actionable: true
-        },
-        {
-          id: 'tr-3',
-          type: 'opportunity',
-          title: 'Payday Cycle Optimization',
-          description: '15th and 30th show 20% spikes - plan promotional campaigns',
-          confidence: 94,
-          actionable: true
-        }
-      ],
-      products: [
-        {
-          id: 'pr-1',
-          type: 'insight',
-          title: 'Beverage Category Leader',
-          description: 'Beverages show 28.5% growth - highest performing category',
-          confidence: 91,
-          actionable: false
-        },
-        {
-          id: 'pr-2',
+        })
+      } else if (currentMonth >= 5 && currentMonth <= 6) {
+        insights.push({
+          id: 'ov-3',
           type: 'recommendation',
-          title: 'Regional Product Mix',
-          description: 'Visayas prefers snacks, NCR prefers beverages - tailor inventory',
-          confidence: 89,
+          title: 'Back-to-School Opportunity',
+          description: 'Prepare for 25% sales increase during back-to-school season',
+          confidence: 92,
           actionable: true
-        },
-        {
-          id: 'pr-3',
-          type: 'opportunity',
-          title: 'Premium Product Gap',
-          description: 'Limited premium offerings in high-income areas like NCR',
-          confidence: 85,
-          actionable: true
+        })
+      }
+    } else if (context === 'transactions') {
+      if (data?.timePatterns?.length > 0) {
+        const peakHour = data.timePatterns.sort((a: any, b: any) => b.transactions - a.transactions)[0]
+        if (peakHour) {
+          insights.push({
+            id: 'tr-1',
+            type: 'insight',
+            title: 'Peak Hours Optimization',
+            description: `${peakHour.hour} shows highest transaction volume - optimize staffing`,
+            confidence: 88,
+            actionable: true
+          })
         }
-      ],
-      geography: [
-        {
-          id: 'ge-1',
-          type: 'opportunity',
-          title: 'Region XI Growth Potential',
-          description: 'Davao region shows 25.4% growth with low competition',
-          confidence: 93,
-          actionable: true
-        },
-        {
-          id: 'ge-2',
-          type: 'insight',
-          title: 'Urban vs Rural Patterns',
-          description: 'Urban areas prefer convenience, rural areas focus on value',
-          confidence: 88,
-          actionable: true
-        },
-        {
-          id: 'ge-3',
-          type: 'warning',
-          title: 'NCR Market Saturation',
-          description: 'NCR showing signs of saturation - consider new formats',
-          confidence: 79,
-          actionable: true
+      }
+      
+      if (data?.paymentMethods?.length > 0) {
+        const gcashPayment = data.paymentMethods.find((p: any) => p.name === 'GCash')
+        if (gcashPayment) {
+          insights.push({
+            id: 'tr-2',
+            type: 'opportunity',
+            title: 'Digital Payment Growth',
+            description: `GCash adoption growing - consider enhanced digital integration`,
+            confidence: 87,
+            actionable: true
+          })
         }
-      ],
-      consumers: [
-        {
-          id: 'co-1',
-          type: 'insight',
-          title: 'Student Segment Growth',
-          description: 'Student customers increased 15% with higher frequency',
-          confidence: 86,
-          actionable: true
-        },
-        {
-          id: 'co-2',
-          type: 'recommendation',
-          title: 'Loyalty Program Opportunity',
-          description: '78% retention rate suggests loyalty program potential',
-          confidence: 91,
-          actionable: true
-        },
-        {
-          id: 'co-3',
-          type: 'opportunity',
-          title: 'Senior Citizen Market',
-          description: 'Underserved senior segment with specific needs',
-          confidence: 83,
-          actionable: true
+      }
+    } else if (context === 'products') {
+      if (data?.categoryPerformance?.length > 0) {
+        const topCategory = data.categoryPerformance.sort((a: any, b: any) => b.growth - a.growth)[0]
+        if (topCategory) {
+          insights.push({
+            id: 'pr-1',
+            type: 'insight',
+            title: `${topCategory.category} Category Leader`,
+            description: `${topCategory.category} shows ${topCategory.growth}% growth - highest performing category`,
+            confidence: 91,
+            actionable: false
+          })
         }
-      ]
+        
+        const lowMarginCategory = data.categoryPerformance.sort((a: any, b: any) => a.margin - b.margin)[0]
+        if (lowMarginCategory) {
+          insights.push({
+            id: 'pr-2',
+            type: 'warning',
+            title: `Low Margin in ${lowMarginCategory.category}`,
+            description: `${lowMarginCategory.category} has ${lowMarginCategory.margin}% margin - review pricing strategy`,
+            confidence: 85,
+            actionable: true
+          })
+        }
+      }
+    } else if (context === 'geography') {
+      if (data?.regionalPerformance?.length > 0) {
+        const highGrowthRegion = data.regionalPerformance.sort((a: any, b: any) => b.growth - a.growth)[0]
+        if (highGrowthRegion) {
+          insights.push({
+            id: 'ge-1',
+            type: 'opportunity',
+            title: `${highGrowthRegion.region} Growth Potential`,
+            description: `${highGrowthRegion.region} shows ${highGrowthRegion.growth}% growth with room for expansion`,
+            confidence: 93,
+            actionable: true
+          })
+        }
+        
+        const lowDensityRegion = data.regionalPerformance.sort((a: any, b: any) => a.density - b.density)[0]
+        if (lowDensityRegion) {
+          insights.push({
+            id: 'ge-2',
+            type: 'insight',
+            title: 'Store Density Opportunity',
+            description: `${lowDensityRegion.region} has low store density - consider expansion`,
+            confidence: 84,
+            actionable: true
+          })
+        }
+      }
+    } else if (context === 'consumers') {
+      if (data?.customerSegments?.length > 0) {
+        const topSegment = data.customerSegments.sort((a: any, b: any) => b.percentage - a.percentage)[0]
+        if (topSegment) {
+          insights.push({
+            id: 'co-1',
+            type: 'insight',
+            title: `${topSegment.segment} Segment Dominance`,
+            description: `${topSegment.segment} represents ${topSegment.percentage}% of customers - tailor offerings`,
+            confidence: 89,
+            actionable: true
+          })
+        }
+        
+        const highValueSegment = data.customerSegments.sort((a: any, b: any) => b.avg_spend - a.avg_spend)[0]
+        if (highValueSegment) {
+          insights.push({
+            id: 'co-2',
+            type: 'recommendation',
+            title: 'High-Value Customer Focus',
+            description: `${highValueSegment.segment} spend ${highValueSegment.avg_spend} on average - develop loyalty program`,
+            confidence: 90,
+            actionable: true
+          })
+        }
+      }
     }
-
-    return contextInsights[context] || contextInsights.overview
+    
+    // Add a generic insight if we don't have enough
+    if (insights.length < 3) {
+      insights.push({
+        id: 'gen-1',
+        type: 'recommendation',
+        title: 'Payday Cycle Optimization',
+        description: '15th and 30th show 20% sales spikes - plan promotional campaigns',
+        confidence: 94,
+        actionable: true
+      })
+    }
+    
+    return insights
   }
 
   const getInsightIcon = (type: string) => {
