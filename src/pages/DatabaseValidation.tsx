@@ -12,6 +12,8 @@ const DatabaseValidation: React.FC = () => {
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastValidated, setLastValidated] = useState<Date | null>(null);
   const [activeTab, setActiveTab] = useState<'validation' | 'generation' | 'pro-features'>('validation');
+  const [generationCount, setGenerationCount] = useState<number>(1000);
+  const [generationError, setGenerationError] = useState<string | null>(null);
 
   const runValidation = async () => {
     setIsLoading(true);
@@ -40,24 +42,41 @@ const DatabaseValidation: React.FC = () => {
 
   const generate750KTransactions = async () => {
     setIsGenerating(true);
+    setGenerationError(null);
     try {
-      const result = await ProAccountValidator.generate750KTransactions();
-      console.log('Generation result:', result);
+      // Use the new efficient transaction generation function
+      const { data, error } = await supabase.rpc('generate_efficient_transactions', {
+        target_count: generationCount,
+        max_batch_size: 1000
+      });
+      
+      if (error) throw error;
+      
+      console.log('Generation result:', data);
       
       // Start monitoring progress
       const progressInterval = setInterval(async () => {
-        const progress = await ProAccountValidator.monitorGenerationProgress();
-        setGenerationProgress(progress);
-        
-        // Stop monitoring when complete
-        if (progress.data?.target_percentage >= 100) {
+        try {
+          const progress = await ProAccountValidator.monitorGenerationProgress();
+          setGenerationProgress(progress);
+          
+          // Stop monitoring when complete or on error
+          if (progress.status === 'error' || 
+              (progress.data?.target_percentage >= 100) || 
+              !isGenerating) {
+            clearInterval(progressInterval);
+            setIsGenerating(false);
+          }
+        } catch (error) {
+          console.error('Error monitoring progress:', error);
           clearInterval(progressInterval);
           setIsGenerating(false);
         }
       }, 5000); // Check every 5 seconds
       
-    } catch (error) {
+    } catch (error: any) {
       console.error('Generation failed:', error);
+      setGenerationError(error.message || 'Transaction generation failed');
       setIsGenerating(false);
     }
   };
@@ -97,7 +116,7 @@ const DatabaseValidation: React.FC = () => {
 
   const tabs = [
     { id: 'validation', label: 'Data Validation', icon: Database },
-    { id: 'generation', label: '750K Generation', icon: Zap },
+    { id: 'generation', label: 'Transaction Generation', icon: Zap },
     { id: 'pro-features', label: 'Pro Features', icon: BarChart3 }
   ];
 
@@ -116,7 +135,7 @@ const DatabaseValidation: React.FC = () => {
             <span>Database Validation & Management</span>
           </h1>
           <p className="text-gray-600">
-            Comprehensive validation, Pro plan features, and 750K transaction generation
+            Comprehensive validation, Pro plan features, and transaction generation
           </p>
           {lastValidated && (
             <p className="text-sm text-gray-500 mt-1">
@@ -346,24 +365,47 @@ const DatabaseValidation: React.FC = () => {
             {/* Generation Control */}
             <div className="chart-container">
               <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold text-gray-900">750K Transaction Generation</h3>
-                <button
-                  onClick={generate750KTransactions}
-                  disabled={isGenerating}
-                  className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50"
-                >
-                  <Play className={`w-4 h-4 ${isGenerating ? 'animate-pulse' : ''}`} />
-                  <span>{isGenerating ? 'Generating...' : 'Start Generation'}</span>
-                </button>
+                <h3 className="text-lg font-semibold text-gray-900">Transaction Generation</h3>
+                <div className="flex items-center space-x-2">
+                  <select 
+                    value={generationCount}
+                    onChange={(e) => setGenerationCount(parseInt(e.target.value))}
+                    className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                    disabled={isGenerating}
+                  >
+                    <option value={100}>100 Transactions</option>
+                    <option value={1000}>1,000 Transactions</option>
+                    <option value={5000}>5,000 Transactions</option>
+                    <option value={10000}>10,000 Transactions</option>
+                    <option value={50000}>50,000 Transactions</option>
+                  </select>
+                  <button
+                    onClick={generate750KTransactions}
+                    disabled={isGenerating}
+                    className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50"
+                  >
+                    <Play className={`w-4 h-4 ${isGenerating ? 'animate-pulse' : ''}`} />
+                    <span>{isGenerating ? 'Generating...' : 'Start Generation'}</span>
+                  </button>
+                </div>
               </div>
 
+              {generationError && (
+                <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                  <p className="text-red-800 text-sm">{generationError}</p>
+                  <p className="text-red-700 text-xs mt-1">
+                    Try generating a smaller batch of transactions to avoid timeout issues.
+                  </p>
+                </div>
+              )}
+
               <div className="bg-gradient-to-r from-blue-50 to-green-50 p-6 rounded-lg">
-                <h4 className="font-semibold text-gray-900 mb-3">🚀 Batched Generation Process</h4>
+                <h4 className="font-semibold text-gray-900 mb-3">🚀 Efficient Transaction Generation</h4>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
                   <div>
                     <h5 className="font-medium text-gray-800 mb-2">Features:</h5>
                     <ul className="space-y-1 text-gray-700">
-                      <li>• 75 batches of 10,000 transactions each</li>
+                      <li>• Adaptive batch sizing to prevent timeouts</li>
                       <li>• Realistic Philippine retail patterns</li>
                       <li>• Regional economic modifiers</li>
                       <li>• Seasonal and hourly patterns</li>

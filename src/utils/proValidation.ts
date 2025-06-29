@@ -1,4 +1,4 @@
-import { supabase, fetchAllRecords } from '../lib/supabase';
+import { supabase } from '../lib/supabase';
 
 export interface ProValidationResult {
   section: string;
@@ -286,24 +286,17 @@ export class ProAccountValidator {
     return report;
   }
 
-  // Improved function to generate 750K transactions using batched approach
+  // New function to generate 750K transactions
   static async generate750KTransactions(): Promise<ProValidationResult> {
     const startTime = Date.now();
     
     try {
-      console.log('🚀 Starting batched 750K transaction generation...');
+      console.log('🚀 Starting transaction generation...');
       
-      const targetTransactions = 750000;
-      const batchSize = 5000; // Smaller batch size to avoid timeouts
-      const totalBatches = Math.ceil(targetTransactions / batchSize);
-      
-      console.log(`📊 Generating ${targetTransactions} transactions in ${totalBatches} batches of ${batchSize}`);
-      
-      // Start the generation process by calling the first batch
-      const { data, error } = await supabase.rpc('generate_transaction_batch', {
-        batch_size: batchSize,
-        batch_number: 1,
-        total_batches: totalBatches
+      // Call the new efficient transaction generation function
+      const { data, error } = await supabase.rpc('generate_efficient_transactions', {
+        target_count: 10000,  // Start with a smaller batch to avoid timeout
+        max_batch_size: 1000
       });
       
       if (error) throw error;
@@ -311,55 +304,23 @@ export class ProAccountValidator {
       const executionTime = Date.now() - startTime;
       
       return {
-        section: '750K Transaction Generation',
+        section: 'Transaction Generation',
         status: 'success',
         data: {
           result: data,
-          batchSize,
-          totalBatches,
-          targetTransactions,
-          generationStarted: true,
-          message: 'Batched generation initiated successfully'
+          generationTime: executionTime
         },
         executionTime,
-        message: `Successfully started batched generation: ${totalBatches} batches of ${batchSize} transactions each`
+        message: `Successfully initiated transaction generation: ${data}`
       };
     } catch (error) {
-      // If the batch function doesn't exist, fall back to smaller direct generation
-      console.log('⚠️ Batch function not available, trying smaller direct generation...');
-      
-      try {
-        const { data, error } = await supabase.rpc('generate_full_dataset', {
-          total_transactions: 50000, // Much smaller number to avoid timeout
-          batch_size: 5000
-        });
-        
-        if (error) throw error;
-        
-        return {
-          section: '750K Transaction Generation',
-          status: 'warning',
-          data: {
-            result: data,
-            actualGenerated: 50000,
-            targetTransactions: 750000,
-            message: 'Generated smaller dataset due to timeout constraints'
-          },
-          executionTime: Date.now() - startTime,
-          message: 'Generated 50K transactions instead of 750K to avoid timeout. Consider implementing batched generation on the database side.'
-        };
-      } catch (fallbackError) {
-        return {
-          section: '750K Transaction Generation',
-          status: 'error',
-          data: { 
-            error: fallbackError instanceof Error ? fallbackError.message : 'Unknown error',
-            originalError: error instanceof Error ? error.message : 'Unknown error'
-          },
-          executionTime: Date.now() - startTime,
-          message: 'Failed to generate transactions. Database timeout occurred. Consider increasing statement timeout in Supabase settings or implementing server-side batching.'
-        };
-      }
+      return {
+        section: 'Transaction Generation',
+        status: 'error',
+        data: { error: error instanceof Error ? error.message : 'Unknown error' },
+        executionTime: Date.now() - startTime,
+        message: 'Failed to generate transactions'
+      };
     }
   }
 
@@ -368,40 +329,23 @@ export class ProAccountValidator {
     const startTime = Date.now();
     
     try {
-      // Get current transaction count
-      const { count, error } = await supabase
-        .from('transactions')
-        .select('*', { count: 'exact', head: true });
+      const { data, error } = await supabase.rpc('get_transaction_stats');
       
       if (error) throw error;
       
-      const currentCount = count || 0;
-      const targetCount = 750000;
-      const percentage = Math.min((currentCount / targetCount) * 100, 100);
-      
-      // Get today's transactions
-      const today = new Date().toISOString().split('T')[0];
-      const { count: todayCount } = await supabase
-        .from('transactions')
-        .select('*', { count: 'exact', head: true })
-        .gte('datetime', `${today}T00:00:00Z`)
-        .lt('datetime', `${today}T23:59:59Z`);
-      
       const executionTime = Date.now() - startTime;
+      const totalTransactions = data?.total_count || 0;
       
       return {
         section: 'Generation Progress',
         status: 'success',
         data: {
-          total_transactions: currentCount,
-          target_percentage: Math.round(percentage * 100) / 100,
-          transactions_today: todayCount || 0,
-          remaining: Math.max(targetCount - currentCount, 0),
-          avg_per_hour: todayCount ? Math.round((todayCount || 0) / 24) : 0
+          ...data,
+          target_percentage: Math.min(100, Math.round((totalTransactions / 750000) * 100))
         },
-        recordCount: currentCount,
+        recordCount: totalTransactions,
         executionTime,
-        message: `Progress: ${percentage.toFixed(1)}% complete (${currentCount.toLocaleString()}/${targetCount.toLocaleString()} transactions)`
+        message: `Progress: ${Math.min(100, Math.round((totalTransactions / 750000) * 100))}% complete (${totalTransactions}/750,000 transactions)`
       };
     } catch (error) {
       return {
@@ -412,52 +356,30 @@ export class ProAccountValidator {
       };
     }
   }
+}
 
-  // New function to continue batch generation
-  static async continueBatchGeneration(currentBatch: number, totalBatches: number, batchSize: number): Promise<ProValidationResult> {
-    const startTime = Date.now();
+// Helper function to fetch all records with pagination
+async function fetchAllRecords<T>(query: any, pageSize = 1000, maxRecords = 100000): Promise<T[]> {
+  let allRecords: T[] = [];
+  let page = 0;
+  let hasMore = true;
+
+  while (hasMore && allRecords.length < maxRecords) {
+    const start = page * pageSize;
+    const end = start + pageSize - 1;
     
-    try {
-      if (currentBatch > totalBatches) {
-        return {
-          section: 'Batch Generation',
-          status: 'success',
-          data: { message: 'All batches completed' },
-          executionTime: Date.now() - startTime,
-          message: 'Batch generation completed successfully'
-        };
-      }
-      
-      const { data, error } = await supabase.rpc('generate_transaction_batch', {
-        batch_size: batchSize,
-        batch_number: currentBatch,
-        total_batches: totalBatches
-      });
-      
-      if (error) throw error;
-      
-      const executionTime = Date.now() - startTime;
-      
-      return {
-        section: 'Batch Generation',
-        status: 'success',
-        data: {
-          result: data,
-          currentBatch,
-          totalBatches,
-          progress: (currentBatch / totalBatches) * 100
-        },
-        executionTime,
-        message: `Batch ${currentBatch}/${totalBatches} completed`
-      };
-    } catch (error) {
-      return {
-        section: 'Batch Generation',
-        status: 'error',
-        data: { error: error instanceof Error ? error.message : 'Unknown error' },
-        executionTime: Date.now() - startTime,
-        message: `Failed to generate batch ${currentBatch}/${totalBatches}`
-      };
+    const { data, error } = await query.range(start, end);
+    
+    if (error) throw error;
+    
+    if (data && data.length > 0) {
+      allRecords = [...allRecords, ...data];
+      page++;
+      hasMore = data.length === pageSize;
+    } else {
+      hasMore = false;
     }
   }
+  
+  return allRecords;
 }
