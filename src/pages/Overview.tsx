@@ -9,6 +9,7 @@ import ProductPerformanceChart from '../components/charts/ProductPerformanceChar
 import GeographicMap from '../components/maps/GeographicMap';
 import ZoomableContainer from '../components/ui/ZoomableContainer';
 import MobileZoomableContainer from '../components/ui/MobileZoomableContainer';
+import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import { TrendingUp, Users, MapPin, Bot, FileText, BarChart3, Database, Wifi, WifiOff } from 'lucide-react';
 
 const Overview: React.FC = () => {
@@ -27,7 +28,7 @@ const Overview: React.FC = () => {
     setUseRealData
   } = useDataStore();
   
-  const { totalCombinations } = useFilterStore();
+  const { totalCombinations, filters } = useFilterStore();
 
   useEffect(() => {
     // Load initial data
@@ -179,8 +180,8 @@ const Overview: React.FC = () => {
         )}
       </div>
 
-      {/* Main Content Grid */}
-      <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+      {/* Main Content Grid with AI Insights */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
         {/* Geographic Map */}
         <motion.div
           className="xl:col-span-1"
@@ -201,16 +202,31 @@ const Overview: React.FC = () => {
           <SalesTrendChart data={salesTrendData} height={400} />
         </motion.div>
 
-        {/* AI Insights */}
+        {/* AI Insights Panel */}
         <motion.div
           className="xl:col-span-1"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ duration: 0.5, delay: 0.4 }}
         >
+          <AIInsightsPanel 
+            context="overview" 
+            data={{ kpiMetrics, salesTrendData, geographicData }}
+            filters={filters}
+            className="h-full"
+          />
+        </motion.div>
+
+        {/* Quick Actions */}
+        <motion.div
+          className="xl:col-span-1"
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.5, delay: 0.5 }}
+        >
           <div className="chart-container h-full">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold text-gray-900">AI Insights</h3>
+              <h3 className="text-lg font-semibold text-gray-900">Quick Actions</h3>
               <button
                 onClick={() => navigate('/ai-assistant')}
                 className="text-sm text-primary-600 hover:text-primary-800"
@@ -262,7 +278,7 @@ const Overview: React.FC = () => {
         <motion.div
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.5 }}
+          transition={{ duration: 0.5, delay: 0.6 }}
         >
           <ProductPerformanceChart 
             data={productPerformanceData} 
@@ -276,7 +292,7 @@ const Overview: React.FC = () => {
           className="chart-container"
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.5, delay: 0.6 }}
+          transition={{ duration: 0.5, delay: 0.7 }}
         >
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Regional Performance</h3>
@@ -325,7 +341,7 @@ const Overview: React.FC = () => {
         className="flex flex-wrap gap-3 justify-center"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5, delay: 0.7 }}
+        transition={{ duration: 0.5, delay: 0.8 }}
       >
         <button
           onClick={() => navigate('/transactions')}

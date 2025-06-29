@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useFilterStore } from '../stores/filterStore';
+import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import { 
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ComposedChart, Area, AreaChart, ScatterChart, Scatter, Cell, PieChart, Pie
@@ -59,10 +60,8 @@ const TransactionAnalysis: React.FC = () => {
       { range: '₱501-1000', count: 234, percentage: 3.5 },
       { range: '₱1000+', count: 89, percentage: 1.3 }
     ],
-    // UPDATED: Added Utang/Lista payment method
     paymentMethods: [
       { name: 'Cash', value: 1180520, count: 4234, percentage: 52.8 },
-      { name: 'Utang/Lista', value: 623240, count: 2876, percentage: 28.1 },
       { name: 'GCash', value: 423240, count: 1576, percentage: 18.9 },
       { name: 'Credit Card', value: 65340, count: 234, percentage: 2.9 },
       { name: 'Bank Transfer', value: 27342, count: 98, percentage: 1.2 }
@@ -208,7 +207,7 @@ const TransactionAnalysis: React.FC = () => {
           />
         </div>
 
-        {/* Payment Methods - UPDATED with Utang/Lista */}
+        {/* Payment Methods */}
         <div className="chart-container">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">Payment Methods</h3>
@@ -225,16 +224,16 @@ const TransactionAnalysis: React.FC = () => {
         </div>
       </div>
 
-      {/* Payment Method Insights - UPDATED */}
+      {/* Payment Method Insights */}
       <div className="chart-container">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Payment Method Analysis</h3>
           <div className="flex items-center space-x-4">
-            <span className="text-sm text-gray-600">Total: ₱2.32M</span>
+            <span className="text-sm text-gray-600">Total: ₱1.7M</span>
           </div>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
           {transactionData.paymentMethods.map((method, index) => (
             <div key={method.name} className="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg">
               <div className="text-lg font-bold text-blue-600">{method.percentage}%</div>
@@ -249,27 +248,27 @@ const TransactionAnalysis: React.FC = () => {
           ))}
         </div>
 
-        {/* Utang/Lista Insights */}
-        <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-          <h4 className="font-semibold text-yellow-800 mb-2">💳 Utang/Lista Insights</h4>
+        {/* Payment Method Insights */}
+        <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <h4 className="font-semibold text-blue-800 mb-2">💳 Payment Method Insights</h4>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
             <div>
-              <span className="text-yellow-600">Credit Volume:</span>
-              <span className="ml-2 font-medium">₱623K (28.1%)</span>
+              <span className="text-blue-600">Cash Dominance:</span>
+              <span className="ml-2 font-medium">₱1.18M (52.8%)</span>
             </div>
             <div>
-              <span className="text-yellow-600">Avg Credit Amount:</span>
-              <span className="ml-2 font-medium">₱217</span>
+              <span className="text-blue-600">Digital Growth:</span>
+              <span className="ml-2 font-medium">GCash +12% monthly</span>
             </div>
             <div>
-              <span className="text-yellow-600">Credit Customers:</span>
-              <span className="ml-2 font-medium">2,876 regular customers</span>
+              <span className="text-blue-600">Credit Adoption:</span>
+              <span className="ml-2 font-medium">2.9% in urban areas</span>
             </div>
           </div>
-          <div className="mt-3 text-xs text-yellow-700">
-            <p>• Utang/Lista represents significant customer loyalty and trust</p>
-            <p>• Higher average transaction value compared to cash (₱217 vs ₱279)</p>
-            <p>• Consider implementing digital credit tracking system</p>
+          <div className="mt-3 text-xs text-blue-700">
+            <p>• Cash remains dominant in Philippine retail, especially in rural areas</p>
+            <p>• GCash showing strong growth trajectory (+12% monthly adoption)</p>
+            <p>• Consider implementing more digital payment options for urban stores</p>
           </div>
         </div>
       </div>
@@ -505,18 +504,37 @@ const TransactionAnalysis: React.FC = () => {
         ))}
       </motion.div>
 
-      {/* Tab Content */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {activeTab === 'time-patterns' && renderTimePatterns()}
-        {activeTab === 'value-distribution' && renderValueDistribution()}
-        {activeTab === 'peak-analysis' && renderPeakAnalysis()}
-        {activeTab === 'flow-analysis' && renderFlowAnalysis()}
-      </motion.div>
+      {/* Main Content with AI Insights */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Tab Content */}
+        <motion.div
+          key={activeTab}
+          className="xl:col-span-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {activeTab === 'time-patterns' && renderTimePatterns()}
+          {activeTab === 'value-distribution' && renderValueDistribution()}
+          {activeTab === 'peak-analysis' && renderPeakAnalysis()}
+          {activeTab === 'flow-analysis' && renderFlowAnalysis()}
+        </motion.div>
+
+        {/* AI Insights Panel */}
+        <motion.div
+          className="xl:col-span-1"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <AIInsightsPanel 
+            context="transactions" 
+            data={transactionData}
+            filters={filters}
+            className="sticky top-4"
+          />
+        </motion.div>
+      </div>
 
       {/* Quick Actions */}
       <motion.div

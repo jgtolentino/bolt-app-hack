@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useFilterStore } from '../stores/filterStore';
+import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
@@ -721,41 +722,61 @@ const ConsumerInsights: React.FC = () => {
         </div>
       </motion.div>
 
-      {/* Tab Navigation - ALL TABS FUNCTIONAL */}
-      <motion.div
-        className="flex space-x-1 bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg p-1"
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {tabs.map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id)}
-            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
-              activeTab === tab.id
-                ? 'bg-white text-primary-700 shadow-sm'
-                : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
-            }`}
+      {/* Main Content with AI Insights */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Tab Navigation */}
+        <div className="xl:col-span-3">
+          <motion.div
+            className="flex space-x-1 bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg p-1 mb-6"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
           >
-            <tab.icon className="w-4 h-4" />
-            <span>{tab.label}</span>
-          </button>
-        ))}
-      </motion.div>
+            {tabs.map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                  activeTab === tab.id
+                    ? 'bg-white text-primary-700 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900 hover:bg-white/50'
+                }`}
+              >
+                <tab.icon className="w-4 h-4" />
+                <span>{tab.label}</span>
+              </button>
+            ))}
+          </motion.div>
 
-      {/* Tab Content - ALL TABS IMPLEMENTED */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {activeTab === 'behavior-patterns' && renderBehaviorPatterns()}
-        {activeTab === 'geographic-preferences' && renderGeographicPreferences()}
-        {activeTab === 'seasonal-trends' && renderSeasonalTrends()}
-        {activeTab === 'customer-segments' && renderCustomerSegments()}
-      </motion.div>
+          {/* Tab Content */}
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            {activeTab === 'behavior-patterns' && renderBehaviorPatterns()}
+            {activeTab === 'geographic-preferences' && renderGeographicPreferences()}
+            {activeTab === 'seasonal-trends' && renderSeasonalTrends()}
+            {activeTab === 'customer-segments' && renderCustomerSegments()}
+          </motion.div>
+        </div>
+
+        {/* AI Insights Panel */}
+        <motion.div
+          className="xl:col-span-1"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <AIInsightsPanel 
+            context="consumers" 
+            data={consumerData}
+            filters={filters}
+            className="sticky top-4"
+          />
+        </motion.div>
+      </div>
 
       {/* Quick Actions */}
       <motion.div

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useFilterStore } from '../stores/filterStore';
+import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import { 
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   ScatterChart, Scatter, ComposedChart, Area
@@ -15,7 +16,7 @@ import HorizontalBarChart from '../components/charts/HorizontalBarChart';
 
 const ProductAnalysis: React.FC = () => {
   const navigate = useNavigate();
-  const { client, category, brand, sku, region, city_municipality, barangay, setFilter } = useFilterStore();
+  const { client, category, brand, sku, region, city_municipality, barangay, setFilter, filters } = useFilterStore();
   const [activeTab, setActiveTab] = useState('category-performance');
   const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
@@ -441,7 +442,7 @@ const ProductAnalysis: React.FC = () => {
 
   const renderProductMix = () => (
     <div className="space-y-6">
-      {/* Product Mix Treemap - FIXED */}
+      {/* Product Mix Treemap */}
       <div className="chart-container">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-semibold text-gray-900">Product Mix Visualization</h3>
@@ -450,7 +451,6 @@ const ProductAnalysis: React.FC = () => {
           </div>
         </div>
         
-        {/* Use the fixed TreemapChart component */}
         <TreemapChart 
           data={productData.productMix}
           title=""
@@ -539,7 +539,7 @@ const ProductAnalysis: React.FC = () => {
         </motion.div>
       )}
 
-      {/* Tab Navigation - FIXED */}
+      {/* Tab Navigation */}
       <motion.div
         className="flex space-x-1 bg-white/50 backdrop-blur-sm border border-white/30 rounded-lg p-1 overflow-x-auto"
         initial={{ opacity: 0, y: 10 }}
@@ -562,18 +562,37 @@ const ProductAnalysis: React.FC = () => {
         ))}
       </motion.div>
 
-      {/* Tab Content - FIXED */}
-      <motion.div
-        key={activeTab}
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {activeTab === 'category-performance' && renderCategoryPerformance()}
-        {activeTab === 'brand-comparison' && renderBrandComparison()}
-        {activeTab === 'sku-deep-dive' && renderSKUDeepDive()}
-        {activeTab === 'product-mix' && renderProductMix()}
-      </motion.div>
+      {/* Main Content with AI Insights */}
+      <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        {/* Tab Content */}
+        <motion.div
+          key={activeTab}
+          className="xl:col-span-3"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+        >
+          {activeTab === 'category-performance' && renderCategoryPerformance()}
+          {activeTab === 'brand-comparison' && renderBrandComparison()}
+          {activeTab === 'sku-deep-dive' && renderSKUDeepDive()}
+          {activeTab === 'product-mix' && renderProductMix()}
+        </motion.div>
+
+        {/* AI Insights Panel */}
+        <motion.div
+          className="xl:col-span-1"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.2 }}
+        >
+          <AIInsightsPanel 
+            context="products" 
+            data={productData}
+            filters={filters}
+            className="sticky top-4"
+          />
+        </motion.div>
+      </div>
 
       {/* Quick Actions */}
       <motion.div
