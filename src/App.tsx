@@ -12,6 +12,7 @@ import GeographicAnalytics from './pages/GeographicAnalytics';
 import AIAssistant from './pages/AIAssistant';
 import Reports from './pages/Reports';
 import DatabaseValidation from './pages/DatabaseValidation';
+import UtangListaManagement from './pages/UtangListaManagement';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
               <Route path="/ai-assistant" element={<AIAssistant />} />
               <Route path="/reports" element={<Reports />} />
               <Route path="/validation" element={<DatabaseValidation />} />
+              <Route path="/utang-lista" element={<UtangListaManagement />} />
             </Routes>
           </motion.div>
         </main>

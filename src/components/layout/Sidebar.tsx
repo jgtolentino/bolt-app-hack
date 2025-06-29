@@ -11,7 +11,8 @@ import {
   FileText,
   Home,
   ChevronRight,
-  Database
+  Database,
+  CreditCard
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
@@ -21,6 +22,7 @@ const Sidebar: React.FC = () => {
     { path: '/products', icon: Package, label: 'Products', description: 'Product performance' },
     { path: '/consumers', icon: Users, label: 'Consumers', description: 'Customer insights' },
     { path: '/geography', icon: MapPin, label: 'Geography', description: 'Location analytics' },
+    { path: '/utang-lista', icon: CreditCard, label: 'Utang/Lista', description: 'Credit management' },
     { path: '/ai-assistant', icon: Bot, label: 'AI Assistant', description: 'Retail intelligence' },
     { path: '/reports', icon: FileText, label: 'Reports', description: 'Export & sharing' },
     { path: '/validation', icon: Database, label: 'DB Validation', description: 'Data quality check' },
