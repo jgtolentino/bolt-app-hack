@@ -37,30 +37,6 @@ const Overview: React.FC = () => {
     loadGeographicData();
   }, []);
 
-  const quickInsights = [
-    {
-      title: "Peak Sales Hours",
-      description: "2-4 PM shows highest transaction volume",
-      action: "Optimize Staffing",
-      icon: TrendingUp,
-      color: "bg-blue-500"
-    },
-    {
-      title: "Regional Leader", 
-      description: "NCR generates 35% of total revenue",
-      action: "Expand Strategy",
-      icon: MapPin,
-      color: "bg-green-500"
-    },
-    {
-      title: "Product Opportunity",
-      description: "Beverages category growing 28% YoY",
-      action: "Increase Inventory",
-      icon: BarChart3,
-      color: "bg-purple-500"
-    }
-  ];
-
   const topRegions = [
     { name: 'NCR', sales: 850000, growth: 15.2, rank: 1 },
     { name: 'Region VII', sales: 380000, growth: 12.8, rank: 2 },
@@ -231,32 +207,67 @@ const Overview: React.FC = () => {
                 onClick={() => navigate('/ai-assistant')}
                 className="text-sm text-primary-600 hover:text-primary-800"
               >
-                View All →
+                AI Chat →
               </button>
             </div>
             
             <div className="space-y-3 h-80 overflow-y-auto">
-              {quickInsights.map((insight, index) => (
-                <motion.div
-                  key={index}
-                  className="p-3 bg-white/50 rounded-lg border border-white/30 hover:bg-white/70 transition-colors cursor-pointer"
-                  whileHover={{ scale: 1.02 }}
-                  onClick={() => navigate('/ai-assistant')}
-                >
-                  <div className="flex items-start space-x-3">
-                    <div className={`w-8 h-8 ${insight.color} rounded-lg flex items-center justify-center`}>
-                      <insight.icon className="w-4 h-4 text-white" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{insight.title}</h4>
-                      <p className="text-sm text-gray-600 mb-2">{insight.description}</p>
-                      <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded">
-                        {insight.action}
-                      </span>
-                    </div>
+              <motion.div
+                className="p-3 bg-white/50 rounded-lg border border-white/30 hover:bg-white/70 transition-colors cursor-pointer"
+                whileHover={{ scale: 1.02 }}
+                onClick={() => navigate('/transactions')}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <TrendingUp className="w-4 h-4 text-white" />
                   </div>
-                </motion.div>
-              ))}
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">Transaction Analysis</h4>
+                    <p className="text-sm text-gray-600 mb-2">Deep dive into sales patterns</p>
+                    <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded">
+                      Analyze Trends
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="p-3 bg-white/50 rounded-lg border border-white/30 hover:bg-white/70 transition-colors cursor-pointer"
+                whileHover={{ scale: 1.02 }}
+                onClick={() => navigate('/products')}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">Product Performance</h4>
+                    <p className="text-sm text-gray-600 mb-2">Category and brand analysis</p>
+                    <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded">
+                      View Products
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
+
+              <motion.div
+                className="p-3 bg-white/50 rounded-lg border border-white/30 hover:bg-white/70 transition-colors cursor-pointer"
+                whileHover={{ scale: 1.02 }}
+                onClick={() => navigate('/geography')}
+              >
+                <div className="flex items-start space-x-3">
+                  <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <MapPin className="w-4 h-4 text-white" />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="font-medium text-gray-900">Geographic Insights</h4>
+                    <p className="text-sm text-gray-600 mb-2">Regional performance analysis</p>
+                    <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded">
+                      Explore Regions
+                    </span>
+                  </div>
+                </div>
+              </motion.div>
             </div>
             
             <div className="mt-4 pt-4 border-t border-white/20">
@@ -265,7 +276,7 @@ const Overview: React.FC = () => {
                 className="w-full py-2 bg-gradient-to-r from-primary-500 to-primary-600 text-white rounded-lg hover:from-primary-600 hover:to-primary-700 transition-colors"
               >
                 <Bot className="w-4 h-4 inline mr-2" />
-                Ask AI Assistant
+                Open AI Assistant
               </button>
             </div>
           </div>
