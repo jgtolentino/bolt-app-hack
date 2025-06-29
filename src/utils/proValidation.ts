@@ -286,44 +286,6 @@ export class ProAccountValidator {
     return report;
   }
 
-  // New function to generate 750K transactions
-  static async generate750KTransactions(): Promise<ProValidationResult> {
-    const startTime = Date.now();
-    
-    try {
-      console.log('🚀 Starting transaction generation...');
-      
-      // Call the new efficient transaction generation function
-      const { data, error } = await supabase.rpc('generate_efficient_transactions', {
-        target_count: 10000,  // Start with a smaller batch to avoid timeout
-        max_batch_size: 1000
-      });
-      
-      if (error) throw error;
-      
-      const executionTime = Date.now() - startTime;
-      
-      return {
-        section: 'Transaction Generation',
-        status: 'success',
-        data: {
-          result: data,
-          generationTime: executionTime
-        },
-        executionTime,
-        message: `Successfully initiated transaction generation: ${data}`
-      };
-    } catch (error) {
-      return {
-        section: 'Transaction Generation',
-        status: 'error',
-        data: { error: error instanceof Error ? error.message : 'Unknown error' },
-        executionTime: Date.now() - startTime,
-        message: 'Failed to generate transactions'
-      };
-    }
-  }
-
   // Function to monitor generation progress
   static async monitorGenerationProgress(): Promise<ProValidationResult> {
     const startTime = Date.now();

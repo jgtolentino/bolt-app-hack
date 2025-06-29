@@ -1,19 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { supabase } from '../lib/supabase';
 import { DatabaseValidator, ValidationResult } from '../utils/databaseValidator';
 import { ProAccountValidator, ProValidationResult } from '../utils/proValidation';
-import { Database, CheckCircle, XCircle, AlertCircle, RefreshCcw, Download, Play, BarChart3, Zap } from 'lucide-react';
+import { Database, CheckCircle, XCircle, AlertCircle, RefreshCcw, Download, Play, BarChart3, Zap, Pause, Clock, Info } from 'lucide-react';
 
 const DatabaseValidation: React.FC = () => {
   const [validationResults, setValidationResults] = useState<ValidationResult[]>([]);
   const [proResults, setProResults] = useState<ProValidationResult[]>([]);
-  const [generationProgress, setGenerationProgress] = useState<ProValidationResult | null>(null);
+  const [generationProgress, setGenerationProgress] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastValidated, setLastValidated] = useState<Date | null>(null);
-  const [activeTab, setActiveTab] = useState<'validation' | 'generation' | 'pro-features'>('validation');
-  const [generationCount, setGenerationCount] = useState<number>(1000);
+  const [activeTab, setActiveTab] = useState<'validation' | 'generation' | 'pro-features'>('generation');
+  const [generationCount, setGenerationCount] = useState<number>(10000);
+  const [batchSize, setBatchSize] = useState<number>(1000);
   const [generationError, setGenerationError] = useState<string | null>(null);
+  const [generationStats, setGenerationStats] = useState<any | null>(null);
+  const [monitorInterval, setMonitorInterval] = useState<any>(null);
+
+  useEffect(() => {
+    runValidation();
+    return () => {
+      if (monitorInterval) {
+        clearInterval(monitorInterval);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    if (isGenerating) {
+      // Set up monitoring interval
+      const interval = setInterval(async () => {
+        try {
+          await checkGenerationProgress();
+        } catch (error) {
+          console.error('Error checking progress:', error);
+        }
+      }, 5000); // Check every 5 seconds
+      
+      setMonitorInterval(interval);
+    } else {
+      // Clear interval when not generating
+      if (monitorInterval) {
+        clearInterval(monitorInterval);
+        setMonitorInterval(null);
+      }
+    }
+    
+    return () => {
+      if (monitorInterval) {
+        clearInterval(monitorInterval);
+      }
+    };
+  }, [isGenerating]);
 
   const runValidation = async () => {
     setIsLoading(true);
@@ -40,14 +80,14 @@ const DatabaseValidation: React.FC = () => {
     }
   };
 
-  const generate750KTransactions = async () => {
+  const generateTransactions = async () => {
     setIsGenerating(true);
     setGenerationError(null);
     try {
-      // Use the new efficient transaction generation function
+      // Use the efficient transaction generation function
       const { data, error } = await supabase.rpc('generate_efficient_transactions', {
         target_count: generationCount,
-        max_batch_size: 1000
+        max_batch_size: batchSize
       });
       
       if (error) throw error;
@@ -55,29 +95,59 @@ const DatabaseValidation: React.FC = () => {
       console.log('Generation result:', data);
       
       // Start monitoring progress
-      const progressInterval = setInterval(async () => {
-        try {
-          const progress = await ProAccountValidator.monitorGenerationProgress();
-          setGenerationProgress(progress);
-          
-          // Stop monitoring when complete or on error
-          if (progress.status === 'error' || 
-              (progress.data?.target_percentage >= 100) || 
-              !isGenerating) {
-            clearInterval(progressInterval);
-            setIsGenerating(false);
-          }
-        } catch (error) {
-          console.error('Error monitoring progress:', error);
-          clearInterval(progressInterval);
-          setIsGenerating(false);
-        }
-      }, 5000); // Check every 5 seconds
+      await checkGenerationProgress();
       
     } catch (error: any) {
       console.error('Generation failed:', error);
       setGenerationError(error.message || 'Transaction generation failed');
       setIsGenerating(false);
+    }
+  };
+
+  const checkGenerationProgress = async () => {
+    try {
+      // Get transaction stats
+      const { data, error } = await supabase.rpc('get_transaction_stats');
+      
+      if (error) throw error;
+      
+      setGenerationStats(data);
+      
+      // Calculate progress percentage
+      const totalCount = data?.total_count || 0;
+      const targetPercentage = Math.min(100, Math.round((totalCount / 750000) * 100));
+      
+      setGenerationProgress({
+        data: {
+          total_transactions: totalCount,
+          target_percentage: targetPercentage,
+          transactions_today: data?.today_count || 0,
+          avg_per_hour: data?.avg_per_hour || 0
+        }
+      });
+      
+      // Stop monitoring when complete
+      if (targetPercentage >= 100 || !isGenerating) {
+        setIsGenerating(false);
+      }
+    } catch (error: any) {
+      console.error('Error checking progress:', error);
+      setGenerationError(error.message || 'Error checking generation progress');
+      setIsGenerating(false);
+    }
+  };
+
+  const stopGeneration = async () => {
+    setIsGenerating(false);
+    setGenerationError('Generation stopped by user');
+    
+    try {
+      // Call a function to stop generation if available
+      // This would need to be implemented on the database side
+      const { error } = await supabase.rpc('stop_transaction_generation');
+      if (error) throw error;
+    } catch (error) {
+      console.warn('Could not explicitly stop generation:', error);
     }
   };
 
@@ -107,10 +177,6 @@ const DatabaseValidation: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
-  useEffect(() => {
-    runValidation();
-  }, []);
-
   const formatNumber = (value: number) => value?.toLocaleString() || '0';
   const formatCurrency = (value: number) => `₱${value?.toLocaleString() || '0'}`;
 
@@ -121,7 +187,7 @@ const DatabaseValidation: React.FC = () => {
   ];
 
   return (
-    <div className="space-y-6 p-6">
+    <div className="space-y-6">
       {/* Header */}
       <motion.div
         className="flex justify-between items-center"
@@ -367,26 +433,55 @@ const DatabaseValidation: React.FC = () => {
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-gray-900">Transaction Generation</h3>
                 <div className="flex items-center space-x-2">
-                  <select 
-                    value={generationCount}
-                    onChange={(e) => setGenerationCount(parseInt(e.target.value))}
-                    className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-                    disabled={isGenerating}
-                  >
-                    <option value={100}>100 Transactions</option>
-                    <option value={1000}>1,000 Transactions</option>
-                    <option value={5000}>5,000 Transactions</option>
-                    <option value={10000}>10,000 Transactions</option>
-                    <option value={50000}>50,000 Transactions</option>
-                  </select>
-                  <button
-                    onClick={generate750KTransactions}
-                    disabled={isGenerating}
-                    className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50"
-                  >
-                    <Play className={`w-4 h-4 ${isGenerating ? 'animate-pulse' : ''}`} />
-                    <span>{isGenerating ? 'Generating...' : 'Start Generation'}</span>
-                  </button>
+                  <div className="flex space-x-2">
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Transactions</label>
+                      <select 
+                        value={generationCount}
+                        onChange={(e) => setGenerationCount(parseInt(e.target.value))}
+                        className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        disabled={isGenerating}
+                      >
+                        <option value={100}>100 Transactions</option>
+                        <option value={1000}>1,000 Transactions</option>
+                        <option value={5000}>5,000 Transactions</option>
+                        <option value={10000}>10,000 Transactions</option>
+                        <option value={50000}>50,000 Transactions</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-xs text-gray-600 mb-1">Batch Size</label>
+                      <select 
+                        value={batchSize}
+                        onChange={(e) => setBatchSize(parseInt(e.target.value))}
+                        className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        disabled={isGenerating}
+                      >
+                        <option value={100}>100 per batch</option>
+                        <option value={500}>500 per batch</option>
+                        <option value={1000}>1,000 per batch</option>
+                        <option value={2000}>2,000 per batch</option>
+                      </select>
+                    </div>
+                  </div>
+                  {isGenerating ? (
+                    <button
+                      onClick={stopGeneration}
+                      className="flex items-center space-x-2 px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600"
+                    >
+                      <Pause className="w-4 h-4" />
+                      <span>Stop Generation</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={generateTransactions}
+                      disabled={isGenerating}
+                      className="flex items-center space-x-2 px-6 py-3 bg-gradient-to-r from-green-500 to-green-600 text-white rounded-lg hover:from-green-600 hover:to-green-700 disabled:opacity-50"
+                    >
+                      <Play className={`w-4 h-4 ${isGenerating ? 'animate-pulse' : ''}`} />
+                      <span>{isGenerating ? 'Generating...' : 'Start Generation'}</span>
+                    </button>
+                  )}
                 </div>
               </div>
 
@@ -394,7 +489,7 @@ const DatabaseValidation: React.FC = () => {
                 <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
                   <p className="text-red-800 text-sm">{generationError}</p>
                   <p className="text-red-700 text-xs mt-1">
-                    Try generating a smaller batch of transactions to avoid timeout issues.
+                    Try generating a smaller batch of transactions or using a smaller batch size to avoid timeout issues.
                   </p>
                 </div>
               )}
@@ -423,32 +518,42 @@ const DatabaseValidation: React.FC = () => {
                     </ul>
                   </div>
                 </div>
+                
+                <div className="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <div className="flex items-center space-x-2">
+                    <Info className="w-4 h-4 text-yellow-600" />
+                    <p className="text-sm text-yellow-800">
+                      For large datasets (50K+), generation will continue in the background even if you navigate away. 
+                      Check back later to see progress.
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
 
             {/* Progress Monitoring */}
-            {generationProgress && (
+            {(generationProgress || isGenerating) && (
               <div className="chart-container">
                 <h3 className="text-lg font-semibold text-gray-900 mb-4">Generation Progress</h3>
                 <div className="space-y-4">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">Progress</span>
                     <span className="font-bold text-2xl text-primary-600">
-                      {generationProgress.data?.target_percentage || 0}%
+                      {generationProgress?.data?.target_percentage || 0}%
                     </span>
                   </div>
                   
                   <div className="w-full bg-gray-200 rounded-full h-4">
                     <div
                       className="bg-gradient-to-r from-primary-500 to-primary-600 h-4 rounded-full transition-all duration-300"
-                      style={{ width: `${generationProgress.data?.target_percentage || 0}%` }}
+                      style={{ width: `${generationProgress?.data?.target_percentage || 0}%` }}
                     ></div>
                   </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                     <div className="text-center p-3 bg-blue-50 rounded-lg">
                       <div className="text-xl font-bold text-blue-600">
-                        {formatNumber(generationProgress.data?.total_transactions || 0)}
+                        {formatNumber(generationProgress?.data?.total_transactions || 0)}
                       </div>
                       <div className="text-blue-700">Total Transactions</div>
                     </div>
@@ -458,15 +563,82 @@ const DatabaseValidation: React.FC = () => {
                     </div>
                     <div className="text-center p-3 bg-purple-50 rounded-lg">
                       <div className="text-xl font-bold text-purple-600">
-                        {formatNumber(generationProgress.data?.transactions_today || 0)}
+                        {formatNumber(generationProgress?.data?.transactions_today || 0)}
                       </div>
                       <div className="text-purple-700">Today</div>
                     </div>
                     <div className="text-center p-3 bg-orange-50 rounded-lg">
                       <div className="text-xl font-bold text-orange-600">
-                        {formatNumber(generationProgress.data?.avg_per_hour || 0)}
+                        {formatNumber(generationProgress?.data?.avg_per_hour || 0)}
                       </div>
                       <div className="text-orange-700">Per Hour</div>
+                    </div>
+                  </div>
+                  
+                  {isGenerating && (
+                    <div className="flex items-center justify-center space-x-2 p-3 bg-blue-50 rounded-lg">
+                      <Clock className="w-4 h-4 text-blue-600 animate-pulse" />
+                      <span className="text-blue-800">Generation in progress... This may take some time for large datasets.</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+            
+            {/* Transaction Statistics */}
+            {generationStats && (
+              <div className="chart-container">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Transaction Statistics</h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Payment Method Distribution */}
+                  <div>
+                    <h4 className="font-medium text-gray-800 mb-3">Payment Method Distribution</h4>
+                    <div className="space-y-2">
+                      {generationStats.by_payment_method && Object.entries(generationStats.by_payment_method).map(([method, count]: [string, any]) => (
+                        <div key={method} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <span className="font-medium">{method}</span>
+                          <div className="text-right">
+                            <span className="text-gray-600">{formatNumber(count)} transactions</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {/* Regional Distribution */}
+                  <div>
+                    <h4 className="font-medium text-gray-800 mb-3">Regional Distribution</h4>
+                    <div className="space-y-2">
+                      {generationStats.by_region && Object.entries(generationStats.by_region).map(([region, count]: [string, any]) => (
+                        <div key={region} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                          <span className="font-medium">{region}</span>
+                          <div className="text-right">
+                            <span className="text-gray-600">{formatNumber(count)} transactions</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600">Earliest Transaction</div>
+                    <div className="font-medium">
+                      {generationStats.earliest_transaction ? new Date(generationStats.earliest_transaction).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600">Latest Transaction</div>
+                    <div className="font-medium">
+                      {generationStats.latest_transaction ? new Date(generationStats.latest_transaction).toLocaleDateString() : 'N/A'}
+                    </div>
+                  </div>
+                  <div className="p-3 bg-gray-50 rounded-lg">
+                    <div className="text-sm text-gray-600">Average Transaction Value</div>
+                    <div className="font-medium">
+                      {formatCurrency(generationStats.avg_transaction_value || 0)}
                     </div>
                   </div>
                 </div>
