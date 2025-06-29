@@ -4,38 +4,79 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
 
-// Validate that required environment variables are present
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.error('Missing Supabase environment variables. Please check your .env file.')
-  console.error('Required variables: VITE_SUPABASE_URL, VITE_SUPABASE_ANON_KEY')
-  throw new Error('Supabase configuration is incomplete. Please set up your environment variables.')
-}
+// Check if environment variables are placeholder values
+const isPlaceholderUrl = !supabaseUrl || 
+  supabaseUrl === 'https://your-project.supabase.co' || 
+  supabaseUrl.includes('your-project')
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true,
-    // Fallback to email/password if OAuth providers are not configured
-    flowType: 'pkce'
-  },
-  realtime: {
-    params: {
-      eventsPerSecond: 10
-    }
-  },
-  db: {
-    schema: 'public'
-  },
-  global: {
-    // Supabase Pro plan allows up to 1 million rows per request
-    // Set a reasonable default that works well for most queries
-    headers: { 
-      'X-Supabase-Range': '0-50000',
-      'X-Supabase-Prefer': 'count=exact'
+const isPlaceholderKey = !supabaseAnonKey || 
+  supabaseAnonKey === 'your-anon-key' || 
+  supabaseAnonKey.length < 20
+
+// Validate that required environment variables are present and not placeholders
+if (!supabaseUrl || !supabaseAnonKey || isPlaceholderUrl || isPlaceholderKey) {
+  const errorMessage = `
+🔗 Supabase Connection Required
+
+Your Supabase credentials are not configured. To connect:
+
+1. Click the "Connect to Supabase" button in the top right corner
+2. Or manually update your .env file with:
+   - VITE_SUPABASE_URL=your-actual-supabase-url
+   - VITE_SUPABASE_ANON_KEY=your-actual-anon-key
+
+Current values:
+- URL: ${supabaseUrl || 'not set'}
+- Key: ${supabaseAnonKey ? 'set but invalid' : 'not set'}
+  `
+  
+  console.error(errorMessage)
+  
+  // Create a mock client that will show helpful errors
+  const mockClient = {
+    from: () => ({
+      select: () => Promise.reject(new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner.')),
+      insert: () => Promise.reject(new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner.')),
+      update: () => Promise.reject(new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner.')),
+      delete: () => Promise.reject(new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner.'))
+    }),
+    auth: {
+      signUp: () => Promise.reject(new Error('Supabase not connected')),
+      signIn: () => Promise.reject(new Error('Supabase not connected')),
+      signOut: () => Promise.reject(new Error('Supabase not connected')),
+      getSession: () => Promise.resolve({ data: { session: null }, error: null }),
+      onAuthStateChange: () => ({ data: { subscription: { unsubscribe: () => {} } } })
     }
   }
-})
+  
+  // Export the mock client to prevent runtime errors
+  // @ts-ignore
+  export const supabase = mockClient
+} else {
+  // Create the real Supabase client
+  export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      persistSession: true,
+      detectSessionInUrl: true,
+      flowType: 'pkce'
+    },
+    realtime: {
+      params: {
+        eventsPerSecond: 10
+      }
+    },
+    db: {
+      schema: 'public'
+    },
+    global: {
+      headers: { 
+        'X-Supabase-Range': '0-50000',
+        'X-Supabase-Prefer': 'count=exact'
+      }
+    }
+  })
+}
 
 // Enhanced function for Supabase Pro - can handle much larger datasets
 export async function fetchAllRecords<T>(
@@ -43,6 +84,11 @@ export async function fetchAllRecords<T>(
   pageSize = 10000, // Increased page size for Pro plan
   maxRecords = 1000000 // Pro plan can handle up to 1M records
 ): Promise<T[]> {
+  // Check if Supabase is properly configured
+  if (isPlaceholderUrl || isPlaceholderKey) {
+    throw new Error('Supabase not connected. Please click "Connect to Supabase" in the top right corner to set up your database connection.')
+  }
+
   let allRecords: T[] = [];
   let page = 0;
   let hasMore = true;
@@ -55,29 +101,46 @@ export async function fetchAllRecords<T>(
     
     console.log(`📄 Fetching page ${page + 1} (records ${start}-${end})`);
     
-    // Apply range for this page
-    const { data, error, count } = await query
-      .range(start, end);
-    
-    if (error) {
-      console.error('Error fetching records:', error);
-      throw error;
-    }
-    
-    if (data && data.length > 0) {
-      allRecords = [...allRecords, ...data];
-      page++;
+    try {
+      // Apply range for this page
+      const { data, error, count } = await query
+        .range(start, end);
       
-      // If we got fewer records than requested, we've reached the end
-      hasMore = data.length === pageSize;
-      
-      // Log progress for large datasets
-      if (count && count > 10000) {
-        const progress = Math.min(100, (allRecords.length / count) * 100);
-        console.log(`📊 Progress: ${progress.toFixed(1)}% (${allRecords.length}/${count} records)`);
+      if (error) {
+        console.error('Error fetching records:', error);
+        
+        // Provide more helpful error messages
+        if (error.message.includes('Failed to fetch')) {
+          throw new Error('Unable to connect to Supabase. Please check your internet connection and Supabase configuration.')
+        }
+        
+        throw error;
       }
-    } else {
-      hasMore = false;
+      
+      if (data && data.length > 0) {
+        allRecords = [...allRecords, ...data];
+        page++;
+        
+        // If we got fewer records than requested, we've reached the end
+        hasMore = data.length === pageSize;
+        
+        // Log progress for large datasets
+        if (count && count > 10000) {
+          const progress = Math.min(100, (allRecords.length / count) * 100);
+          console.log(`📊 Progress: ${progress.toFixed(1)}% (${allRecords.length}/${count} records)`);
+        }
+      } else {
+        hasMore = false;
+      }
+    } catch (error) {
+      console.error('Network error while fetching records:', error);
+      
+      // Provide user-friendly error message
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        throw new Error('Connection failed. Please ensure Supabase is properly configured and your internet connection is stable.')
+      }
+      
+      throw error;
     }
   }
   
@@ -120,6 +183,12 @@ export async function processBatchQuery<T>(
 // Test Supabase connection with Pro plan features
 export const testSupabaseConnection = async () => {
   try {
+    // Check if credentials are configured
+    if (isPlaceholderUrl || isPlaceholderKey) {
+      console.warn('⚠️ Supabase credentials not configured. Please connect to Supabase.')
+      return false
+    }
+
     // Test basic connection
     const { data, error, count } = await supabase
       .from('geography')
@@ -127,6 +196,11 @@ export const testSupabaseConnection = async () => {
     
     if (error) {
       console.warn('Supabase connection test failed:', error.message)
+      
+      if (error.message.includes('Failed to fetch')) {
+        console.warn('💡 This usually means your Supabase URL or API key is incorrect, or there are network connectivity issues.')
+      }
+      
       return false
     }
     
@@ -145,6 +219,11 @@ export const testSupabaseConnection = async () => {
     return true
   } catch (error) {
     console.warn('Supabase connection test failed:', error)
+    
+    if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+      console.warn('💡 Network error: Please check your internet connection and Supabase configuration.')
+    }
+    
     return false
   }
 }
