@@ -1,225 +1,221 @@
-# Suki Analytics Database Setup Guide
+# Database Setup Guide
+
+This guide explains how to set up the complete database schema and seed data for the POS Analytics System.
 
 ## Overview
 
-This guide explains how to set up the PostgreSQL/Supabase database for the Suki Analytics dashboard with comprehensive Philippine retail data.
-
-## Database Features
-
-### 🎯 Enhanced Batch Generation
-- **First 2000 records** guarantee complete coverage of:
-  - All 6 regions (NCR, Region III, IV-A, VI, VII, XI)
-  - All product categories and brands
-  - All payment methods and customer types
-- **Realistic distribution patterns** based on Philippine retail behavior
-- **Performance optimized** batch processing
-
-### 📊 Data Distribution
-
-**Geographic Coverage (by transaction weight):**
-- NCR: 35%
-- Region VII (Cebu): 15%
-- Region III (Central Luzon): 12%
-- Region IV-A (CALABARZON): 10%
-- Region VI (Western Visayas): 8%
-- Region XI (Davao): 5%
-- Others: 15%
-
-**Product Categories (by volume):**
-- Beverages: 30%
-- Snacks: 25%
-- Food: 15%
-- Personal Care: 12%
-- Home Care: 10%
-- Tobacco: 5%
-- Others: 3%
-
-**Payment Methods:**
-- Cash: 50%
-- Utang/Lista: 30%
-- GCash: 18%
-- Credit Card: 2%
-
-## Quick Start
-
-### 1. Prerequisites
-
-```bash
-# Install Supabase CLI
-npm install -g supabase
-
-# Create .env.local file with your credentials
-cp .env.example .env.local
-```
-
-Edit `.env.local`:
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
-SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
-```
-
-### 2. Run Migrations and Seed Data
-
-```bash
-# Run all migrations and seed data
-npm run db:migrate
-
-# Or run steps separately:
-npx supabase db push                    # Run migrations
-npm run db:seed                          # Seed master data
-```
-
-### 3. Generate TypeScript Types
-
-```bash
-npm run db:generate
-```
+The database is designed to handle a comprehensive POS (Point of Sale) analytics system with support for:
+- Multiple stores across Philippine regions
+- Product catalog with categories and brands
+- Transaction processing with line items
+- Customer segmentation
+- Inventory management
+- Promotions and pricing
+- Real-time analytics with materialized views
+- Consumer behavior tracking and profiling
+- Product substitution patterns
+- Local payment methods (including utang/lista)
+- GADM spatial boundaries for geographic analysis
+- PostGIS support for advanced location queries
 
 ## Database Schema
 
 ### Core Tables
 
-1. **geography** - Philippine locations hierarchy
-   - Regions → Cities/Municipalities → Barangays
-   - Includes GPS coordinates and demographic data
+1. **stores** - Physical store locations with geographic data
+2. **cashiers** - Store employees/cashiers
+3. **customers** - Customer records with loyalty tracking
+4. **product_categories** - Hierarchical product categories
+5. **brands** - Product brand information
+6. **suppliers** - Product suppliers
+7. **products** - Complete product catalog
+8. **transactions** - POS transaction headers
+9. **transaction_items** - Transaction line items
+10. **price_history** - Product price changes over time
+11. **inventory_movements** - Stock tracking
+12. **promotions** - Promotional campaigns
+13. **promotion_items** - Products included in promotions
 
-2. **organization** - Product hierarchy
-   - Client → Category → Brand → SKU
-   - Pricing, margins, and competitor flags
+### Materialized Views
 
-3. **transactions** - Sales data
-   - Links to geography and organization
-   - Payment methods, customer types
-   - Temporal data for analysis
+1. **mv_daily_sales** - Pre-aggregated daily sales metrics
+2. **mv_product_performance** - Product sales performance
+3. **mv_hourly_patterns** - Hourly transaction patterns
 
-### Enhancement Tables
+## Setup Instructions
 
-- **customer_segments** - Customer segmentation
-- **product_combinations** - Frequently bought together
-- **ai_insights** - AI-generated recommendations
-- **inventory_levels** - Stock tracking
-- **price_changes** - Price history
-- **competitor_pricing** - Market intelligence
+### 1. Run Migrations
 
-## Data Generation Functions
+Execute the migrations in order:
 
-### Generate Full Dataset (750K transactions)
+```bash
+# 1. Create the complete data model
+supabase db push supabase/migrations/20250630_complete_data_model.sql
 
-```sql
--- Generate 750,000 transactions with guaranteed coverage
-SELECT generate_distributed_transactions(750000, 2000);
+# 2. Create transaction items table (if not included)
+supabase db push supabase/migrations/20250630_create_transaction_items.sql
+
+# 3. Seed 50,000 transactions with realistic data
+supabase db push supabase/migrations/20250630_seed_50k_transactions.sql
+
+# 4. Create refresh views function
+supabase db push supabase/migrations/20250630_refresh_views_function.sql
+
+# 5. Create retail analytics model (consumer behavior, substitutions, etc.)
+supabase db push supabase/migrations/20250630_complete_retail_analytics_model.sql
+
+# 6. Seed retail analytics data (consumer profiles, payment methods, etc.)
+supabase db push supabase/migrations/20250630_seed_retail_analytics_data.sql
+
+# 7. Add GADM spatial support (optional but recommended for geographic analysis)
+supabase db push supabase/migrations/20250630_add_gadm_spatial_support.sql
+
+# 8. Redistribute transactions across 365 days (for realistic data distribution)
+supabase db push supabase/migrations/20250630_redistribute_transactions_365days.sql
 ```
 
-### Generate Custom Batch
+### 2. Alternative: Direct SQL Execution
+
+If using Supabase Studio or psql:
 
 ```sql
--- Generate specific batch with coverage
-SELECT generate_comprehensive_batch(
-    batch_size := 5000,
-    batch_number := 1,
-    ensure_full_coverage := true
+-- Run each migration file in order
+\i supabase/migrations/20250630_complete_data_model.sql
+\i supabase/migrations/20250630_create_transaction_items.sql
+\i supabase/migrations/20250630_seed_50k_transactions.sql
+\i supabase/migrations/20250630_refresh_views_function.sql
+\i supabase/migrations/20250630_complete_retail_analytics_model.sql
+\i supabase/migrations/20250630_seed_retail_analytics_data.sql
+\i supabase/migrations/20250630_add_gadm_spatial_support.sql
+\i supabase/migrations/20250630_redistribute_transactions_365days.sql
+```
+
+### 3. Verify Installation
+
+```sql
+-- Check table counts
+SELECT 'stores' as table_name, COUNT(*) as count FROM stores
+UNION ALL
+SELECT 'products', COUNT(*) FROM products
+UNION ALL
+SELECT 'transactions', COUNT(*) FROM transactions
+UNION ALL
+SELECT 'transaction_items', COUNT(*) FROM transaction_items;
+
+-- Check materialized views
+SELECT schemaname, matviewname 
+FROM pg_matviews 
+WHERE schemaname = 'public';
+
+-- Test data retrieval
+SELECT * FROM mv_daily_sales LIMIT 10;
+```
+
+## Data Generation Details
+
+The seed script generates:
+- **20 stores** across Philippine regions
+- **100 cashiers** distributed across stores
+- **5,000 customers** with various types (Regular, Student, Senior, PWD, Walk-in)
+- **500 products** across 15 categories with realistic Philippine brands
+- **50,000 transactions** with 1-20 items each
+- Realistic time patterns (peak hours, weekend surge)
+- Payment method distribution (Cash dominant, growing digital adoption)
+
+## Environment Configuration
+
+Update your `.env` file with Supabase credentials:
+
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+## Frontend Integration
+
+The application now uses the `dataService` to fetch real data:
+
+```typescript
+import { dataService } from '../services/dataService';
+
+// Get KPI metrics
+const metrics = await dataService.getKPIMetrics({ 
+  start: subDays(new Date(), 30), 
+  end: new Date() 
+});
+
+// Get sales trends
+const salesData = await dataService.getSalesTrendData('hourly', 1);
+
+// Get product performance
+const products = await dataService.getProductPerformanceData(10);
+```
+
+## Data Refresh
+
+Materialized views can be refreshed manually:
+
+```sql
+SELECT public.refresh_materialized_views();
+```
+
+Or set up automatic refresh with pg_cron (if available):
+
+```sql
+SELECT cron.schedule(
+  'refresh-materialized-views', 
+  '0 * * * *', 
+  'SELECT public.refresh_materialized_views();'
 );
 ```
 
-### Monitor Generation Progress
+## Performance Considerations
 
-```sql
--- Check generation statistics
-SELECT * FROM monitor_batch_generation();
-```
-
-## Realistic Data Patterns
-
-### Time-Based Patterns
-- **Peak Hours**: 11AM-1PM (lunch), 6PM-8PM (dinner)
-- **Payday Effect**: 15th and 30th (+35% sales)
-- **Weekend Boost**: Saturday (+20%), Sunday (+10%)
-
-### Regional Variations
-- **NCR**: Higher transaction values, more digital payments
-- **Provincial**: More cash and utang/lista payments
-- **Urban**: More convenience items, prepared food
-- **Rural**: Bulk purchases, basic necessities
-
-### Category Patterns
-- **Morning** (6-9AM): Coffee, bread, breakfast items
-- **Noon** (11AM-2PM): Beverages, ready-to-eat snacks
-- **Afternoon** (2-5PM): Students buying snacks
-- **Evening** (6-9PM): Dinner ingredients, beverages
-
-## Verification Queries
-
-### Check Coverage
-
-```sql
--- Verify all regions are covered
-SELECT region, COUNT(*) as stores 
-FROM geography 
-GROUP BY region;
-
--- Verify all brands are covered
-SELECT category, brand, COUNT(*) as products 
-FROM organization 
-GROUP BY category, brand 
-ORDER BY category, brand;
-```
-
-### Check Distribution
-
-```sql
--- Transaction distribution by region
-SELECT 
-    g.region,
-    COUNT(*) as transactions,
-    ROUND(COUNT(*) * 100.0 / SUM(COUNT(*)) OVER (), 2) as percentage
-FROM transactions t
-JOIN geography g ON t.geography_id = g.id
-GROUP BY g.region
-ORDER BY percentage DESC;
-```
-
-### Performance Metrics
-
-```sql
--- Average processing time per batch
-SELECT 
-    batch_number,
-    processing_time,
-    transactions_generated
-FROM batch_logs
-ORDER BY batch_number;
-```
+1. **Indexes** - All foreign keys and commonly queried fields are indexed
+2. **Materialized Views** - Pre-aggregated data for faster dashboard loading
+3. **Partitioning** - Consider partitioning `transactions` table by date for very large datasets
+4. **Connection Pooling** - Use Supabase connection pooler for production
 
 ## Troubleshooting
 
 ### Common Issues
 
-1. **Slow generation**: Increase batch size but reduce total batches
-2. **Memory issues**: Reduce batch_size parameter
-3. **Coverage gaps**: Ensure first batch has ensure_full_coverage = true
+1. **"Missing Supabase configuration"**
+   - Ensure `.env` file has valid VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY
 
-### Reset Database
+2. **"permission denied for schema public"**
+   - Run migrations with a database owner role
+   - Check RLS policies are properly configured
 
-```sql
--- Clear all transaction data
-TRUNCATE TABLE transactions RESTART IDENTITY CASCADE;
+3. **Slow queries**
+   - Refresh materialized views: `SELECT public.refresh_materialized_views();`
+   - Check query plans with `EXPLAIN ANALYZE`
 
--- Clear all data (careful!)
-TRUNCATE TABLE geography, organization, transactions RESTART IDENTITY CASCADE;
-```
+4. **Data not showing in frontend**
+   - Verify "Real Data" mode is enabled in the UI
+   - Check browser console for connection errors
+   - Ensure RLS policies allow public SELECT access
 
-## Best Practices
+## Security Notes
 
-1. **Initial Setup**: Always run with coverage guarantee for first batch
-2. **Testing**: Generate smaller datasets (10K-50K) for development
-3. **Production**: Use full 750K dataset for realistic analytics
-4. **Monitoring**: Check coverage statistics after generation
+- All tables have Row Level Security (RLS) enabled
+- Public read access is allowed for analytics
+- Write operations require authentication
+- Sensitive data (if any) should have additional RLS policies
+
+## Maintenance
+
+Regular maintenance tasks:
+
+1. **Daily**: Refresh materialized views
+2. **Weekly**: Analyze tables for query optimization
+3. **Monthly**: Review and archive old transactions
+4. **Quarterly**: Review indexes and add new ones as needed
 
 ## Support
 
 For issues or questions:
-1. Check Supabase logs for errors
-2. Verify environment variables are set correctly
-3. Ensure Supabase project is on Pro plan for large datasets
-4. Monitor RLS policies aren't blocking inserts
+1. Check Supabase logs in the dashboard
+2. Review browser console for frontend errors
+3. Ensure all migrations ran successfully
+4. Verify environment variables are set correctly

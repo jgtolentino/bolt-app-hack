@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
   TrendingUp, 
@@ -15,7 +15,8 @@ import {
   UserCircle,
   Clock,
   AlertCircle,
-  ChevronRight
+  ChevronRight,
+  RefreshCw
 } from 'lucide-react';
 import KPICard from '../components/charts/KPICard';
 import SalesTrendChart from '../components/charts/SalesTrendChart';
@@ -24,6 +25,7 @@ import LocationHeatmap from '../components/charts/LocationHeatmap';
 import ProductCombosNetwork from '../components/charts/ProductCombosNetwork';
 import { KPIMetric } from '../types';
 import { formatCurrency } from '../utils/formatters';
+import { useDataStore } from '../stores/dataStore';
 
 // Time range options
 const timeRanges = [
@@ -36,10 +38,35 @@ const timeRanges = [
 const DashboardOverview: React.FC = () => {
   const [selectedTimeRange, setSelectedTimeRange] = useState('today');
   const [selectedLocation, setSelectedLocation] = useState('all');
-  const [viewMode, setViewMode] = useState<'real' | 'mock'>('real');
+  
+  // Get data from store
+  const {
+    kpiMetrics,
+    salesTrendData: storeSalesData,
+    productCombinations,
+    geographicData,
+    transactionPatterns,
+    isLoadingKPIs,
+    isLoadingCharts,
+    useRealData,
+    setUseRealData,
+    refreshAllData,
+    isConnected,
+    connectionError
+  } = useDataStore();
 
-  // Mock KPI data - would be fetched from API
-  const kpiMetrics: KPIMetric[] = useMemo(() => [
+  // Load data on mount
+  useEffect(() => {
+    refreshAllData();
+  }, []);
+
+  // Use real KPI data from store or fallback to mock
+  const displayKpiMetrics: KPIMetric[] = useMemo(() => {
+    if (useRealData && kpiMetrics.length > 0) {
+      return kpiMetrics;
+    }
+    // Fallback mock data
+    return [
     {
       id: 'daily-sales',
       title: 'Daily Sales',
@@ -80,20 +107,33 @@ const DashboardOverview: React.FC = () => {
       icon: 'TrendingUp',
       trend: [28, 30, 29, 31, 32]
     }
-  ], []);
+    ];
+  }, [useRealData, kpiMetrics]);
 
-  // Mock hourly transaction data
+  // Use real hourly transaction data from store
   const hourlyData = useMemo(() => {
+    if (useRealData && transactionPatterns?.hourlyPatterns) {
+      return transactionPatterns.hourlyPatterns.map(pattern => ({
+        hour: pattern.hour,
+        today: pattern.transactions,
+        average: pattern.avg_size || pattern.transactions
+      }));
+    }
+    // Fallback mock data
     const hours = Array.from({ length: 24 }, (_, i) => i);
     return hours.map(hour => ({
       hour: `${hour}:00`,
       today: Math.floor(Math.random() * 20) + 5,
       average: Math.floor(Math.random() * 15) + 8
     }));
-  }, []);
+  }, [useRealData, transactionPatterns]);
 
-  // Mock 24h sales trend data
+  // Use real sales trend data from store
   const salesTrendData = useMemo(() => {
+    if (useRealData && storeSalesData && storeSalesData.length > 0) {
+      return storeSalesData;
+    }
+    // Fallback mock data
     const now = new Date();
     const currentHour = now.getHours();
     
@@ -108,24 +148,44 @@ const DashboardOverview: React.FC = () => {
         transactions: Math.floor(Math.random() * 20) + 5
       };
     });
-  }, []);
+  }, [useRealData, storeSalesData]);
 
-  // Mock location performance data
-  const locationData = [
-    { location: 'Barangay 1', revenue: 12500, growth: 15 },
-    { location: 'Barangay 2', revenue: 10200, growth: 8 },
-    { location: 'Barangay 3', revenue: 8900, growth: -3 },
-    { location: 'Barangay 4', revenue: 7600, growth: 12 },
-    { location: 'Barangay 5', revenue: 6800, growth: 5 }
-  ];
+  // Use real location data from store
+  const locationData = useMemo(() => {
+    if (useRealData && geographicData && geographicData.length > 0) {
+      return geographicData.slice(0, 5).map(loc => ({
+        location: loc.region || loc.city || 'Unknown',
+        revenue: loc.value || 0,
+        growth: loc.growth || 0
+      }));
+    }
+    // Fallback mock data
+    return [
+      { location: 'Barangay 1', revenue: 12500, growth: 15 },
+      { location: 'Barangay 2', revenue: 10200, growth: 8 },
+      { location: 'Barangay 3', revenue: 8900, growth: -3 },
+      { location: 'Barangay 4', revenue: 7600, growth: 12 },
+      { location: 'Barangay 5', revenue: 6800, growth: 5 }
+    ];
+  }, [useRealData, geographicData]);
 
-  // Mock product combos
-  const productCombos = [
-    { combo: ['Marlboro', 'Coke'], frequency: 67, value: 125 },
-    { combo: ['Palmolive', 'Safeguard'], frequency: 45, value: 89 },
-    { combo: ['Kopiko', 'Sky Flakes'], frequency: 38, value: 45 },
-    { combo: ['Chippy', 'C2'], frequency: 32, value: 55 }
-  ];
+  // Use real product combinations from store
+  const productCombos = useMemo(() => {
+    if (useRealData && productCombinations && productCombinations.length > 0) {
+      return productCombinations.slice(0, 4).map(combo => ({
+        combo: [combo.product1_name, combo.product2_name],
+        frequency: combo.co_occurrence_count,
+        value: Math.floor(combo.confidence_percent * 1.5) // Estimate value
+      }));
+    }
+    // Fallback mock data
+    return [
+      { combo: ['Marlboro', 'Coke'], frequency: 67, value: 125 },
+      { combo: ['Palmolive', 'Safeguard'], frequency: 45, value: 89 },
+      { combo: ['Kopiko', 'Sky Flakes'], frequency: 38, value: 45 },
+      { combo: ['Chippy', 'C2'], frequency: 32, value: 55 }
+    ];
+  }, [useRealData, productCombinations]);
 
   // AI Insights
   const aiInsights = [
@@ -147,7 +207,16 @@ const DashboardOverview: React.FC = () => {
     <div className="space-y-6 p-6">
       {/* Header with Filters */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
+        <div className="flex items-center gap-4">
+          <h1 className="text-2xl font-bold text-gray-900">Dashboard Overview</h1>
+          {/* Connection Status */}
+          <div className="flex items-center gap-2">
+            <div className={`w-2 h-2 rounded-full ${isConnected ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span className="text-sm text-gray-600">
+              {isConnected ? 'Connected' : connectionError || 'Disconnected'}
+            </span>
+          </div>
+        </div>
         
         <div className="flex flex-wrap gap-2">
           {/* Time Range Filter */}
@@ -173,29 +242,51 @@ const DashboardOverview: React.FC = () => {
             <option value="barangay3">Barangay 3</option>
           </select>
 
-          {/* View Mode Toggle */}
+          {/* Data Source Toggle */}
           <div className="flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg">
             <button
-              onClick={() => setViewMode('real')}
-              className={`px-3 py-1 rounded text-sm ${viewMode === 'real' ? 'bg-primary-500 text-white' : 'text-gray-600'}`}
+              onClick={() => setUseRealData(true)}
+              className={`px-3 py-1 rounded text-sm ${useRealData ? 'bg-primary-500 text-white' : 'text-gray-600'}`}
+              disabled={!isConnected}
             >
               Real Data
             </button>
             <button
-              onClick={() => setViewMode('mock')}
-              className={`px-3 py-1 rounded text-sm ${viewMode === 'mock' ? 'bg-primary-500 text-white' : 'text-gray-600'}`}
+              onClick={() => setUseRealData(false)}
+              className={`px-3 py-1 rounded text-sm ${!useRealData ? 'bg-primary-500 text-white' : 'text-gray-600'}`}
             >
               Mock Data
             </button>
           </div>
+          
+          {/* Refresh Button */}
+          <button
+            onClick={refreshAllData}
+            className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors"
+            disabled={isLoadingKPIs || isLoadingCharts}
+            title="Refresh data"
+          >
+            <RefreshCw className={`w-4 h-4 ${(isLoadingKPIs || isLoadingCharts) ? 'animate-spin' : ''}`} />
+          </button>
         </div>
       </div>
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {kpiMetrics.map((metric, index) => (
-          <KPICard key={metric.id} metric={metric} index={index} />
-        ))}
+        {isLoadingKPIs ? (
+          // Loading skeleton
+          Array(4).fill(0).map((_, index) => (
+            <div key={index} className="bg-white rounded-lg shadow-sm p-6 animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-1/2 mb-4"></div>
+              <div className="h-8 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-3 bg-gray-200 rounded w-1/3"></div>
+            </div>
+          ))
+        ) : (
+          displayKpiMetrics.map((metric, index) => (
+            <KPICard key={metric.id} metric={metric} index={index} />
+          ))
+        )}
       </div>
 
       {/* Real-Time Trends */}
@@ -264,6 +355,7 @@ const DashboardOverview: React.FC = () => {
             }))} 
             width={400}
             height={300}
+            isLoading={isLoadingCharts}
           />
         </motion.div>
       </div>

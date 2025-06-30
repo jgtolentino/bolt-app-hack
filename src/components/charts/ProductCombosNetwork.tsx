@@ -3,7 +3,8 @@ import { motion } from 'framer-motion';
 import * as d3 from 'd3';
 
 interface ProductCombo {
-  products: string[];
+  products?: string[];
+  combo?: string[];
   frequency: number;
   value: number;
 }
@@ -12,17 +13,26 @@ interface ProductCombosNetworkProps {
   data?: ProductCombo[];
   width?: number;
   height?: number;
+  isLoading?: boolean;
 }
 
 const ProductCombosNetwork: React.FC<ProductCombosNetworkProps> = ({ 
   data,
   width = 400,
-  height = 300
+  height = 300,
+  isLoading = false
 }) => {
   const svgRef = useRef<SVGSVGElement>(null);
 
+  // Normalize data format (handle both 'products' and 'combo' fields)
+  const normalizedData = data?.map(item => ({
+    products: item.products || item.combo || [],
+    frequency: item.frequency,
+    value: item.value
+  })) || [];
+
   // Default data if not provided
-  const combos = data || [
+  const combos = normalizedData.length > 0 ? normalizedData : [
     { products: ['Marlboro', 'Coke'], frequency: 67, value: 125 },
     { products: ['Palmolive', 'Safeguard'], frequency: 45, value: 89 },
     { products: ['Kopiko', 'Sky Flakes'], frequency: 38, value: 45 },
@@ -192,6 +202,17 @@ const ProductCombosNetwork: React.FC<ProductCombosNetworkProps> = ({
       simulation.stop();
     };
   }, [combos, width, height]);
+
+  if (isLoading) {
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500 mx-auto mb-2"></div>
+          <p className="text-sm text-gray-500">Loading product combinations...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <motion.div

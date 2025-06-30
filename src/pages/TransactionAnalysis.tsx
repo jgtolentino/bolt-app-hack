@@ -5,7 +5,7 @@ import { useFilterStore } from '../stores/filterStore';
 import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import { 
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  ComposedChart, Area, AreaChart, ScatterChart, Scatter, Cell, PieChart, Pie
+  ComposedChart, Area, AreaChart, ScatterChart, Scatter, Cell
 } from 'recharts';
 import { 
   Clock, Calendar, TrendingUp, DollarSign, Users, Filter,

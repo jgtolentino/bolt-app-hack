@@ -5,7 +5,7 @@ import { useFilterStore } from '../stores/filterStore';
 import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import {
   BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
+  Cell, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar,
   ScatterChart, Scatter, ComposedChart, Area
 } from 'recharts';
 import {
@@ -194,23 +194,30 @@ const ConsumerInsights: React.FC = () => {
             <span className="text-sm text-gray-600">By Volume</span>
           </div>
           
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={consumerData.customerSegments}
-                cx="50%"
-                cy="50%"
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="count"
-                label={({ segment, percentage }) => `${segment}: ${percentage}%`}
-              >
+          <ResponsiveContainer width="100%" height={300}>
+            <BarChart 
+              data={consumerData.customerSegments}
+              layout="horizontal"
+              margin={{ top: 20, right: 30, left: 80, bottom: 20 }}
+            >
+              <XAxis 
+                type="number"
+                tick={{ fontSize: 12 }}
+                tickFormatter={(value) => `${value}`}
+              />
+              <YAxis 
+                type="category"
+                dataKey="segment"
+                tick={{ fontSize: 12 }}
+                width={70}
+              />
+              <Tooltip content={<CustomTooltip />} />
+              <Bar dataKey="count" radius={[0, 4, 4, 0]}>
                 {consumerData.customerSegments.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
-              </Pie>
-              <Tooltip content={<CustomTooltip />} />
-            </PieChart>
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
