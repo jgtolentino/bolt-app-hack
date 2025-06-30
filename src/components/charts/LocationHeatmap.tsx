@@ -31,7 +31,7 @@ const LocationHeatmap: React.FC<LocationHeatmapProps> = ({
   ];
 
   // Calculate max revenue for heat intensity
-  const maxRevenue = Math.max(...locations.map(l => l.revenue));
+  const maxRevenue = Math.max(...locations.map(l => l.revenue)) || 1; // Prevent division by zero
 
   const getHeatColor = (revenue: number) => {
     const intensity = revenue / maxRevenue;
