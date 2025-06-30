@@ -18,7 +18,7 @@ import { fmt } from '../utils/formatters';
 
 const TransactionAnalysis: React.FC = () => {
   const navigate = useNavigate();
-  const { filters } = useFilterStore();
+  const filters = useFilterStore();
   const [activeTab, setActiveTab] = useState('time-patterns');
   const [timeRange, setTimeRange] = useState('last-30-days');
   const [loading, setLoading] = useState(false);

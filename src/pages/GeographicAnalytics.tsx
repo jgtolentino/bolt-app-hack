@@ -18,7 +18,7 @@ import { fmt } from '../utils/formatters';
 
 const GeographicAnalytics: React.FC = () => {
   const navigate = useNavigate();
-  const { filters } = useFilterStore();
+  const filters = useFilterStore();
   const [activeTab, setActiveTab] = useState('regional-overview');
   const [mapView, setMapView] = useState('sales');
   const [loading, setLoading] = useState(false);

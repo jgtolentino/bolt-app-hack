@@ -34,7 +34,7 @@ const ChartLoader = () => (
 // Main Dashboard Component
 const OptimizedDashboard: React.FC = () => {
   const [dateRange, setDateRange] = useState('last7Days');
-  const filters = useFilterStore(state => state.filters);
+  const { region, city_municipality } = useFilterStore();
   const [lastUpdate] = useState(new Date());
   
   // Get date range
@@ -51,8 +51,8 @@ const OptimizedDashboard: React.FC = () => {
     refetch 
   } = useDashboardData({
     ...dateFilter,
-    region: filters.selectedRegions?.[0],
-    storeId: filters.selectedStores?.[0]
+    region: region || undefined,
+    storeId: city_municipality || undefined
   });
 
   // Primary KPI Cards (most important 4)
