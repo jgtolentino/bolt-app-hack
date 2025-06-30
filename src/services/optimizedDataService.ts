@@ -87,30 +87,80 @@ export class OptimizedDataService {
     return data;
   }
 
-  // Optimized KPI metrics query
+  // Optimized KPI metrics query using direct table queries
   private async getKPIMetrics(dateFrom: Date, dateTo: Date, filters?: any) {
-    const { data: current, error: currentError } = await supabase
-      .rpc('get_kpi_metrics', {
-        date_from: format(dateFrom, 'yyyy-MM-dd'),
-        date_to: format(dateTo, 'yyyy-MM-dd'),
-        region_filter: filters?.region || null,
-        store_filter: filters?.storeId || null
-      });
+    // Build the base query
+    let currentQuery = supabase
+      .from('transactions')
+      .select(`
+        total_amount,
+        customer_id,
+        store_id,
+        stores!inner(region)
+      `)
+      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
+      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
+      .eq('status', 'completed');
 
+    // Apply filters
+    if (filters?.region) {
+      currentQuery = currentQuery.eq('stores.region', filters.region);
+    }
+    if (filters?.storeId) {
+      currentQuery = currentQuery.eq('store_id', filters.storeId);
+    }
+
+    const { data: currentTransactions, error: currentError } = await currentQuery;
     if (currentError) throw currentError;
+
+    // Calculate current period metrics
+    const current = {
+      total_sales: currentTransactions?.reduce((sum, t) => sum + Number(t.total_amount), 0) || 0,
+      total_transactions: currentTransactions?.length || 0,
+      avg_basket_size: currentTransactions?.length 
+        ? (currentTransactions.reduce((sum, t) => sum + Number(t.total_amount), 0) / currentTransactions.length)
+        : 0,
+      unique_customers: new Set(currentTransactions?.filter(t => t.customer_id).map(t => t.customer_id)).size,
+      active_stores: new Set(currentTransactions?.map(t => t.store_id)).size
+    };
 
     // Get previous period data for comparison
     const daysDiff = Math.ceil((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
     const prevDateFrom = subDays(dateFrom, daysDiff);
     const prevDateTo = subDays(dateTo, daysDiff);
 
-    const { data: previous } = await supabase
-      .rpc('get_kpi_metrics', {
-        date_from: format(prevDateFrom, 'yyyy-MM-dd'),
-        date_to: format(prevDateTo, 'yyyy-MM-dd'),
-        region_filter: filters?.region || null,
-        store_filter: filters?.storeId || null
-      });
+    let previousQuery = supabase
+      .from('transactions')
+      .select(`
+        total_amount,
+        customer_id,
+        store_id,
+        stores!inner(region)
+      `)
+      .gte('transaction_date', format(prevDateFrom, 'yyyy-MM-dd'))
+      .lte('transaction_date', format(prevDateTo, 'yyyy-MM-dd'))
+      .eq('status', 'completed');
+
+    // Apply filters
+    if (filters?.region) {
+      previousQuery = previousQuery.eq('stores.region', filters.region);
+    }
+    if (filters?.storeId) {
+      previousQuery = previousQuery.eq('store_id', filters.storeId);
+    }
+
+    const { data: previousTransactions } = await previousQuery;
+
+    // Calculate previous period metrics
+    const previous = {
+      total_sales: previousTransactions?.reduce((sum, t) => sum + Number(t.total_amount), 0) || 0,
+      total_transactions: previousTransactions?.length || 0,
+      avg_basket_size: previousTransactions?.length 
+        ? (previousTransactions.reduce((sum, t) => sum + Number(t.total_amount), 0) / previousTransactions.length)
+        : 0,
+      unique_customers: new Set(previousTransactions?.filter(t => t.customer_id).map(t => t.customer_id)).size,
+      active_stores: new Set(previousTransactions?.map(t => t.store_id)).size
+    };
 
     return this.calculateKPIChanges(current, previous);
   }
@@ -153,64 +203,290 @@ export class OptimizedDataService {
     return ((current - previous) / previous) * 100;
   }
 
-  // Get sales trend with optimized query
+  // Get sales trend with direct transaction queries
   private async getSalesTrend(dateFrom: Date, dateTo: Date, filters?: any) {
-    const { data, error } = await supabase
-      .from('mv_daily_sales')
-      .select('transaction_date, net_sales, transaction_count')
+    // Build the base query
+    let query = supabase
+      .from('transactions')
+      .select(`
+        transaction_date,
+        total_amount,
+        store_id,
+        stores!inner(region)
+      `)
       .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
       .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
-      .order('transaction_date');
+      .eq('status', 'completed');
 
+    // Apply filters
+    if (filters?.region) {
+      query = query.eq('stores.region', filters.region);
+    }
+    if (filters?.storeId) {
+      query = query.eq('store_id', filters.storeId);
+    }
+
+    const { data: transactions, error } = await query;
     if (error) throw error;
-    return data || [];
+
+    // Group by date and calculate daily metrics
+    const dailySales = transactions?.reduce((acc: any, transaction) => {
+      const date = transaction.transaction_date;
+      if (!acc[date]) {
+        acc[date] = {
+          transaction_date: date,
+          net_sales: 0,
+          transaction_count: 0
+        };
+      }
+      acc[date].net_sales += Number(transaction.total_amount);
+      acc[date].transaction_count += 1;
+      return acc;
+    }, {}) || {};
+
+    // Convert to array and sort by date
+    return Object.values(dailySales).sort((a: any, b: any) => 
+      new Date(a.transaction_date).getTime() - new Date(b.transaction_date).getTime()
+    );
   }
 
   // Get transaction volume by hour
   private async getTransactionVolume(dateFrom: Date, dateTo: Date, filters?: any) {
-    const { data, error } = await supabase
-      .from('mv_hourly_patterns')
-      .select('hour_of_day, avg_transactions, avg_sales')
-      .order('hour_of_day');
+    // Build the base query
+    let query = supabase
+      .from('transactions')
+      .select(`
+        transaction_time,
+        total_amount,
+        store_id,
+        stores!inner(region)
+      `)
+      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
+      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
+      .eq('status', 'completed');
 
+    // Apply filters
+    if (filters?.region) {
+      query = query.eq('stores.region', filters.region);
+    }
+    if (filters?.storeId) {
+      query = query.eq('store_id', filters.storeId);
+    }
+
+    const { data: transactions, error } = await query;
     if (error) throw error;
-    return data || [];
+
+    // Group by hour and calculate hourly patterns
+    const hourlyData = transactions?.reduce((acc: any, transaction) => {
+      // Extract hour from transaction_time (HH:MM:SS format)
+      const hour = parseInt(transaction.transaction_time.split(':')[0]);
+      if (!acc[hour]) {
+        acc[hour] = {
+          hour_of_day: hour,
+          total_transactions: 0,
+          total_sales: 0
+        };
+      }
+      acc[hour].total_transactions += 1;
+      acc[hour].total_sales += Number(transaction.total_amount);
+      return acc;
+    }, {}) || {};
+
+    // Calculate averages based on number of days
+    const daysDiff = Math.ceil((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24)) || 1;
+    
+    // Convert to array with averages and ensure all hours are represented
+    const result = [];
+    for (let hour = 0; hour < 24; hour++) {
+      const data = hourlyData[hour] || { hour_of_day: hour, total_transactions: 0, total_sales: 0 };
+      result.push({
+        hour_of_day: hour,
+        avg_transactions: data.total_transactions / daysDiff,
+        avg_sales: data.total_sales / daysDiff
+      });
+    }
+
+    return result;
   }
 
   // Get top products with limit
   private async getTopProducts(dateFrom: Date, dateTo: Date, filters?: any, limit = 10) {
-    const { data, error } = await supabase
-      .from('mv_product_performance')
-      .select('product_name, category_name, brand_name, total_revenue, total_units_sold')
-      .order('total_revenue', { ascending: false })
-      .limit(limit);
+    // First get transactions in the date range with filters
+    let transactionQuery = supabase
+      .from('transactions')
+      .select(`
+        id,
+        store_id,
+        stores!inner(region)
+      `)
+      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
+      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
+      .eq('status', 'completed');
+
+    // Apply filters
+    if (filters?.region) {
+      transactionQuery = transactionQuery.eq('stores.region', filters.region);
+    }
+    if (filters?.storeId) {
+      transactionQuery = transactionQuery.eq('store_id', filters.storeId);
+    }
+
+    const { data: transactions, error: transError } = await transactionQuery;
+    if (transError) throw transError;
+
+    if (!transactions || transactions.length === 0) return [];
+
+    // Get transaction IDs
+    const transactionIds = transactions.map(t => t.id);
+
+    // Get transaction items for these transactions with product details
+    const { data: items, error } = await supabase
+      .from('transaction_items')
+      .select(`
+        product_id,
+        product_name,
+        quantity,
+        line_total,
+        products!inner(
+          category_id,
+          brand_id,
+          product_categories!inner(category_name),
+          brands!inner(brand_name)
+        )
+      `)
+      .in('transaction_id', transactionIds)
+      .eq('is_voided', false);
 
     if (error) throw error;
-    return data || [];
+
+    // Group by product and calculate totals
+    const productSales = items?.reduce((acc: any, item) => {
+      const productId = item.product_id;
+      if (!acc[productId]) {
+        acc[productId] = {
+          product_name: item.product_name,
+          category_name: item.products?.product_categories?.category_name || 'Uncategorized',
+          brand_name: item.products?.brands?.brand_name || 'Generic',
+          total_revenue: 0,
+          total_units_sold: 0
+        };
+      }
+      acc[productId].total_revenue += Number(item.line_total);
+      acc[productId].total_units_sold += Number(item.quantity);
+      return acc;
+    }, {}) || {};
+
+    // Convert to array, sort by revenue, and take top N
+    return Object.values(productSales)
+      .sort((a: any, b: any) => b.total_revenue - a.total_revenue)
+      .slice(0, limit);
   }
 
   // Get top categories
   private async getTopCategories(dateFrom: Date, dateTo: Date, filters?: any) {
-    const { data, error } = await supabase
-      .from('mv_product_mix')
-      .select('category_name, total_revenue, transaction_count')
-      .order('total_revenue', { ascending: false })
-      .limit(5);
+    // First get transactions in the date range with filters
+    let transactionQuery = supabase
+      .from('transactions')
+      .select(`
+        id,
+        store_id,
+        stores!inner(region)
+      `)
+      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
+      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
+      .eq('status', 'completed');
+
+    // Apply filters
+    if (filters?.region) {
+      transactionQuery = transactionQuery.eq('stores.region', filters.region);
+    }
+    if (filters?.storeId) {
+      transactionQuery = transactionQuery.eq('store_id', filters.storeId);
+    }
+
+    const { data: transactions, error: transError } = await transactionQuery;
+    if (transError) throw transError;
+
+    if (!transactions || transactions.length === 0) return [];
+
+    // Get transaction IDs
+    const transactionIds = transactions.map(t => t.id);
+
+    // Get transaction items with category details
+    const { data: items, error } = await supabase
+      .from('transaction_items')
+      .select(`
+        transaction_id,
+        line_total,
+        products!inner(
+          category_id,
+          product_categories!inner(category_name)
+        )
+      `)
+      .in('transaction_id', transactionIds)
+      .eq('is_voided', false);
 
     if (error) throw error;
-    return data || [];
+
+    // Group by category and calculate totals
+    const categorySales = items?.reduce((acc: any, item) => {
+      const categoryName = item.products?.product_categories?.category_name || 'Uncategorized';
+      if (!acc[categoryName]) {
+        acc[categoryName] = {
+          category_name: categoryName,
+          total_revenue: 0,
+          transaction_count: new Set()
+        };
+      }
+      acc[categoryName].total_revenue += Number(item.line_total);
+      acc[categoryName].transaction_count.add(item.transaction_id);
+      return acc;
+    }, {}) || {};
+
+    // Convert to array, calculate transaction counts, sort by revenue, and take top 5
+    return Object.values(categorySales)
+      .map((cat: any) => ({
+        category_name: cat.category_name,
+        total_revenue: cat.total_revenue,
+        transaction_count: cat.transaction_count.size
+      }))
+      .sort((a: any, b: any) => b.total_revenue - a.total_revenue)
+      .slice(0, 5);
   }
 
   // Get region performance
   private async getRegionPerformance(dateFrom: Date, dateTo: Date) {
-    const { data, error } = await supabase
-      .from('mv_transaction_patterns')
-      .select('region, sum(total_sales) as total_sales, sum(transaction_count) as transactions')
-      .group('region')
-      .order('total_sales', { ascending: false });
+    const { data: transactions, error } = await supabase
+      .from('transactions')
+      .select(`
+        total_amount,
+        store_id,
+        stores!inner(region)
+      `)
+      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
+      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
+      .eq('status', 'completed');
 
     if (error) throw error;
-    return data || [];
+
+    // Group by region and calculate totals
+    const regionData = transactions?.reduce((acc: any, transaction) => {
+      const region = transaction.stores?.region || 'Unknown';
+      if (!acc[region]) {
+        acc[region] = {
+          region: region,
+          total_sales: 0,
+          transactions: 0
+        };
+      }
+      acc[region].total_sales += Number(transaction.total_amount);
+      acc[region].transactions += 1;
+      return acc;
+    }, {}) || {};
+
+    // Convert to array and sort by total sales
+    return Object.values(regionData)
+      .sort((a: any, b: any) => b.total_sales - a.total_sales);
   }
 
   // Get recent transactions

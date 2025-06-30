@@ -23,16 +23,7 @@ const queryKeys = {
 export function useDashboardData(filters?: DataFilters) {
   return useQuery({
     queryKey: queryKeys.dashboard(filters),
-    queryFn: async () => {
-      // Always use fallback for now since materialized views don't exist
-      console.log('Using fallback data service for dashboard metrics');
-      return await fallbackDataService.getDashboardMetrics({
-        dateFrom: filters?.dateFrom || subDays(new Date(), 7),
-        dateTo: filters?.dateTo || new Date(),
-        region: filters?.region,
-        storeId: filters?.storeId
-      });
-    },
+    queryFn: () => optimizedDataService.getDashboardMetrics(filters),
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 10 * 60 * 1000, // 10 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
