@@ -1,9 +1,9 @@
+/* Import chart fixes first */
+@import './styles/chart-fixes.css';
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-
-/* Import chart fixes */
-@import './styles/chart-fixes.css';
 
 @layer base {
   * {

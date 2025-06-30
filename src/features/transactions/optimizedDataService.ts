@@ -1,4 +1,4 @@
-import { supabase, hasValidSupabaseConfig } from '../lib/supabase';
+import { supabase, hasValidSupabaseConfig } from '../../lib/supabase';
 import { format, subDays, startOfDay, endOfDay } from 'date-fns';
 
 // Cache configuration

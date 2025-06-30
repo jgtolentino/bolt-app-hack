@@ -13,10 +13,20 @@ import {
   DollarSign,
   Loader2
 } from 'lucide-react';
-import { useDashboardData, dateRanges } from '../hooks/useOptimizedData';
+import { useDashboardData } from '../features/transactions/hooks/useOptimizedData';
 import { useFilterStore } from '../features/filters/filterStore';
 import { KpiCard, ChartPanel, RankedList, InsightCard } from '../components/widgets';
 import { fmt } from '../utils/formatters';
+
+// Date range options
+const dateRanges = {
+  today: 'Today',
+  yesterday: 'Yesterday', 
+  last7Days: 'Last 7 Days',
+  last30Days: 'Last 30 Days',
+  thisMonth: 'This Month',
+  lastMonth: 'Last Month'
+};
 
 // Lazy load heavy components
 const SalesTrendChart = lazy(() => import('../components/charts/SalesTrendChart'));

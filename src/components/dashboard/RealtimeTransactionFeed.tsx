@@ -1,5 +1,5 @@
 import React from 'react'
-import { useRealtimeTransactions } from '../../hooks/useRealtimeTransactions'
+import { useRealtimeTransactions } from '../../features/transactions/hooks/useRealtimeTransactions'
 import { formatDistanceToNow } from 'date-fns'
 import { motion } from 'framer-motion'
 import { Activity, Banknote, Clock, MapPin, Users } from 'lucide-react'

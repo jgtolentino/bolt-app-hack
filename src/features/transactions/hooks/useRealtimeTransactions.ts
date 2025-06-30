@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
-import { supabase, fetchAllRecords } from '../lib/supabase'
-import { useDataStore } from '../stores/dataStore'
-import type { Database } from '../lib/supabase'
+import { supabase, fetchAllRecords } from '../../../lib/supabase'
+import { useDataStore } from '../../../stores/dataStore'
+import type { Database } from '../../../lib/supabase'
 
 type Transaction = Database['public']['Tables']['transactions']['Row']
 
