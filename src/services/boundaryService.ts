@@ -1,7 +1,7 @@
 // Enhanced Boundary data service for Philippine administrative boundaries
 export class BoundaryService {
   private static readonly PSA_BARANGAY_URL = 'https://portal.georisk.gov.ph/arcgis/rest/services/PSA/Barangay/MapServer/0/query';
-  private static readonly GADM_BASE_URL = 'https://geodata.ucdavis.edu/gadm/gadm4.1/json';
+  private static readonly GADM_BASE_URL = '/data';
   private static readonly PSGC_GITHUB_URL = 'https://raw.githubusercontent.com/altcoder/philippines-psgc-shapefiles/main';
   
   // Cache for boundary data
