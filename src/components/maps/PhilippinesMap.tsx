@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, ZoomIn, ZoomOut, Layers, RotateCcw, Download, Settings } from 'lucide-react';
 import { GeographyData } from '../../types';
+import { BoundaryService } from '../../services/boundaryService';
 
 interface PhilippinesMapProps {
   data: GeographyData[];
@@ -177,45 +178,32 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
 
   const loadRegionBoundaries = async (): Promise<BoundaryData> => {
     try {
-      // Try GADM first
-      const response = await fetch('https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_PHL_1.json');
-      if (response.ok) {
-        const data = await response.json();
-        return transformGADMData(data, 'region');
-      }
+      const data = await BoundaryService.loadRegionBoundaries();
+      return data;
     } catch (error) {
-      console.warn('GADM regions failed, using mock data:', error);
+      console.warn('Failed to load region boundaries:', error);
+      return getMockBoundaryData();
     }
-    
-    return getMockBoundaryData();
   };
 
   const loadProvinceBoundaries = async (): Promise<BoundaryData> => {
     try {
-      const response = await fetch('https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_PHL_2.json');
-      if (response.ok) {
-        const data = await response.json();
-        return transformGADMData(data, 'province');
-      }
+      const data = await BoundaryService.loadProvinceBoundaries();
+      return data;
     } catch (error) {
-      console.warn('GADM provinces failed, using mock data:', error);
+      console.warn('Failed to load province boundaries:', error);
+      return getMockBoundaryData();
     }
-    
-    return getMockBoundaryData();
   };
 
   const loadMunicipalityBoundaries = async (): Promise<BoundaryData> => {
     try {
-      const response = await fetch('https://geodata.ucdavis.edu/gadm/gadm4.1/json/gadm41_PHL_3.json');
-      if (response.ok) {
-        const data = await response.json();
-        return transformGADMData(data, 'municipality');
-      }
+      const data = await BoundaryService.loadMunicipalityBoundaries();
+      return data;
     } catch (error) {
-      console.warn('GADM municipalities failed, using mock data:', error);
+      console.warn('Failed to load municipality boundaries:', error);
+      return getMockBoundaryData();
     }
-    
-    return getMockBoundaryData();
   };
 
   const loadBarangayBoundaries = async (): Promise<BoundaryData> => {
