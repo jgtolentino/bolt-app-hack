@@ -181,29 +181,30 @@ const OptimizedDashboard: React.FC = () => {
 
       {/* Main Content with Golden Ratio spacing */}
       <div className="p-phi-lg space-y-phi-lg">
-        {/* Hero Section: KPI Stack (5 cols) + Main Chart (7 cols) - Golden Ratio Split */}
-        <section className="grid grid-cols-12 gap-phi-md">
-          {/* KPI Stack - 5/12 columns */}
-          <div className="col-span-5 md:col-span-12 flex flex-col gap-phi">
-            {primaryKpis.map((kpi) => (
-              <KpiCard
-                key={kpi.id}
-                icon={kpi.icon}
-                label={kpi.label}
-                value={kpi.value}
-                delta={kpi.delta}
-                valueFormat={kpi.valueFormat}
-                loading={isLoading}
-                updatedAt={lastUpdate}
-              />
-            ))}
-          </div>
+        {/* KPI Cards Row - 4 cards in grid */}
+        <section className="grid grid-cols-12 gap-phi">
+          {primaryKpis.map((kpi) => (
+            <KpiCard
+              key={kpi.id}
+              icon={kpi.icon}
+              label={kpi.label}
+              value={kpi.value}
+              delta={kpi.delta}
+              valueFormat={kpi.valueFormat}
+              loading={isLoading}
+              className="col-span-3 md:col-span-6 sm:col-span-12"
+              updatedAt={lastUpdate}
+            />
+          ))}
+        </section>
 
-          {/* Main Trend Chart - 7/12 columns */}
+        {/* Main Charts Section */}
+        <section className="grid grid-cols-12 gap-phi-md">
+          {/* Main Trend Chart - Full width */}
           <ChartPanel
             title="Sales Trend (24 hr)"
             subtitle="Hourly sales performance with moving average"
-            className="col-span-7 md:col-span-12"
+            className="col-span-12"
             height={400}
             loading={isLoading}
             updatedAt={lastUpdate}
