@@ -28,6 +28,59 @@ const dateRanges = {
   lastMonth: 'Last Month'
 };
 
+// Date range functions that return filter objects
+const getDateFilter = (range: string) => {
+  const now = new Date();
+  const startOfDay = new Date(now.setHours(0, 0, 0, 0));
+  
+  switch (range) {
+    case 'today':
+      return { 
+        startDate: startOfDay, 
+        endDate: new Date() 
+      };
+    case 'yesterday':
+      const yesterday = new Date(startOfDay);
+      yesterday.setDate(yesterday.getDate() - 1);
+      return { 
+        startDate: yesterday, 
+        endDate: startOfDay 
+      };
+    case 'last7Days':
+      const sevenDaysAgo = new Date(startOfDay);
+      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      return { 
+        startDate: sevenDaysAgo, 
+        endDate: new Date() 
+      };
+    case 'last30Days':
+      const thirtyDaysAgo = new Date(startOfDay);
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+      return { 
+        startDate: thirtyDaysAgo, 
+        endDate: new Date() 
+      };
+    case 'thisMonth':
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { 
+        startDate: startOfMonth, 
+        endDate: new Date() 
+      };
+    case 'lastMonth':
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      return { 
+        startDate: startOfLastMonth, 
+        endDate: endOfLastMonth 
+      };
+    default:
+      return { 
+        startDate: new Date(startOfDay.getTime() - 7 * 24 * 60 * 60 * 1000), 
+        endDate: new Date() 
+      };
+  }
+};
+
 // Lazy load heavy components
 const SalesTrendChart = lazy(() => import('../components/charts/SalesTrendChart'));
 const TransactionVolumeChart = lazy(() => import('../components/charts/TransactionVolumeChart'));
@@ -49,7 +102,7 @@ const OptimizedDashboard: React.FC = () => {
   
   // Get date range
   const dateFilter = useMemo(() => {
-    return dateRanges[dateRange as keyof typeof dateRanges]();
+    return getDateFilter(dateRange);
   }, [dateRange]);
 
   // Fetch dashboard data
@@ -60,7 +113,8 @@ const OptimizedDashboard: React.FC = () => {
     error, 
     refetch 
   } = useDashboardData({
-    ...dateFilter,
+    dateFrom: dateFilter.startDate,
+    dateTo: dateFilter.endDate,
     region: region || undefined,
     storeId: city_municipality || undefined
   });
@@ -154,7 +208,7 @@ const OptimizedDashboard: React.FC = () => {
         <div className="px-6 py-4">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-xl-phi font-bold text-gray-900">Command Center</h1>
+              <h1 className="text-xl-phi font-bold text-gray-900">Dashboard</h1>
               <p className="text-sm-phi text-gray-500 mt-1">
                 Real-time insights and performance metrics
               </p>
@@ -189,10 +243,10 @@ const OptimizedDashboard: React.FC = () => {
         </div>
       </div>
 
-      {/* Main Content with Golden Ratio spacing */}
-      <div className="p-phi-lg space-y-phi-lg">
+      {/* Main Content with clean grid spacing */}
+      <div className="p-6 space-y-6">
         {/* KPI Cards Row - 4 cards in grid */}
-        <section className="grid grid-cols-12 gap-phi" data-testid="kpi-row">
+        <section className="grid grid-cols-12 gap-4" data-testid="kpi-row">
           {primaryKpis.map((kpi) => (
             <KpiCard
               key={kpi.id}
@@ -202,14 +256,14 @@ const OptimizedDashboard: React.FC = () => {
               delta={kpi.delta}
               valueFormat={kpi.valueFormat}
               loading={isLoading}
-              className="col-span-3 md:col-span-6 sm:col-span-12"
+              className="col-span-12 lg:col-span-3 md:col-span-6"
               updatedAt={lastUpdate}
             />
           ))}
         </section>
 
         {/* Main Charts Section */}
-        <section className="grid grid-cols-12 gap-phi-md">
+        <section className="grid grid-cols-12 gap-4">
           {/* Main Trend Chart - Full width */}
           <ChartPanel
             title="Sales Trend (24 hr)"
@@ -231,12 +285,12 @@ const OptimizedDashboard: React.FC = () => {
         </section>
 
         {/* Secondary Section: Transaction Volume (8 cols) + Top Products (4 cols) */}
-        <section className="grid grid-cols-12 gap-phi-md">
+        <section className="grid grid-cols-12 gap-4">
           {/* Transaction Volume - 8/12 columns */}
           <ChartPanel
             title="Transaction Volume Pattern"
             subtitle="Hourly distribution of customer transactions"
-            className="col-span-8 md:col-span-12"
+            className="col-span-12 lg:col-span-8"
             height={320}
             loading={isLoading}
             updatedAt={lastUpdate}
@@ -258,18 +312,18 @@ const OptimizedDashboard: React.FC = () => {
             valueFormat="currency"
             maxItems={5}
             loading={isLoading}
-            className="col-span-4 md:col-span-12"
+            className="col-span-12 lg:col-span-4"
             updatedAt={lastUpdate}
           />
         </section>
 
         {/* Tertiary Section: Map (7 cols) + Regions (5 cols) - Inverse Golden Ratio */}
-        <section className="grid grid-cols-12 gap-phi-md">
+        <section className="grid grid-cols-12 gap-4">
           {/* Location Heatmap - 7/12 columns */}
           <ChartPanel
             title="Store Performance Heatmap"
             subtitle="Geographic distribution of sales"
-            className="col-span-7 md:col-span-12"
+            className="col-span-12 lg:col-span-7"
             height={350}
             loading={isLoading}
             updatedAt={lastUpdate}
@@ -292,18 +346,18 @@ const OptimizedDashboard: React.FC = () => {
             valueFormat="currency"
             maxItems={6}
             loading={isLoading}
-            className="col-span-5 md:col-span-12"
+            className="col-span-12 lg:col-span-5"
             updatedAt={lastUpdate}
           />
         </section>
 
         {/* AI Insights Section: Full Width with Nested Golden Ratio */}
-        <section className="grid grid-cols-12 gap-phi-md">
+        <section className="grid grid-cols-12 gap-4">
           {/* Product Combos - 8/12 columns */}
           <ChartPanel
             title="Product Purchase Patterns"
             subtitle="Frequently bought together combinations"
-            className="col-span-8 md:col-span-12"
+            className="col-span-12 lg:col-span-8"
             height={400}
             loading={isLoading}
             updatedAt={lastUpdate}
@@ -318,7 +372,7 @@ const OptimizedDashboard: React.FC = () => {
           />
 
           {/* AI Insights Rail - 4/12 columns */}
-          <div className="col-span-4 md:col-span-12 space-y-phi">
+          <div className="col-span-12 lg:col-span-4 space-y-4">
             <h3 className="text-lg-phi font-semibold text-gray-900">AI Insights</h3>
             {insights.map((insight, index) => (
               <InsightCard
@@ -338,20 +392,20 @@ const OptimizedDashboard: React.FC = () => {
         </section>
 
         {/* Quick Stats Bar - Full Width */}
-        <section className="grid grid-cols-12 gap-4 p-phi-md bg-white rounded-xl shadow-sm">
-          <div className="col-span-3 md:col-span-6 sm:col-span-12 text-center">
+        <section className="grid grid-cols-12 gap-4 p-4 bg-white rounded-xl shadow-sm">
+          <div className="col-span-6 lg:col-span-3 text-center">
             <p className="text-sm-phi text-gray-600">Active Stores</p>
             <p className="text-lg-phi font-bold text-gray-900">234</p>
           </div>
-          <div className="col-span-3 md:col-span-6 sm:col-span-12 text-center">
+          <div className="col-span-6 lg:col-span-3 text-center">
             <p className="text-sm-phi text-gray-600">Active SKUs</p>
             <p className="text-lg-phi font-bold text-gray-900">1,876</p>
           </div>
-          <div className="col-span-3 md:col-span-6 sm:col-span-12 text-center">
+          <div className="col-span-6 lg:col-span-3 text-center">
             <p className="text-sm-phi text-gray-600">Total Customers</p>
             <p className="text-lg-phi font-bold text-gray-900">5,234</p>
           </div>
-          <div className="col-span-3 md:col-span-6 sm:col-span-12 text-center">
+          <div className="col-span-6 lg:col-span-3 text-center">
             <p className="text-sm-phi text-gray-600">Inventory Turnover</p>
             <p className="text-lg-phi font-bold text-gray-900">4.2x</p>
           </div>

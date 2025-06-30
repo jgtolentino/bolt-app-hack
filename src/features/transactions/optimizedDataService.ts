@@ -96,16 +96,13 @@ export class OptimizedDataService {
         total_amount,
         customer_id,
         store_id,
-        stores!inner(region)
+        stores(region)
       `)
       .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
       .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
       .eq('status', 'completed');
 
     // Apply filters
-    if (filters?.region) {
-      currentQuery = currentQuery.eq('stores.region', filters.region);
-    }
     if (filters?.storeId) {
       currentQuery = currentQuery.eq('store_id', filters.storeId);
     }
@@ -127,7 +124,7 @@ export class OptimizedDataService {
     // Get previous period data for comparison
     const daysDiff = Math.ceil((dateTo.getTime() - dateFrom.getTime()) / (1000 * 60 * 60 * 24));
     const prevDateFrom = subDays(dateFrom, daysDiff);
-    const prevDateTo = subDays(dateTo, daysDiff);
+    const prevDateTo = dateFrom; // Previous period ends where current period starts
 
     let previousQuery = supabase
       .from('transactions')
@@ -135,31 +132,33 @@ export class OptimizedDataService {
         total_amount,
         customer_id,
         store_id,
-        stores!inner(region)
+        stores(region)
       `)
       .gte('transaction_date', format(prevDateFrom, 'yyyy-MM-dd'))
       .lte('transaction_date', format(prevDateTo, 'yyyy-MM-dd'))
       .eq('status', 'completed');
 
     // Apply filters
-    if (filters?.region) {
-      previousQuery = previousQuery.eq('stores.region', filters.region);
-    }
     if (filters?.storeId) {
       previousQuery = previousQuery.eq('store_id', filters.storeId);
     }
 
     const { data: previousTransactions } = await previousQuery;
 
+    // Filter by region if needed (after fetching data)
+    const filteredPreviousTransactions = filters?.region 
+      ? previousTransactions?.filter(t => t.stores?.region === filters.region) || []
+      : previousTransactions || [];
+
     // Calculate previous period metrics
     const previous = {
-      total_sales: previousTransactions?.reduce((sum, t) => sum + Number(t.total_amount), 0) || 0,
-      total_transactions: previousTransactions?.length || 0,
-      avg_basket_size: previousTransactions?.length 
-        ? (previousTransactions.reduce((sum, t) => sum + Number(t.total_amount), 0) / previousTransactions.length)
+      total_sales: filteredPreviousTransactions.reduce((sum, t) => sum + Number(t.total_amount), 0),
+      total_transactions: filteredPreviousTransactions.length,
+      avg_basket_size: filteredPreviousTransactions.length 
+        ? (filteredPreviousTransactions.reduce((sum, t) => sum + Number(t.total_amount), 0) / filteredPreviousTransactions.length)
         : 0,
-      unique_customers: new Set(previousTransactions?.filter(t => t.customer_id).map(t => t.customer_id)).size,
-      active_stores: new Set(previousTransactions?.map(t => t.store_id)).size
+      unique_customers: new Set(filteredPreviousTransactions.filter(t => t.customer_id).map(t => t.customer_id)).size,
+      active_stores: new Set(filteredPreviousTransactions.map(t => t.store_id)).size
     };
 
     return this.calculateKPIChanges(current, previous);
@@ -212,16 +211,13 @@ export class OptimizedDataService {
         transaction_date,
         total_amount,
         store_id,
-        stores!inner(region)
+        stores(region)
       `)
       .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
       .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
       .eq('status', 'completed');
 
     // Apply filters
-    if (filters?.region) {
-      query = query.eq('stores.region', filters.region);
-    }
     if (filters?.storeId) {
       query = query.eq('store_id', filters.storeId);
     }
@@ -229,8 +225,13 @@ export class OptimizedDataService {
     const { data: transactions, error } = await query;
     if (error) throw error;
 
+    // Filter by region if needed (after fetching data)
+    const filteredTransactions = filters?.region 
+      ? transactions?.filter(t => t.stores?.region === filters.region) || []
+      : transactions || [];
+
     // Group by date and calculate daily metrics
-    const dailySales = transactions?.reduce((acc: any, transaction) => {
+    const dailySales = filteredTransactions.reduce((acc: any, transaction) => {
       const date = transaction.transaction_date;
       if (!acc[date]) {
         acc[date] = {
@@ -259,16 +260,13 @@ export class OptimizedDataService {
         transaction_time,
         total_amount,
         store_id,
-        stores!inner(region)
+        stores(region)
       `)
       .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
       .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
       .eq('status', 'completed');
 
     // Apply filters
-    if (filters?.region) {
-      query = query.eq('stores.region', filters.region);
-    }
     if (filters?.storeId) {
       query = query.eq('store_id', filters.storeId);
     }
@@ -276,8 +274,13 @@ export class OptimizedDataService {
     const { data: transactions, error } = await query;
     if (error) throw error;
 
+    // Filter by region if needed (after fetching data)
+    const filteredTransactions = filters?.region 
+      ? transactions?.filter(t => t.stores?.region === filters.region) || []
+      : transactions || [];
+
     // Group by hour and calculate hourly patterns
-    const hourlyData = transactions?.reduce((acc: any, transaction) => {
+    const hourlyData = filteredTransactions.reduce((acc: any, transaction) => {
       // Extract hour from transaction_time (HH:MM:SS format)
       const hour = parseInt(transaction.transaction_time.split(':')[0]);
       if (!acc[hour]) {
@@ -390,16 +393,13 @@ export class OptimizedDataService {
       .select(`
         id,
         store_id,
-        stores!inner(region)
+        stores(region)
       `)
       .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
       .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
       .eq('status', 'completed');
 
     // Apply filters
-    if (filters?.region) {
-      transactionQuery = transactionQuery.eq('stores.region', filters.region);
-    }
     if (filters?.storeId) {
       transactionQuery = transactionQuery.eq('store_id', filters.storeId);
     }
@@ -409,8 +409,13 @@ export class OptimizedDataService {
 
     if (!transactions || transactions.length === 0) return [];
 
+    // Filter by region if needed (after fetching data)
+    const filteredTransactions = filters?.region 
+      ? transactions.filter(t => t.stores?.region === filters.region)
+      : transactions;
+
     // Get transaction IDs
-    const transactionIds = transactions.map(t => t.id);
+    const transactionIds = filteredTransactions.map(t => t.id);
 
     // Get transaction items with category details
     const { data: items, error } = await supabase
@@ -461,7 +466,7 @@ export class OptimizedDataService {
       .select(`
         total_amount,
         store_id,
-        stores!inner(region)
+        stores(region)
       `)
       .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
       .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))

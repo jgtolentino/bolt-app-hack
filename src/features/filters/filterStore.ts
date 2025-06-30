@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 import { FilterState, FilterOption } from '../types';
+import { FilterDataService } from './services/filterDataService';
 
 interface FilterStore extends FilterState {
   // Filter options
@@ -112,38 +113,55 @@ export const useFilterStore = create<FilterStore>((set, get) => ({
     try {
       set({ isLoading: true });
       
-      // Mock data for development - replace with actual API call
-      const mockOptions: Record<string, FilterOption[]> = {
-        region: [
-          { value: 'NCR', label: 'National Capital Region', count: 15420 },
-          { value: 'Region III', label: 'Central Luzon', count: 8930 },
-          { value: 'Region IV-A', label: 'CALABARZON', count: 12100 },
-          { value: 'Region VI', label: 'Western Visayas', count: 7650 },
-          { value: 'Region VII', label: 'Central Visayas', count: 9200 },
-          { value: 'Region XI', label: 'Davao Region', count: 6800 },
-        ],
-        client: [
-          { value: 'Adidas', label: 'Adidas', count: 8200 },
-          { value: 'Alaska Milk Corporation', label: 'Alaska Milk Corporation', count: 12500 },
-          { value: 'Liwayway Marketing', label: 'Liwayway Marketing (Oishi)', count: 18700 },
-          { value: 'Peerless Products', label: 'Peerless Products', count: 9400 },
-          { value: 'Del Monte Philippines', label: 'Del Monte Philippines', count: 11200 },
-        ],
-        category: [
-          { value: 'Beverages', label: 'Beverages', count: 22100 },
-          { value: 'Snacks', label: 'Snacks', count: 18900 },
-          { value: 'Dairy', label: 'Dairy', count: 15600 },
-          { value: 'Personal Care', label: 'Personal Care', count: 12300 },
-          { value: 'Home Care', label: 'Home Care', count: 8900 },
-          { value: 'Food', label: 'Food', count: 14200 },
-        ],
-        year: [
-          { value: '2024', label: '2024', count: 48500 },
-          { value: '2023', label: '2023', count: 42300 },
-        ],
-      };
-
-      const options = mockOptions[filterType] || [];
+      let options: FilterOption[] = [];
+      
+      switch (filterType) {
+        case 'region':
+          options = await FilterDataService.getRegions();
+          break;
+        case 'city_municipality':
+          if (parentFilters.region) {
+            options = await FilterDataService.getCities(parentFilters.region);
+          }
+          break;
+        case 'barangay':
+          if (parentFilters.region && parentFilters.city_municipality) {
+            options = await FilterDataService.getBarangays(
+              parentFilters.region,
+              parentFilters.city_municipality
+            );
+          }
+          break;
+        case 'client':
+          options = await FilterDataService.getClients();
+          break;
+        case 'category':
+          options = await FilterDataService.getCategories(parentFilters.client);
+          break;
+        case 'brand':
+          options = await FilterDataService.getBrands(
+            parentFilters.category,
+            parentFilters.client
+          );
+          break;
+        case 'sku':
+          options = await FilterDataService.getSkus(
+            parentFilters.brand,
+            parentFilters.category,
+            parentFilters.client
+          );
+          break;
+        case 'year':
+          options = await FilterDataService.getYears();
+          break;
+        case 'month':
+          if (parentFilters.year) {
+            options = await FilterDataService.getMonths(parentFilters.year);
+          }
+          break;
+        default:
+          options = [];
+      }
       
       set(state => ({
         filterOptions: {

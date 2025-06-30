@@ -19,27 +19,16 @@ import {
 
 const Sidebar: React.FC = () => {
   const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard', description: 'Analytics overview' },
+    { path: '/', icon: LayoutDashboard, label: 'Dashboard', description: 'Main overview' },
     { path: '/command-center', icon: Terminal, label: 'Command Center', description: 'Query builder' },
-    { path: '/cruip', icon: BarChart3, label: 'Cruip Theme', description: 'Template showcase' },
-    { path: '/overview', icon: Home, label: 'Overview', description: 'Analytics home' },
-    { path: '/transactions', icon: TrendingUp, label: 'Transactions', description: 'Sales analytics' },
-    { path: '/products', icon: Package, label: 'Products', description: 'Product performance' },
-    { path: '/consumers', icon: Users, label: 'Consumers', description: 'Customer insights' },
-    { path: '/geography', icon: MapPin, label: 'Geography', description: 'Location analytics' },
-    { path: '/ai-assistant', icon: Bot, label: 'AI Assistant', description: 'Retail intelligence' },
-    { path: '/reports', icon: FileText, label: 'Reports', description: 'Export & sharing' },
-    { path: '/validation', icon: Database, label: 'Data Validation', description: 'AI & quality checks' },
-    { path: '/widgets', icon: Grid, label: 'Widget Showcase', description: 'StockBot adapters' },
+    { path: '/products', icon: Package, label: 'Products', description: 'SKU & mix analysis' },
+    { path: '/consumers', icon: Users, label: 'Consumers', description: 'Behavior & profiling' },
+    { path: '/geography', icon: MapPin, label: 'Geography', description: 'Location insights' },
+    { path: '/validation', icon: Database, label: 'Validation', description: 'Data quality' },
   ];
 
   return (
-    <motion.aside
-      className="w-64 bg-white/30 backdrop-blur-md border-r border-white/20 flex flex-col"
-      initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.5, delay: 0.1 }}
-    >
+    <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
         {navItems.map((item) => (
@@ -47,43 +36,37 @@ const Sidebar: React.FC = () => {
             key={item.path}
             to={item.path}
             className={({ isActive }) =>
-              `nav-button block ${isActive ? 'nav-button-active' : 'nav-button-inactive'}`
+              `block px-3 py-2 rounded-lg transition-colors ${
+                isActive 
+                  ? 'bg-blue-50 text-blue-700' 
+                  : 'text-gray-700 hover:bg-gray-50'
+              }`
             }
           >
             {({ isActive }) => (
-              <motion.div
-                className="flex items-center space-x-3 group"
-                whileHover={{ x: 4 }}
-                transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-              >
+              <div className="flex items-center space-x-3">
                 <item.icon className="w-5 h-5 flex-shrink-0" />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium truncate">{item.label}</p>
                   <p className="text-xs opacity-75 truncate">{item.description}</p>
                 </div>
                 {isActive && (
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}
-                  >
-                    <ChevronRight className="w-4 h-4" />
-                  </motion.div>
+                  <ChevronRight className="w-4 h-4" />
                 )}
-              </motion.div>
+              </div>
             )}
           </NavLink>
         ))}
       </nav>
 
       {/* Footer */}
-      <div className="p-4 border-t border-white/20">
+      <div className="p-4 border-t border-gray-200">
         <div className="text-center">
-          <p className="text-xs text-gray-600 mb-1">Suqi Analytics v3.1</p>
+          <p className="text-xs text-gray-600 mb-1">Retail Intelligence v4.0</p>
           <p className="text-xs text-gray-500">© 2025 TBWA\SMP</p>
         </div>
       </div>
-    </motion.aside>
+    </aside>
   );
 };
 

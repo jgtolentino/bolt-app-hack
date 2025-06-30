@@ -1,13 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Bell, Settings, Search, HelpCircle, Database, Wifi, WifiOff, AlertCircle } from 'lucide-react';
+import { Bell, Settings, Search, HelpCircle, Database, Wifi, WifiOff, AlertCircle, LogOut, User } from 'lucide-react';
 import { AuthButton } from '../auth/AuthButton';
 import { testSupabaseConnection } from '../../lib/supabase';
 import { useDataStore } from '../../stores/dataStore';
+import { useAuth } from '../../contexts/AuthContext';
+import { useNavigate } from 'react-router-dom';
 
 const Header: React.FC = () => {
   const { useRealData, setUseRealData } = useDataStore();
   const [supabaseConnected, setSupabaseConnected] = useState<boolean | null>(null);
+  const { user, logout } = useAuth();
+  const navigate = useNavigate();
 
   useEffect(() => {
     // Test Supabase connection on component mount
@@ -20,19 +24,14 @@ const Header: React.FC = () => {
   }, []);
 
   return (
-    <motion.header 
-      className="h-16 bg-white/40 backdrop-blur-md border-b border-white/20 flex items-center justify-between px-6"
-      initial={{ y: -20, opacity: 0 }}
-      animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
+    <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6">
       {/* Logo and Title */}
       <div className="flex items-center space-x-4">
-        <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-primary-700 rounded-lg flex items-center justify-center">
-          <span className="text-white font-bold text-sm">S</span>
+        <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <span className="text-white font-bold text-sm">R</span>
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900 text-shadow">Suqi Analytics</h1>
+          <h1 className="text-xl font-bold text-gray-900">Retail Intelligence</h1>
           <div className="flex items-center space-x-2">
             <p className="text-xs text-gray-600">TBWA\SMP Retail Intelligence</p>
             <div className="flex items-center space-x-2">
@@ -96,44 +95,45 @@ const Header: React.FC = () => {
           <input
             type="text"
             placeholder="Search products, locations, insights..."
-            className="w-full pl-10 pr-4 py-2 bg-white/60 backdrop-blur-sm border border-white/30 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary-500/20 focus:border-primary-300"
+            className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
           />
         </div>
       </div>
 
       {/* Actions */}
       <div className="flex items-center space-x-3">
-        <motion.button
-          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white/50 rounded-lg transition-colors"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
+        <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
           <HelpCircle className="w-5 h-5" />
-        </motion.button>
+        </button>
         
-        <motion.button
-          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white/50 rounded-lg transition-colors relative"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
+        <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors relative">
           <Bell className="w-5 h-5" />
-          <span className="absolute -top-1 -right-1 w-3 h-3 bg-error-500 rounded-full animate-pulse"></span>
-        </motion.button>
+          <span className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 rounded-full animate-pulse"></span>
+        </button>
         
-        <motion.button
-          className="p-2 text-gray-600 hover:text-gray-900 hover:bg-white/50 rounded-lg transition-colors"
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-        >
+        <button className="p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-lg transition-colors">
           <Settings className="w-5 h-5" />
-        </motion.button>
+        </button>
         
-        {/* Supabase Auth Integration */}
-        <div className="pl-3 border-l border-white/30">
-          <AuthButton />
+        {/* User Menu */}
+        <div className="pl-3 border-l border-gray-300 flex items-center space-x-2">
+          <div className="flex items-center space-x-2 text-sm text-gray-700">
+            <User className="w-4 h-4" />
+            <span className="font-medium">{user || 'User'}</span>
+          </div>
+          <button
+            onClick={() => {
+              logout();
+              navigate('/login');
+            }}
+            className="flex items-center space-x-1 px-3 py-1.5 text-sm text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors"
+          >
+            <LogOut className="w-4 h-4" />
+            <span>Logout</span>
+          </button>
         </div>
       </div>
-    </motion.header>
+    </header>
   );
 };
 

@@ -25,10 +25,46 @@ const GlobalFilters: React.FC = () => {
     // Load initial filter options
     loadFilterOptions('region');
     loadFilterOptions('client');
-    loadFilterOptions('category');
     loadFilterOptions('year');
     getTotalCombinations();
   }, []);
+
+  // Load dependent filters when parent filters change
+  useEffect(() => {
+    if (region) {
+      loadFilterOptions('city_municipality', { region });
+    }
+  }, [region]);
+
+  useEffect(() => {
+    if (region && city_municipality) {
+      loadFilterOptions('barangay', { region, city_municipality });
+    }
+  }, [region, city_municipality]);
+
+  useEffect(() => {
+    if (client) {
+      loadFilterOptions('category', { client });
+    }
+  }, [client]);
+
+  useEffect(() => {
+    if (client && category) {
+      loadFilterOptions('brand', { client, category });
+    }
+  }, [client, category]);
+
+  useEffect(() => {
+    if (client && category && brand) {
+      loadFilterOptions('sku', { client, category, brand });
+    }
+  }, [client, category, brand]);
+
+  useEffect(() => {
+    if (year) {
+      loadFilterOptions('month', { year });
+    }
+  }, [year]);
 
   const hasActiveFilters = Boolean(
     region || city_municipality || barangay ||
@@ -53,7 +89,7 @@ const GlobalFilters: React.FC = () => {
       value={value}
       onChange={(e) => onChange(e.target.value)}
       disabled={disabled || isLoading}
-      className="filter-button min-w-0 text-ellipsis disabled:opacity-50 disabled:cursor-not-allowed"
+      className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:border-transparent disabled:opacity-50 disabled:cursor-not-allowed min-w-[120px]"
     >
       <option value="">{placeholder}</option>
       {options.map((option) => (
@@ -66,197 +102,141 @@ const GlobalFilters: React.FC = () => {
 
   return (
     <motion.div
-      className="space-y-4"
+      className="flex items-center justify-between gap-4"
       initial={{ opacity: 0, y: -10 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.3 }}
     >
-      {/* Filter Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <Filter className="w-5 h-5 text-primary-600" />
-          <h3 className="font-semibold text-gray-900">Global Filters</h3>
-          {totalCombinations > 0 && (
-            <span className="text-sm text-gray-600 bg-white/60 px-2 py-1 rounded">
-              {totalCombinations.toLocaleString()} combinations
-            </span>
-          )}
+      {/* Filter Icon & Title */}
+      <div className="flex items-center space-x-2 flex-shrink-0">
+        <Filter className="w-4 h-4 text-gray-600" />
+        <span className="text-sm font-medium text-gray-700">Filters</span>
+      </div>
+
+      {/* All Filters in Horizontal Layout */}
+      <div className="flex items-center gap-3 flex-1 overflow-x-auto">
+        {/* Geographic Filters */}
+        <div className="flex items-center gap-2">
+          <FilterSelect
+            value={region}
+            onChange={(value) => {
+              setFilter('region', value);
+              if (value) loadFilterOptions('city_municipality', { region: value });
+            }}
+            options={filterOptions.region || []}
+            placeholder="All Regions"
+          />
+          
+          <FilterSelect
+            value={city_municipality}
+            onChange={(value) => {
+              setFilter('city_municipality', value);
+              if (value) loadFilterOptions('barangay', { region, city_municipality: value });
+            }}
+            options={filterOptions.city_municipality || []}
+            placeholder="All Cities"
+            disabled={!region}
+          />
+          
+          <FilterSelect
+            value={barangay}
+            onChange={(value) => setFilter('barangay', value)}
+            options={filterOptions.barangay || []}
+            placeholder="All Barangays"
+            disabled={!city_municipality}
+          />
         </div>
+
+        <div className="w-px h-6 bg-gray-300" />
+
+        {/* Organizational Filters */}
+        <div className="flex items-center gap-2">
+          <FilterSelect
+            value={client}
+            onChange={(value) => {
+              setFilter('client', value);
+              if (value) loadFilterOptions('category', { client: value });
+            }}
+            options={filterOptions.client || []}
+            placeholder="All Clients"
+          />
+          
+          <FilterSelect
+            value={category}
+            onChange={(value) => {
+              setFilter('category', value);
+              if (value) loadFilterOptions('brand', { client, category: value });
+            }}
+            options={filterOptions.category || []}
+            placeholder="All Categories"
+            disabled={!client}
+          />
+          
+          <FilterSelect
+            value={brand}
+            onChange={(value) => {
+              setFilter('brand', value);
+              if (value) loadFilterOptions('sku', { client, category, brand: value });
+            }}
+            options={filterOptions.brand || []}
+            placeholder="All Brands"
+            disabled={!category}
+          />
+          
+          <FilterSelect
+            value={sku}
+            onChange={(value) => setFilter('sku', value)}
+            options={filterOptions.sku || []}
+            placeholder="All SKUs"
+            disabled={!brand}
+          />
+        </div>
+
+        <div className="w-px h-6 bg-gray-300" />
+
+        {/* Temporal Filters */}
+        <div className="flex items-center gap-2">
+          <FilterSelect
+            value={year}
+            onChange={(value) => {
+              setFilter('year', value);
+              if (value) loadFilterOptions('month', { year: value });
+            }}
+            options={filterOptions.year || []}
+            placeholder="All Years"
+          />
+          
+          <FilterSelect
+            value={month}
+            onChange={(value) => setFilter('month', value)}
+            options={filterOptions.month || []}
+            placeholder="All Months"
+            disabled={!year}
+          />
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-2 flex-shrink-0">
+        {totalCombinations > 0 && (
+          <span className="text-xs text-gray-500">
+            {totalCombinations.toLocaleString()} results
+          </span>
+        )}
         
         {hasActiveFilters && (
           <motion.button
             onClick={clearFilters}
-            className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-900 bg-white/60 hover:bg-white/80 px-3 py-1 rounded-lg transition-colors"
+            className="flex items-center space-x-1 text-sm text-gray-600 hover:text-gray-900 px-2 py-1 rounded-lg hover:bg-gray-100 transition-colors"
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
           >
-            <RotateCcw className="w-4 h-4" />
-            <span>Clear All</span>
+            <RotateCcw className="w-3 h-3" />
+            <span>Clear</span>
           </motion.button>
         )}
       </div>
 
-      {/* Geographic Filters */}
-      <div className="space-y-2">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700 w-20">📍 Location</span>
-          <div className="flex space-x-2 flex-1 min-w-0 overflow-x-auto">
-            <FilterSelect
-              value={region}
-              onChange={(value) => {
-                setFilter('region', value);
-                if (value) loadFilterOptions('city_municipality', { region: value });
-              }}
-              options={filterOptions.region || []}
-              placeholder="All Regions"
-            />
-            
-            <FilterSelect
-              value={city_municipality}
-              onChange={(value) => {
-                setFilter('city_municipality', value);
-                if (value) loadFilterOptions('barangay', { region, city_municipality: value });
-              }}
-              options={filterOptions.city_municipality || []}
-              placeholder="All Cities"
-              disabled={!region}
-            />
-            
-            <FilterSelect
-              value={barangay}
-              onChange={(value) => setFilter('barangay', value)}
-              options={filterOptions.barangay || []}
-              placeholder="All Barangays"
-              disabled={!city_municipality}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Organizational Filters */}
-      <div className="space-y-2">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700 w-20">🏢 Business</span>
-          <div className="flex space-x-2 flex-1 min-w-0 overflow-x-auto">
-            <FilterSelect
-              value={client}
-              onChange={(value) => {
-                setFilter('client', value);
-                if (value) loadFilterOptions('category', { client: value });
-              }}
-              options={filterOptions.client || []}
-              placeholder="All Clients"
-            />
-            
-            <FilterSelect
-              value={category}
-              onChange={(value) => {
-                setFilter('category', value);
-                if (value) loadFilterOptions('brand', { client, category: value });
-              }}
-              options={filterOptions.category || []}
-              placeholder="All Categories"
-              disabled={!client}
-            />
-            
-            <FilterSelect
-              value={brand}
-              onChange={(value) => {
-                setFilter('brand', value);
-                if (value) loadFilterOptions('sku', { client, category, brand: value });
-              }}
-              options={filterOptions.brand || []}
-              placeholder="All Brands"
-              disabled={!category}
-            />
-            
-            <FilterSelect
-              value={sku}
-              onChange={(value) => setFilter('sku', value)}
-              options={filterOptions.sku || []}
-              placeholder="All SKUs"
-              disabled={!brand}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Temporal Filters */}
-      <div className="space-y-2">
-        <div className="flex items-center space-x-2">
-          <span className="text-sm font-medium text-gray-700 w-20">📅 Time</span>
-          <div className="flex space-x-2 flex-1">
-            <FilterSelect
-              value={year}
-              onChange={(value) => {
-                setFilter('year', value);
-                if (value) loadFilterOptions('month', { year: value });
-              }}
-              options={filterOptions.year || []}
-              placeholder="All Years"
-            />
-            
-            <FilterSelect
-              value={month}
-              onChange={(value) => setFilter('month', value)}
-              options={filterOptions.month || []}
-              placeholder="All Months"
-              disabled={!year}
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Active Filters Display */}
-      {hasActiveFilters && (
-        <motion.div
-          className="flex flex-wrap gap-2 pt-2 border-t border-white/20"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2 }}
-        >
-          {region && (
-            <span className="inline-flex items-center space-x-1 bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-xs">
-              <span>📍 {region}</span>
-              <button onClick={() => setFilter('region', '')}>
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {city_municipality && (
-            <span className="inline-flex items-center space-x-1 bg-primary-100 text-primary-800 px-2 py-1 rounded-full text-xs">
-              <span>🏘️ {city_municipality}</span>
-              <button onClick={() => setFilter('city_municipality', '')}>
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {client && (
-            <span className="inline-flex items-center space-x-1 bg-secondary-100 text-secondary-800 px-2 py-1 rounded-full text-xs">
-              <span>🏢 {client}</span>
-              <button onClick={() => setFilter('client', '')}>
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {category && (
-            <span className="inline-flex items-center space-x-1 bg-secondary-100 text-secondary-800 px-2 py-1 rounded-full text-xs">
-              <span>📦 {category}</span>
-              <button onClick={() => setFilter('category', '')}>
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-          {year && (
-            <span className="inline-flex items-center space-x-1 bg-accent-100 text-accent-800 px-2 py-1 rounded-full text-xs">
-              <span>📅 {year}</span>
-              <button onClick={() => setFilter('year', '')}>
-                <X className="w-3 h-3" />
-              </button>
-            </span>
-          )}
-        </motion.div>
-      )}
     </motion.div>
   );
 };

@@ -1,7 +1,7 @@
 import React from 'react';
-import { useQuery, useQueries, UseQueryResult } from '@tanstack/react-query';
+import { useQuery, useQueries, UseQueryResult, useQueryClient, useMutation } from '@tanstack/react-query';
 import { optimizedDataService, DashboardMetrics } from '../optimizedDataService';
-import { subDays } from 'date-fns';
+import { subDays, startOfDay, endOfDay, startOfMonth, endOfMonth, subMonths } from 'date-fns';
 
 interface DataFilters {
   dateFrom?: Date;
@@ -199,7 +199,3 @@ export const dateRanges = {
   },
 };
 
-// Missing imports
-import React from 'react';
-import { useQueryClient, useMutation } from '@tanstack/react-query';
-import { startOfDay, endOfDay, startOfMonth, endOfMonth, subMonths } from 'date-fns';

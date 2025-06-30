@@ -1,5 +1,6 @@
 /* Import chart fixes first */
 @import './styles/chart-fixes.css';
+@import './styles/animations.css';
 
 @tailwind base;
 @tailwind components;
