@@ -1,5 +1,5 @@
 /*
-  # Suki Analytics Seed Data
+  # Suqi Analytics Seed Data
   
   This seed file populates the database with realistic Philippine retail data
   Following the PRD specifications for market patterns and distributions
@@ -11,7 +11,7 @@
 -- Seed Customer Segments
 INSERT INTO customer_segments (segment_name, segment_type, description, criteria, customer_count, avg_transaction_value, total_revenue) VALUES
   ('Regular Customers', 'behavioral', 'Everyday shoppers who visit frequently', '{"frequency": ">3/week", "basket_size": "medium"}', 4500, 157.50, 708750.00),
-  ('Suki VIPs', 'behavioral', 'Loyal customers with credit privileges', '{"has_utang": true, "frequency": ">5/week"}', 1200, 285.30, 342360.00),
+  ('Suqi VIPs', 'behavioral', 'Loyal customers with credit privileges', '{"has_utang": true, "frequency": ">5/week"}', 1200, 285.30, 342360.00),
   ('Student Buyers', 'demographic', 'Students buying snacks and beverages', '{"customer_type": "Student", "time": "afternoon"}', 2100, 45.80, 96180.00),
   ('Senior Citizens', 'demographic', 'Senior customers with special discounts', '{"customer_type": "Senior", "age": ">60"}', 850, 125.60, 106760.00),
   ('Weekend Warriors', 'behavioral', 'High-value weekend shoppers', '{"day": "weekend", "basket_size": "large"}', 1800, 325.40, 585720.00),
@@ -133,7 +133,7 @@ INSERT INTO ai_insights (insight_type, category, severity, title, description, d
   ('trend', 'customer', 'info', 'Utang Payment Trend', 
    'Utang/Lista payments peak at month-end (days 25-31), representing 45% of transactions.',
    '{"peak_days": [25, 26, 27, 28, 29, 30, 31], "utang_percentage": 45}',
-   '["Prepare collection reminders", "Increase credit limit for regular sukis", "Track outstanding balances"]',
+   '["Prepare collection reminders", "Increase credit limit for regular suqis", "Track outstanding balances"]',
    NOW() + INTERVAL '30 days'),
    
   ('anomaly', 'pricing', 'critical', 'Competitor Price Drop: Lucky Me', 

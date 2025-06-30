@@ -74,7 +74,7 @@ const Sidebar: React.FC = () => {
       {/* Footer */}
       <div className="p-4 border-t border-white/20">
         <div className="text-center">
-          <p className="text-xs text-gray-600 mb-1">Suki Analytics v3.1</p>
+          <p className="text-xs text-gray-600 mb-1">Suqi Analytics v3.1</p>
           <p className="text-xs text-gray-500">© 2025 TBWA\SMP</p>
         </div>
       </div>

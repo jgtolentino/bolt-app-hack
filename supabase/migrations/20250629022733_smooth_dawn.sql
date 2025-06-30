@@ -1,5 +1,5 @@
 -- =============================================================================
--- SUKI ANALYTICS DATABASE VALIDATION QUERIES
+-- SUQI ANALYTICS DATABASE VALIDATION QUERIES
 -- =============================================================================
 
 -- 1. BASIC DATA COUNTS

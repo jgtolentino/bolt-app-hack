@@ -77,7 +77,7 @@ BEGIN
       latitude, longitude, store_type, opening_date, status
     ) VALUES (
       'STR' || LPAD(i::TEXT, 4, '0'),
-      'Suki Store ' || v_cities[1 + (i % array_length(v_cities, 1))],
+      'Suqi Store ' || v_cities[1 + (i % array_length(v_cities, 1))],
       v_regions[1 + (i % array_length(v_regions, 1))],
       v_cities[1 + (i % array_length(v_cities, 1))],
       'Block ' || (1 + random() * 50)::INTEGER || ', Street ' || (1 + random() * 100)::INTEGER,

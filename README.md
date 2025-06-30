@@ -1,4 +1,4 @@
-# 🇵🇭 Suki Analytics - Philippine Retail Intelligence Dashboard
+# 🇵🇭 Suqi Analytics - Philippine Retail Intelligence Dashboard
 
 A production-grade retail analytics dashboard specifically designed for the Philippine market, featuring Supabase integration, intelligent AI routing, and deep understanding of local retail dynamics including sari-sari stores and utang/lista credit systems.
 
@@ -42,7 +42,7 @@ A production-grade retail analytics dashboard specifically designed for the Phil
 ### 1. Clone and Install
 ```bash
 git clone <repository-url>
-cd suki-analytics
+cd suqi-analytics
 npm install
 ```
 

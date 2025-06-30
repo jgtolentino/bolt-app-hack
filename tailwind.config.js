@@ -6,6 +6,24 @@ export default {
       fontFamily: {
         sans: ['Inter', 'system-ui', 'sans-serif'],
       },
+      fontSize: {
+        // Golden ratio typography scale (base 1rem = 16px)
+        'xs-phi': '0.618rem',    // 9.89px
+        'sm-phi': '0.786rem',    // 12.58px
+        'base': '1rem',          // 16px (base)
+        'lg-phi': '1.618rem',    // 25.89px
+        'xl-phi': '2.618rem',    // 41.89px
+        'xxl-phi': '4.236rem',   // 67.78px
+      },
+      spacing: {
+        // Golden ratio spacing scale
+        'phi-xs': '0.382rem',    // 6.11px
+        'phi-sm': '0.618rem',    // 9.89px
+        'phi': '1rem',           // 16px
+        'phi-md': '1.618rem',    // 25.89px
+        'phi-lg': '2.618rem',    // 41.89px
+        'phi-xl': '4.236rem',    // 67.78px
+      },
       colors: {
         primary: {
           50: '#eff6ff',

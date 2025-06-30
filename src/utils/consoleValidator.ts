@@ -1,7 +1,7 @@
 import { supabase, fetchAllRecords } from '../lib/supabase';
 
 export const runQuickValidation = async () => {
-  console.log('🔍 SUKI ANALYTICS DATABASE VALIDATION');
+  console.log('🔍 SUQI ANALYTICS DATABASE VALIDATION');
   console.log('=====================================');
   
   try {

@@ -1,5 +1,5 @@
 /*
-  # Suki Analytics Enhancement Tables and Views
+  # Suqi Analytics Enhancement Tables and Views
 
   1. New Tables
     - `customer_segments` - Customer segmentation data

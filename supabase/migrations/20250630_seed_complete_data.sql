@@ -13,24 +13,24 @@
 -- Seed geography table with Philippine locations
 INSERT INTO public.geography (region, city_municipality, barangay, latitude, longitude, store_name, store_type, is_active) VALUES
 -- NCR (Metro Manila)
-('NCR', 'Makati City', 'Poblacion', 14.5648, 121.0271, 'Suki Store Makati 1', 'Supermarket', true),
-('NCR', 'Makati City', 'Bel-Air', 14.5585, 121.0245, 'Suki Store Makati 2', 'Convenience', true),
-('NCR', 'Quezon City', 'Diliman', 14.6488, 121.0509, 'Suki Store QC 1', 'Supermarket', true),
-('NCR', 'Manila', 'Ermita', 14.5832, 120.9845, 'Suki Store Manila 1', 'Convenience', true),
-('NCR', 'Pasig City', 'Ortigas', 14.5877, 121.0619, 'Suki Store Pasig 1', 'Supermarket', true),
+('NCR', 'Makati City', 'Poblacion', 14.5648, 121.0271, 'Suqi Store Makati 1', 'Supermarket', true),
+('NCR', 'Makati City', 'Bel-Air', 14.5585, 121.0245, 'Suqi Store Makati 2', 'Convenience', true),
+('NCR', 'Quezon City', 'Diliman', 14.6488, 121.0509, 'Suqi Store QC 1', 'Supermarket', true),
+('NCR', 'Manila', 'Ermita', 14.5832, 120.9845, 'Suqi Store Manila 1', 'Convenience', true),
+('NCR', 'Pasig City', 'Ortigas', 14.5877, 121.0619, 'Suqi Store Pasig 1', 'Supermarket', true),
 -- Region VII (Central Visayas)
-('Region VII', 'Cebu City', 'Lahug', 10.3338, 123.8941, 'Suki Store Cebu 1', 'Supermarket', true),
-('Region VII', 'Cebu City', 'IT Park', 10.3298, 123.9052, 'Suki Store Cebu 2', 'Convenience', true),
-('Region VII', 'Mandaue City', 'Centro', 10.3236, 123.9222, 'Suki Store Mandaue 1', 'Supermarket', true),
+('Region VII', 'Cebu City', 'Lahug', 10.3338, 123.8941, 'Suqi Store Cebu 1', 'Supermarket', true),
+('Region VII', 'Cebu City', 'IT Park', 10.3298, 123.9052, 'Suqi Store Cebu 2', 'Convenience', true),
+('Region VII', 'Mandaue City', 'Centro', 10.3236, 123.9222, 'Suqi Store Mandaue 1', 'Supermarket', true),
 -- Region III (Central Luzon)
-('Region III', 'Angeles City', 'Balibago', 15.1629, 120.5888, 'Suki Store Angeles 1', 'Supermarket', true),
-('Region III', 'San Fernando', 'Dolores', 15.0286, 120.6898, 'Suki Store SF 1', 'Convenience', true),
+('Region III', 'Angeles City', 'Balibago', 15.1629, 120.5888, 'Suqi Store Angeles 1', 'Supermarket', true),
+('Region III', 'San Fernando', 'Dolores', 15.0286, 120.6898, 'Suqi Store SF 1', 'Convenience', true),
 -- Region IV-A (CALABARZON)
-('Region IV-A', 'Antipolo City', 'Mayamot', 14.5865, 121.1761, 'Suki Store Antipolo 1', 'Supermarket', true),
-('Region IV-A', 'Batangas City', 'Centro', 13.7565, 121.0583, 'Suki Store Batangas 1', 'Convenience', true),
+('Region IV-A', 'Antipolo City', 'Mayamot', 14.5865, 121.1761, 'Suqi Store Antipolo 1', 'Supermarket', true),
+('Region IV-A', 'Batangas City', 'Centro', 13.7565, 121.0583, 'Suqi Store Batangas 1', 'Convenience', true),
 -- Region VI (Western Visayas)
-('Region VI', 'Iloilo City', 'Jaro', 10.7202, 122.5621, 'Suki Store Iloilo 1', 'Supermarket', true),
-('Region VI', 'Bacolod City', 'Mandalagan', 10.6407, 122.9688, 'Suki Store Bacolod 1', 'Convenience', true)
+('Region VI', 'Iloilo City', 'Jaro', 10.7202, 122.5621, 'Suqi Store Iloilo 1', 'Supermarket', true),
+('Region VI', 'Bacolod City', 'Mandalagan', 10.6407, 122.9688, 'Suqi Store Bacolod 1', 'Convenience', true)
 ON CONFLICT DO NOTHING;
 
 -- Seed organization table with products

@@ -257,7 +257,7 @@ export class DatabaseValidator {
 
   static formatValidationResults(results: ValidationResult[]): string {
     let output = '='.repeat(80) + '\n';
-    output += 'SUKI ANALYTICS DATABASE VALIDATION REPORT\n';
+    output += 'SUQI ANALYTICS DATABASE VALIDATION REPORT\n';
     output += '='.repeat(80) + '\n\n';
 
     results.forEach(result => {

@@ -12,7 +12,7 @@ import {
   Package, TrendingUp, Star, MapPin, Users, Filter,
   ArrowUp, ArrowDown, Eye, MoreHorizontal, Download, RefreshCcw
 } from 'lucide-react';
-import TreemapChart from '../components/charts/TreemapChart';
+import TreemapChartOptimized from '../components/charts/TreemapChartOptimized';
 import HorizontalBarChart from '../components/charts/HorizontalBarChart';
 import SubstitutionPatternsChart from '../components/charts/SubstitutionPatternsChart';
 
@@ -487,11 +487,15 @@ const ProductAnalysis: React.FC = () => {
     <div className="space-y-6">
       {/* Product Mix Treemap */}
       <div>
-        <TreemapChart 
+        <TreemapChartOptimized 
           data={productData.productMix}
           title="Product Mix Visualization"
-          height={400}
+          height={500}
           showHierarchy={true}
+          onSegmentClick={(data) => {
+            console.log('Segment clicked:', data);
+            // Add navigation or drill-down logic here
+          }}
         />
         
         <div className="text-center text-sm text-gray-600 mt-4">

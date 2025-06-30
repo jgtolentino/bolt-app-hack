@@ -1,8 +1,8 @@
-# Suki Analytics Validation Guide
+# Suqi Analytics Validation Guide
 
 ## Overview
 
-The Suki Analytics dashboard includes comprehensive validation features for ensuring data quality, testing Supabase Pro features, and leveraging AI for advanced analytics.
+The Suqi Analytics dashboard includes comprehensive validation features for ensuring data quality, testing Supabase Pro features, and leveraging AI for advanced analytics.
 
 ## Validation Components
 

@@ -32,7 +32,7 @@ const Header: React.FC = () => {
           <span className="text-white font-bold text-sm">S</span>
         </div>
         <div>
-          <h1 className="text-xl font-bold text-gray-900 text-shadow">Suki Analytics</h1>
+          <h1 className="text-xl font-bold text-gray-900 text-shadow">Suqi Analytics</h1>
           <div className="flex items-center space-x-2">
             <p className="text-xs text-gray-600">TBWA\SMP Retail Intelligence</p>
             <div className="flex items-center space-x-2">

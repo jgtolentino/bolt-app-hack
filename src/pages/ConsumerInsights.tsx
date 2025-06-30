@@ -12,6 +12,7 @@ import {
   Users, TrendingUp, Clock, ShoppingCart, MapPin, Calendar,
   User, UserCheck, UserX, Target, Zap, Download, RefreshCcw
 } from 'lucide-react';
+import TransactionFlowWidget from '../components/analytics/TransactionFlowWidget';
 
 const ConsumerInsights: React.FC = () => {
   const navigate = useNavigate();
@@ -248,6 +249,13 @@ const ConsumerInsights: React.FC = () => {
           </div>
         </div>
       </div>
+      
+      {/* Transaction Flow Widget */}
+      <TransactionFlowWidget 
+        onEnableAdvancedAnalytics={() => {
+          console.log('Advanced analytics enabled');
+        }}
+      />
     </div>
   );
 
