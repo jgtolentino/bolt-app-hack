@@ -688,5 +688,10 @@ export interface Database {
   }
 }
 
+// Helper function to check if Supabase is properly configured
+export function hasValidSupabaseConfig(): boolean {
+  return !isPlaceholderUrl && !isPlaceholderKey;
+}
+
 // Export the supabase client
 export { supabase }
