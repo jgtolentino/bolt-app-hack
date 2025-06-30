@@ -92,7 +92,7 @@ const KPICard: React.FC<KPICardProps> = ({ metric, index, onClick }) => {
       </div>
 
       {/* Trend Sparkline */}
-      {metric.trend && (
+      {metric.trend && Array.isArray(metric.trend) && (
         <div className="h-8 flex items-end space-x-1">
           {metric.trend.map((value, i) => {
             const height = (value / Math.max(...metric.trend!)) * 100;

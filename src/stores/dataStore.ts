@@ -162,7 +162,18 @@ export const useDataStore = create<DataStore>((set, get) => ({
           start: subDays(new Date(), 30),
           end: new Date()
         };
-        const metrics = await dataService.getKPIMetrics(dateRange);
+        const metricsData = await dataService.getKPIMetrics(dateRange);
+        // Map the data to match the expected KPIMetric interface
+        const metrics = metricsData.map(m => ({
+          id: m.id,
+          title: m.title,
+          value: m.value,
+          change: m.change,
+          changeType: m.trend === 'up' ? 'increase' : m.trend === 'down' ? 'decrease' : 'neutral' as 'increase' | 'decrease' | 'neutral',
+          format: m.id.includes('sales') || m.id.includes('basket') ? 'currency' : m.id.includes('percent') ? 'percentage' : 'number' as 'currency' | 'number' | 'percentage',
+          icon: m.icon || 'TrendingUp',
+          trend: undefined // We don't have historical trend data yet
+        }));
         set({ kpiMetrics: metrics, isConnected: true });
       } else {
         // Use mock data
