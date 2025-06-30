@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import Header from './components/layout/Header';
 import Sidebar from './components/layout/Sidebar';
 import GlobalFilters from './components/filters/GlobalFilters';
+import ZoomableContainer from './components/ui/ZoomableContainer';
 import Overview from './pages/Overview';
 import DashboardOverview from './pages/DashboardOverview';
 import TransactionAnalysis from './pages/TransactionAnalysis';
@@ -16,7 +17,8 @@ import DatabaseValidation from './pages/DatabaseValidation';
 
 function App() {
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
+    <ZoomableContainer className="h-screen">
+      <div className="flex h-full bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
       {/* Sidebar */}
       <Sidebar />
       
@@ -51,7 +53,7 @@ function App() {
           </motion.div>
         </main>
       </div>
-    </div>
+    </ZoomableContainer>
   );
 }
 
