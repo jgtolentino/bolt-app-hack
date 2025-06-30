@@ -92,6 +92,24 @@ const DashboardOverview: React.FC = () => {
     }));
   }, []);
 
+  // Mock 24h sales trend data
+  const salesTrendData = useMemo(() => {
+    const now = new Date();
+    const currentHour = now.getHours();
+    
+    // Generate data for the last 24 hours
+    return Array.from({ length: 24 }, (_, i) => {
+      const hour = (currentHour - 23 + i + 24) % 24;
+      const isToday = i >= (24 - currentHour);
+      
+      return {
+        name: `${hour}:00`,
+        value: Math.floor(Math.random() * 5000) + 1000 + (hour >= 14 && hour <= 17 ? 2000 : 0), // Peak hours boost
+        transactions: Math.floor(Math.random() * 20) + 5
+      };
+    });
+  }, []);
+
   // Mock location performance data
   const locationData = [
     { location: 'Barangay 1', revenue: 12500, growth: 15 },
@@ -193,7 +211,7 @@ const DashboardOverview: React.FC = () => {
             <h3 className="text-lg font-semibold text-gray-900">📈 Sales Trend (24hr)</h3>
             <span className="text-sm text-gray-500">Today vs Yesterday</span>
           </div>
-          <SalesTrendChart />
+          <SalesTrendChart data={salesTrendData} />
         </motion.div>
 
         {/* Transaction Volume by Hour */}
