@@ -1,5 +1,6 @@
 import { useQuery, useQueries, UseQueryResult } from '@tanstack/react-query';
 import { optimizedDataService, DashboardMetrics } from '../services/optimizedDataService';
+import { fallbackDataService } from '../services/fallbackDataService';
 import { subDays } from 'date-fns';
 
 interface DataFilters {
@@ -22,7 +23,21 @@ const queryKeys = {
 export function useDashboardData(filters?: DataFilters) {
   return useQuery({
     queryKey: queryKeys.dashboard(filters),
-    queryFn: () => optimizedDataService.getDashboardMetrics(filters),
+    queryFn: async () => {
+      try {
+        // Try the optimized service first
+        return await optimizedDataService.getDashboardMetrics(filters);
+      } catch (error) {
+        console.warn('Optimized service failed, using fallback:', error);
+        // Fallback to simpler queries
+        return await fallbackDataService.getDashboardMetrics({
+          dateFrom: filters?.dateFrom || subDays(new Date(), 7),
+          dateTo: filters?.dateTo || new Date(),
+          region: filters?.region,
+          storeId: filters?.storeId
+        });
+      }
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
     cacheTime: 10 * 60 * 1000, // 10 minutes
     refetchInterval: 5 * 60 * 1000, // Refetch every 5 minutes
