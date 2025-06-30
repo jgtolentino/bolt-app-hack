@@ -20,6 +20,7 @@ const Reports = lazy(() => import('./pages/Reports'));
 const DatabaseValidation = lazy(() => import('./pages/DatabaseValidation'));
 const CruipDashboard = lazy(() => import('./pages/CruipDashboard'));
 const WidgetShowcase = lazy(() => import('./pages/WidgetShowcase'));
+const CommandCenter = lazy(() => import('./pages/CommandCenter'));
 
 // Loading component
 const PageLoader = () => (
@@ -80,6 +81,7 @@ function App() {
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/validation" element={<DatabaseValidation />} />
                   <Route path="/widgets" element={<WidgetShowcase />} />
+                  <Route path="/command-center" element={<CommandCenter />} />
                 </Routes>
               </Suspense>
             </motion.div>

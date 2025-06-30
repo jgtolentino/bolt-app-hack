@@ -13,12 +13,14 @@ import {
   ChevronRight,
   Database,
   LayoutDashboard,
-  Grid
+  Grid,
+  Terminal
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard', description: 'Command center' },
+    { path: '/', icon: LayoutDashboard, label: 'Dashboard', description: 'Analytics overview' },
+    { path: '/command-center', icon: Terminal, label: 'Command Center', description: 'Query builder' },
     { path: '/cruip', icon: BarChart3, label: 'Cruip Theme', description: 'Template showcase' },
     { path: '/overview', icon: Home, label: 'Overview', description: 'Analytics home' },
     { path: '/transactions', icon: TrendingUp, label: 'Transactions', description: 'Sales analytics' },
