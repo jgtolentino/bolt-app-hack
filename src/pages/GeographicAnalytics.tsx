@@ -63,6 +63,77 @@ const GeographicAnalytics: React.FC = () => {
     loadGeographicData();
   }, [region, city_municipality, barangay]);
 
+  // Update geoData when geographicData changes
+  useEffect(() => {
+    if (geographicData && geographicData.length > 0) {
+      // Transform geographicData into the format needed for charts
+      const regionData = geographicData.reduce((acc: any, item) => {
+        if (!acc[item.region]) {
+          acc[item.region] = {
+            region: item.region,
+            sales: 0,
+            stores: 0,
+            transactions: 0,
+            population: 0
+          };
+        }
+        acc[item.region].sales += item.total_sales;
+        acc[item.region].stores += 1;
+        acc[item.region].transactions += item.transaction_count;
+        return acc;
+      }, {});
+
+      const regionalPerformance = Object.values(regionData).map((item: any) => ({
+        ...item,
+        growth: Math.random() * 20 + 5, // Mock growth for now
+        density: item.stores / 100 // Mock density calculation
+      }));
+
+      const cityData = geographicData.reduce((acc: any, item) => {
+        const key = `${item.city_municipality}-${item.region}`;
+        if (!acc[key]) {
+          acc[key] = {
+            city: item.city_municipality,
+            region: item.region,
+            sales: 0,
+            transactions: 0,
+            stores: 0
+          };
+        }
+        acc[key].sales += item.total_sales;
+        acc[key].transactions += item.transaction_count;
+        acc[key].stores += 1;
+        return acc;
+      }, {});
+
+      const cityComparison = Object.values(cityData)
+        .sort((a: any, b: any) => b.sales - a.sales)
+        .slice(0, 6)
+        .map((item: any, index) => ({
+          ...item,
+          rank: index + 1,
+          growth: Math.random() * 25 + 5,
+          market_share: (item.sales / geographicData.reduce((sum, d) => sum + d.total_sales, 0) * 100).toFixed(1)
+        }));
+
+      const barangayAnalysis = geographicData.slice(0, 6).map(item => ({
+        barangay: item.barangay,
+        city: item.city_municipality,
+        sales: item.total_sales,
+        density: item.transaction_count > 1500 ? 'High' : item.transaction_count > 1000 ? 'Medium' : 'Low',
+        stores: 1,
+        population: item.population || Math.floor(Math.random() * 100000 + 20000)
+      }));
+
+      setGeoData(prev => ({
+        ...prev,
+        regionalPerformance,
+        cityComparison,
+        barangayAnalysis
+      }));
+    }
+  }, [geographicData]);
+
   const tabs = [
     { id: 'regional-performance', label: 'Regional Performance', icon: Building },
     { id: 'city-comparison', label: 'City Comparison', icon: MapPin },

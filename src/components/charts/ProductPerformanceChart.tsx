@@ -48,6 +48,25 @@ const ProductPerformanceChart: React.FC<ProductPerformanceChartProps> = ({
     return null;
   };
 
+  // Handle empty data
+  if (!data || data.length === 0) {
+    return (
+      <motion.div
+        className="chart-container"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, delay: 0.2 }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        </div>
+        <div className="flex items-center justify-center" style={{ height }}>
+          <p className="text-gray-500">No data available</p>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       className="chart-container"

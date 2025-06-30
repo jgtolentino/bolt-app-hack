@@ -94,11 +94,11 @@ export class BoundaryService {
     }
 
     try {
-      // GADM Level 1 = Regions
-      const response = await fetch(`${this.GADM_BASE_URL}/gadm41_PHL_1.json`);
+      // Try local file first
+      const localResponse = await fetch('/data/gadm41_PHL_1.json');
       
-      if (response.ok) {
-        const data = await response.json();
+      if (localResponse.ok) {
+        const data = await localResponse.json();
         
         // Transform GADM data to match our expected format
         const transformedData = {
@@ -118,7 +118,35 @@ export class BoundaryService {
         return transformedData;
       }
     } catch (error) {
-      console.warn('GADM regions failed:', error);
+      console.warn('Local GADM file failed, trying remote:', error);
+      
+      try {
+        // Fallback to remote URL
+        const response = await fetch(`${this.GADM_BASE_URL}/gadm41_PHL_1.json`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Transform GADM data to match our expected format
+          const transformedData = {
+            type: 'FeatureCollection',
+            features: data.features.map((feature: any) => ({
+              ...feature,
+              properties: {
+                ...feature.properties,
+                REGCODE: feature.properties.HASC_1?.split('.')[1] || '',
+                REGNAME: feature.properties.NAME_1 || '',
+                REGION: feature.properties.NAME_1 || ''
+              }
+            }))
+          };
+          
+          this.boundaryCache.set(cacheKey, transformedData);
+          return transformedData;
+        }
+      } catch (error) {
+        console.warn('Remote GADM regions failed:', error);
+      }
     }
 
     return this.getMockRegionData();

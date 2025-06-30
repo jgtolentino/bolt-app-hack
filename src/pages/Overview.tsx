@@ -11,6 +11,7 @@ import ZoomableContainer from '../components/ui/ZoomableContainer';
 import MobileZoomableContainer from '../components/ui/MobileZoomableContainer';
 import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import { TrendingUp, Users, MapPin, Bot, FileText, BarChart3, Database, Wifi, WifiOff } from 'lucide-react';
+import { debugDataLoading } from '../utils/debugData';
 
 const Overview: React.FC = () => {
   const navigate = useNavigate();
@@ -31,6 +32,9 @@ const Overview: React.FC = () => {
   const { totalCombinations, filters } = useFilterStore();
 
   useEffect(() => {
+    // Debug data loading
+    debugDataLoading();
+    
     // Load initial data
     loadKPIMetrics();
     loadChartData();

@@ -208,8 +208,9 @@ export const useDataStore = create<DataStore>((set, get) => ({
       if (useRealData) {
         try {
           // Load real sales trend data
+          const currentYear = new Date().getFullYear();
           const { data: salesData, error: salesError } = await supabase
-            .rpc('get_seasonal_trends', { year_filter: 2024 });
+            .rpc('get_seasonal_trends', { year_filter: currentYear });
 
           // Load real product performance data
           const query = supabase
@@ -218,6 +219,9 @@ export const useDataStore = create<DataStore>((set, get) => ({
             .order('total_sales', { ascending: false });
           
           const productData = await fetchAllRecords(query, 1000, 8);
+          
+          console.log('Sales data:', salesData?.length || 0, 'records', salesError ? 'Error: ' + salesError.message : '');
+          console.log('Product data:', productData?.length || 0, 'records');
 
           if (!salesError && salesData && salesData.length > 0) {
             const realSalesTrend: ChartDataPoint[] = salesData.map((item: any) => ({
@@ -288,6 +292,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
             .order('total_sales', { ascending: false });
           
           const geoData = await fetchAllRecords(query);
+          console.log('Fetched geographic data:', geoData?.length || 0, 'records');
 
           if (geoData && geoData.length > 0) {
             const realGeographicData: GeographyData[] = geoData.map((item: any) => ({
@@ -305,6 +310,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
             }));
 
             set({ geographicData: realGeographicData, isLoadingData: false });
+            console.log('Set geographic data:', realGeographicData.length, 'locations');
             return;
           }
         } catch (error) {

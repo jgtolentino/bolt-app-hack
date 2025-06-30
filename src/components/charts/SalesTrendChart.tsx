@@ -44,6 +44,25 @@ const SalesTrendChart: React.FC<SalesTrendChartProps> = ({
     return null;
   };
 
+  // Handle empty data
+  if (!data || data.length === 0) {
+    return (
+      <motion.div
+        className="chart-container"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
+        </div>
+        <div className="flex items-center justify-center h-[300px] text-gray-500">
+          <p>No data available</p>
+        </div>
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
       className="chart-container"
