@@ -3,10 +3,12 @@ import { User } from '@supabase/supabase-js'
 import { supabase } from '../../lib/supabase'
 import { motion } from 'framer-motion'
 import { LogIn, LogOut, User as UserIcon, Mail } from 'lucide-react'
+import { useDataStore } from '../../stores/dataStore'
 
 export const AuthButton: React.FC = () => {
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
+  const useRealData = useDataStore(state => state.useRealData)
   const [showEmailAuth, setShowEmailAuth] = useState(false)
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -200,6 +202,11 @@ export const AuthButton: React.FC = () => {
         </div>
       </motion.div>
     )
+  }
+
+  // Hide demo mode elements when real data is enabled
+  if (useRealData) {
+    return null;
   }
 
   return (

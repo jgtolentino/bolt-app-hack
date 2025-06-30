@@ -60,7 +60,56 @@ const seedData = {
     { region: 'Region XI', city_municipality: 'Davao City', barangay: 'Poblacion', store_name: 'Davao Central', latitude: 7.0733, longitude: 125.6128, population: 78901, area_sqkm: 4.67, store_type: 'grocery' },
     { region: 'Region XI', city_municipality: 'Davao City', barangay: 'Buhangin', store_name: 'Buhangin Store', latitude: 7.0947, longitude: 125.6269, population: 56789, area_sqkm: 3.45, store_type: 'sari-sari' },
     { region: 'Region XI', city_municipality: 'Davao City', barangay: 'Matina', store_name: 'Matina Market', latitude: 7.0589, longitude: 125.5949, population: 45678, area_sqkm: 3.12, store_type: 'sari-sari' },
-    { region: 'Region XI', city_municipality: 'Tagum', barangay: 'Apokon', store_name: 'Apokon Store', latitude: 7.4478, longitude: 125.8086, population: 34567, area_sqkm: 2.78, store_type: 'sari-sari' }
+    { region: 'Region XI', city_municipality: 'Tagum', barangay: 'Apokon', store_name: 'Apokon Store', latitude: 7.4478, longitude: 125.8086, population: 34567, area_sqkm: 2.78, store_type: 'sari-sari' },
+    
+    // Region I - Ilocos Region (3% weight)
+    { region: 'Region I', city_municipality: 'Vigan City', barangay: 'Poblacion', store_name: 'Vigan Central Store', latitude: 17.5749, longitude: 120.3868, population: 53879, area_sqkm: 25.13, store_type: 'sari-sari' },
+    { region: 'Region I', city_municipality: 'Laoag City', barangay: 'Brgy 1', store_name: 'Laoag Express Mart', latitude: 18.1984, longitude: 120.5935, population: 111125, area_sqkm: 116.08, store_type: 'grocery' },
+    { region: 'Region I', city_municipality: 'San Fernando', barangay: 'Poblacion', store_name: 'La Union Mart', latitude: 16.6159, longitude: 120.3173, population: 121812, area_sqkm: 102.72, store_type: 'mini-mart' },
+    
+    // Region II - Cagayan Valley (3% weight)
+    { region: 'Region II', city_municipality: 'Tuguegarao City', barangay: 'Centro', store_name: 'Tuguegarao Central', latitude: 17.6132, longitude: 121.7270, population: 166334, area_sqkm: 144.80, store_type: 'grocery' },
+    { region: 'Region II', city_municipality: 'Santiago City', barangay: 'Centro East', store_name: 'Santiago Express', latitude: 16.6872, longitude: 121.5487, population: 134830, area_sqkm: 255.51, store_type: 'sari-sari' },
+    
+    // Region IV-B - MIMAROPA (2% weight)
+    { region: 'Region IV-B', city_municipality: 'Puerto Princesa', barangay: 'Poblacion', store_name: 'Palawan Central Store', latitude: 9.7392, longitude: 118.7353, population: 307079, area_sqkm: 2381.02, store_type: 'grocery' },
+    { region: 'Region IV-B', city_municipality: 'Calapan City', barangay: 'Poblacion', store_name: 'Oriental Mindoro Mart', latitude: 13.4115, longitude: 121.1803, population: 145786, area_sqkm: 250.06, store_type: 'sari-sari' },
+    
+    // Region V - Bicol Region (4% weight)
+    { region: 'Region V', city_municipality: 'Legazpi City', barangay: 'Poblacion', store_name: 'Legazpi Central', latitude: 13.1391, longitude: 123.7438, population: 209533, area_sqkm: 153.70, store_type: 'grocery' },
+    { region: 'Region V', city_municipality: 'Naga City', barangay: 'Centro', store_name: 'Naga Express Mart', latitude: 13.6192, longitude: 123.1814, population: 209170, area_sqkm: 84.48, store_type: 'convenience' },
+    
+    // Region VIII - Eastern Visayas (3% weight)
+    { region: 'Region VIII', city_municipality: 'Tacloban City', barangay: 'Downtown', store_name: 'Tacloban Central', latitude: 11.2543, longitude: 125.0055, population: 251881, area_sqkm: 201.72, store_type: 'grocery' },
+    { region: 'Region VIII', city_municipality: 'Ormoc City', barangay: 'Poblacion', store_name: 'Ormoc Express', latitude: 11.0064, longitude: 124.6075, population: 230998, area_sqkm: 613.60, store_type: 'mini-mart' },
+    
+    // Region IX - Zamboanga Peninsula (3% weight)
+    { region: 'Region IX', city_municipality: 'Zamboanga City', barangay: 'Centro', store_name: 'Zamboanga Central', latitude: 6.9214, longitude: 122.0790, population: 977234, area_sqkm: 1483.38, store_type: 'grocery' },
+    { region: 'Region IX', city_municipality: 'Pagadian City', barangay: 'Poblacion', store_name: 'Pagadian Express', latitude: 7.8257, longitude: 123.4378, population: 210452, area_sqkm: 378.82, store_type: 'convenience' },
+    
+    // Region X - Northern Mindanao (4% weight)
+    { region: 'Region X', city_municipality: 'Cagayan de Oro', barangay: 'Centro', store_name: 'CDO Central Store', latitude: 8.4542, longitude: 124.6319, population: 728402, area_sqkm: 412.80, store_type: 'grocery' },
+    { region: 'Region X', city_municipality: 'Iligan City', barangay: 'Poblacion', store_name: 'Iligan Express', latitude: 8.2280, longitude: 124.2452, population: 363115, area_sqkm: 813.37, store_type: 'mini-mart' },
+    
+    // Region XII - SOCCSKSARGEN (3% weight)
+    { region: 'Region XII', city_municipality: 'General Santos', barangay: 'Poblacion', store_name: 'GenSan Central', latitude: 6.1164, longitude: 125.1716, population: 697315, area_sqkm: 492.86, store_type: 'grocery' },
+    { region: 'Region XII', city_municipality: 'Koronadal City', barangay: 'Poblacion', store_name: 'Koronadal Express', latitude: 6.5033, longitude: 124.8469, population: 195398, area_sqkm: 277.00, store_type: 'convenience' },
+    
+    // Region XIII - Caraga (2% weight)
+    { region: 'Region XIII', city_municipality: 'Butuan City', barangay: 'Poblacion', store_name: 'Butuan Central', latitude: 8.9492, longitude: 125.5406, population: 372910, area_sqkm: 816.62, store_type: 'grocery' },
+    { region: 'Region XIII', city_municipality: 'Surigao City', barangay: 'Centro', store_name: 'Surigao Express', latitude: 9.7839, longitude: 125.4890, population: 171107, area_sqkm: 245.00, store_type: 'mini-mart' },
+    
+    // CAR - Cordillera Administrative Region (2% weight)
+    { region: 'CAR', city_municipality: 'Baguio City', barangay: 'Session Road', store_name: 'Baguio Central', latitude: 16.4023, longitude: 120.5960, population: 366358, area_sqkm: 57.49, store_type: 'grocery' },
+    { region: 'CAR', city_municipality: 'La Trinidad', barangay: 'Poblacion', store_name: 'Benguet Express', latitude: 16.4556, longitude: 120.5871, population: 137404, area_sqkm: 69.08, store_type: 'sari-sari' },
+    
+    // BARMM - Bangsamoro Autonomous Region (2% weight)
+    { region: 'BARMM', city_municipality: 'Cotabato City', barangay: 'Poblacion', store_name: 'Cotabato Central', latitude: 7.2047, longitude: 124.2310, population: 325079, area_sqkm: 176.00, store_type: 'grocery' },
+    { region: 'BARMM', city_municipality: 'Marawi City', barangay: 'Poblacion', store_name: 'Marawi Express', latitude: 7.9986, longitude: 124.2928, population: 207010, area_sqkm: 87.55, store_type: 'sari-sari' },
+    
+    // MIMAROPA (1% weight)
+    { region: 'MIMAROPA', city_municipality: 'Romblon', barangay: 'Poblacion', store_name: 'Romblon Store', latitude: 12.5778, longitude: 122.2691, population: 40554, area_sqkm: 86.57, store_type: 'sari-sari' },
+    { region: 'MIMAROPA', city_municipality: 'Boac', barangay: 'Poblacion', store_name: 'Marinduque Central', latitude: 13.4400, longitude: 121.8439, population: 57283, area_sqkm: 212.95, store_type: 'grocery' }
   ],
 
   // Comprehensive product catalog covering ALL brands and categories

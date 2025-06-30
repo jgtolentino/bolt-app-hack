@@ -10,6 +10,8 @@
     "preview": "vite preview",
     "db:migrate": "./scripts/run-migrations.sh",
     "db:seed": "node scripts/seed-database.js",
+    "db:seed:full": "node scripts/generate-full-year-transactions.js",
+    "db:seed:year": "node scripts/generate-year-transactions.js",
     "db:generate": "supabase gen types typescript --local > src/types/supabase.ts"
   },
   "dependencies": {

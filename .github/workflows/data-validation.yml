@@ -1,0 +1,53 @@
+name: Data Quality Validation
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+jobs:
+  validate-data:
+    name: Validate Data Completeness
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+    
+    - name: Install dependencies
+      run: npm ci
+    
+    - name: Run data validation
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      run: |
+        echo "🔍 Running data completeness validation..."
+        node scripts/validate-data-completeness.js
+    
+    - name: Check transaction quality
+      env:
+        VITE_SUPABASE_URL: ${{ secrets.VITE_SUPABASE_URL }}
+        SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+      run: |
+        echo "💰 Checking for transaction anomalies..."
+        # Additional custom checks can be added here
+        
+    - name: Generate validation report
+      if: failure()
+      run: |
+        echo "❌ Data validation failed. Please check the logs above for details."
+        echo "Common issues:"
+        echo "- Empty tables: Run seed scripts to populate data"
+        echo "- High outliers: Check for data quality issues"
+        echo "- Missing regions: Ensure geographic coverage"

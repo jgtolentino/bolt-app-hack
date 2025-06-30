@@ -323,56 +323,85 @@ const DatabaseValidation: React.FC = () => {
                   <div className="space-y-3">
                     {/* KPI Metrics */}
                     {result.section === 'KPI Metrics' && result.data[0] && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="bg-blue-50 p-3 rounded-lg">
-                          <div className="text-sm text-blue-600">Total Sales</div>
-                          <div className="text-xl font-bold text-blue-900">
-                            {formatCurrency(result.data[0].total_sales)}
+                      <>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="bg-blue-50 p-3 rounded-lg">
+                            <div className="text-sm text-blue-600">Total Sales (All Time)</div>
+                            <div className="text-xl font-bold text-blue-900">
+                              {formatCurrency(result.data[0].total_sales)}
+                            </div>
+                          </div>
+                          <div className="bg-green-50 p-3 rounded-lg">
+                            <div className="text-sm text-green-600">Total Transactions</div>
+                            <div className="text-xl font-bold text-green-900">
+                              {formatNumber(result.data[0].transaction_count)}
+                            </div>
+                          </div>
+                          <div className="bg-purple-50 p-3 rounded-lg">
+                            <div className="text-sm text-purple-600">Avg Basket Value</div>
+                            <div className="text-xl font-bold text-purple-900">
+                              {formatCurrency(result.data[0].avg_basket)}
+                            </div>
+                          </div>
+                          <div className="bg-orange-50 p-3 rounded-lg">
+                            <div className="text-sm text-orange-600">Active Outlets</div>
+                            <div className="text-xl font-bold text-orange-900">
+                              {formatNumber(result.data[0].active_outlets)}
+                            </div>
                           </div>
                         </div>
-                        <div className="bg-green-50 p-3 rounded-lg">
-                          <div className="text-sm text-green-600">Transactions</div>
-                          <div className="text-xl font-bold text-green-900">
-                            {formatNumber(result.data[0].transaction_count)}
+                        <div className="mt-3 p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <div className="text-sm text-yellow-800 font-medium">Last 30 Days Performance</div>
+                              <div className="text-xs text-yellow-600 mt-1">
+                                Sales: {formatCurrency(result.data[0].recent_sales)} | 
+                                Transactions: {formatNumber(result.data[0].recent_count)} | 
+                                Growth: {result.data[0].growth_rate.toFixed(1)}%
+                              </div>
+                            </div>
+                            <Info className="w-4 h-4 text-yellow-600" />
                           </div>
                         </div>
-                        <div className="bg-purple-50 p-3 rounded-lg">
-                          <div className="text-sm text-purple-600">Avg Basket</div>
-                          <div className="text-xl font-bold text-purple-900">
-                            {formatCurrency(result.data[0].avg_basket)}
-                          </div>
-                        </div>
-                        <div className="bg-orange-50 p-3 rounded-lg">
-                          <div className="text-sm text-orange-600">Active Outlets</div>
-                          <div className="text-xl font-bold text-orange-900">
-                            {formatNumber(result.data[0].active_outlets)}
-                          </div>
-                        </div>
-                      </div>
+                      </>
                     )}
 
                     {/* Data Counts */}
                     {result.section === 'Data Counts' && result.data[0] && (
-                      <div className="grid grid-cols-3 gap-4">
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-gray-900">
-                            {formatNumber(result.data[0].geography_count)}
+                      <>
+                        <div className="grid grid-cols-3 gap-4">
+                          <div className="text-center p-3 bg-gray-50 rounded-lg">
+                            <div className="text-2xl font-bold text-gray-900">
+                              {formatNumber(result.data[0].geography_count)}
+                            </div>
+                            <div className="text-sm text-gray-600">Stores</div>
                           </div>
-                          <div className="text-sm text-gray-600">Stores</div>
-                        </div>
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-gray-900">
-                            {formatNumber(result.data[0].organization_count)}
+                          <div className="text-center p-3 bg-gray-50 rounded-lg">
+                            <div className="text-2xl font-bold text-gray-900">
+                              {formatNumber(result.data[0].organization_count)}
+                            </div>
+                            <div className="text-sm text-gray-600">Products</div>
                           </div>
-                          <div className="text-sm text-gray-600">Products</div>
-                        </div>
-                        <div className="text-center p-3 bg-gray-50 rounded-lg">
-                          <div className="text-2xl font-bold text-gray-900">
-                            {formatNumber(result.data[0].transaction_count)}
+                          <div className="text-center p-3 bg-gray-50 rounded-lg">
+                            <div className="text-2xl font-bold text-gray-900">
+                              {formatNumber(result.data[0].transaction_count)}
+                            </div>
+                            <div className="text-sm text-gray-600">Transactions</div>
                           </div>
-                          <div className="text-sm text-gray-600">Transactions</div>
                         </div>
-                      </div>
+                        {result.data[0].date_range && (
+                          <div className="mt-2 text-xs text-gray-600 text-center bg-gray-100 p-2 rounded">
+                            <Clock className="w-3 h-3 inline mr-1" />
+                            Data Range: {result.data[0].date_range.days_covered} days
+                            {result.data[0].date_range.first_date && result.data[0].date_range.last_date && (
+                              <span className="ml-2">
+                                ({new Date(result.data[0].date_range.first_date).toLocaleDateString()} - 
+                                {new Date(result.data[0].date_range.last_date).toLocaleDateString()})
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </>
                     )}
 
                     {/* Regional Performance */}

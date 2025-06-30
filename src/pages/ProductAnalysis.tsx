@@ -486,17 +486,10 @@ const ProductAnalysis: React.FC = () => {
   const renderProductMix = () => (
     <div className="space-y-6">
       {/* Product Mix Treemap */}
-      <div className="chart-container">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">Product Mix Visualization</h3>
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Size: Sales Volume | Color: Category</span>
-          </div>
-        </div>
-        
+      <div>
         <TreemapChart 
           data={productData.productMix}
-          title=""
+          title="Product Mix Visualization"
           height={400}
           showHierarchy={true}
         />

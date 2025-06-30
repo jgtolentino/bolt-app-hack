@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(grep:*)",
+      "Bash(npx supabase migration:*)",
+      "Bash(find:*)",
+      "Bash(rm:*)",
+      "Bash(supabase status:*)",
+      "Bash(chmod:*)",
+      "Bash(node:*)",
+      "Bash(ls:*)",
+      "Bash(rg:*)",
+      "Bash(tree:*)",
+      "Bash(git pull:*)"
+    ],
+    "deny": []
+  }
+}
