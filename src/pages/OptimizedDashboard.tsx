@@ -14,7 +14,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useDashboardData, dateRanges } from '../hooks/useOptimizedData';
-import { useFilterStore } from '../stores/filterStore';
+import { useFilterStore } from '../features/filters/filterStore';
 import { KpiCard, ChartPanel, RankedList, InsightCard } from '../components/widgets';
 import { fmt } from '../utils/formatters';
 

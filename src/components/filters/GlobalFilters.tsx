@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useFilterStore } from '../../stores/filterStore';
+import { useFilterStore } from '../../features/filters/filterStore';
 import { X, Filter, RotateCcw } from 'lucide-react';
 
 const GlobalFilters: React.FC = () => {

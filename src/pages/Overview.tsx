@@ -2,7 +2,7 @@ import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useDataStore } from '../stores/dataStore';
-import { useFilterStore } from '../stores/filterStore';
+import { useFilterStore } from '../features/filters/filterStore';
 import KPICard from '../components/charts/KPICard';
 import SalesTrendChart from '../components/charts/SalesTrendChart';
 import ProductPerformanceChart from '../components/charts/ProductPerformanceChart';

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { useFilterStore } from '../stores/filterStore';
+import { useFilterStore } from '../features/filters/filterStore';
 import { useDataStore } from '../stores/dataStore';
 import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import { 
