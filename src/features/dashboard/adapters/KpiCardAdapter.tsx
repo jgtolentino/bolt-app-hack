@@ -1,7 +1,7 @@
 import React from 'react';
-import { DashboardCard01 } from '../../../template_sync/partials/dashboard/DashboardCard01';
-import { DashboardCard02 } from '../../../template_sync/partials/dashboard/DashboardCard02';
-import { DashboardCard03 } from '../../../template_sync/partials/dashboard/DashboardCard03';
+import DashboardCard01 from '../../../template_sync/partials/dashboard/DashboardCard01';
+import DashboardCard02 from '../../../template_sync/partials/dashboard/DashboardCard02';
+import DashboardCard03 from '../../../template_sync/partials/dashboard/DashboardCard03';
 import { useDashboardData } from '../../transactions/hooks/useOptimizedData';
 import { formatCurrency, formatNumber } from '../../../utils/formatters';
 

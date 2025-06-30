@@ -19,6 +19,7 @@ const AIAssistant = lazy(() => import('./pages/AIAssistant'));
 const Reports = lazy(() => import('./pages/Reports'));
 const DatabaseValidation = lazy(() => import('./pages/DatabaseValidation'));
 const CruipDashboard = lazy(() => import('./pages/CruipDashboard'));
+const WidgetShowcase = lazy(() => import('./pages/WidgetShowcase'));
 
 // Loading component
 const PageLoader = () => (
@@ -78,6 +79,7 @@ function App() {
                   <Route path="/ai-assistant" element={<AIAssistant />} />
                   <Route path="/reports" element={<Reports />} />
                   <Route path="/validation" element={<DatabaseValidation />} />
+                  <Route path="/widgets" element={<WidgetShowcase />} />
                 </Routes>
               </Suspense>
             </motion.div>

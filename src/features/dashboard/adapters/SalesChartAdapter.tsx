@@ -1,6 +1,6 @@
 import React from 'react';
-import { LineChart01 } from '../../../template_sync/charts/LineChart01';
-import { useOptimizedData } from '../../transactions/hooks/useOptimizedData';
+import LineChart01 from '../../../template_sync/charts/LineChart01';
+import { useDashboardData } from '../../transactions/hooks/useOptimizedData';
 
 interface SalesChartAdapterProps {
   dateRange?: string;
@@ -9,7 +9,7 @@ interface SalesChartAdapterProps {
 }
 
 export function SalesChartAdapter({ dateRange = 'last7Days', height = 350, width = 595 }: SalesChartAdapterProps) {
-  const { data, isLoading } = useOptimizedData.useSalesTrend({ dateRange });
+  const { data, isLoading } = useDashboardData({ dateRange });
 
   if (isLoading) {
     return (
@@ -20,12 +20,13 @@ export function SalesChartAdapter({ dateRange = 'last7Days', height = 350, width
   }
 
   // Transform Scout data to Cruip chart format
+  const salesData = data?.salesByDate || [];
   const chartData = {
-    labels: data?.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })) || [],
+    labels: salesData.map(d => new Date(d.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })),
     datasets: [
       {
         label: 'Sales',
-        data: data?.map(d => d.sales) || [],
+        data: salesData.map(d => d.sales),
         borderColor: '#4f46e5',
         backgroundColor: 'rgba(79, 70, 229, 0.08)',
         borderWidth: 2,

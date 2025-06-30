@@ -12,7 +12,8 @@ import {
   Home,
   ChevronRight,
   Database,
-  LayoutDashboard
+  LayoutDashboard,
+  Grid
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
@@ -27,6 +28,7 @@ const Sidebar: React.FC = () => {
     { path: '/ai-assistant', icon: Bot, label: 'AI Assistant', description: 'Retail intelligence' },
     { path: '/reports', icon: FileText, label: 'Reports', description: 'Export & sharing' },
     { path: '/validation', icon: Database, label: 'Data Validation', description: 'AI & quality checks' },
+    { path: '/widgets', icon: Grid, label: 'Widget Showcase', description: 'StockBot adapters' },
   ];
 
   return (

@@ -182,7 +182,7 @@ const OptimizedDashboard: React.FC = () => {
       {/* Main Content with Golden Ratio spacing */}
       <div className="p-phi-lg space-y-phi-lg">
         {/* KPI Cards Row - 4 cards in grid */}
-        <section className="grid grid-cols-12 gap-phi">
+        <section className="grid grid-cols-12 gap-phi" data-testid="kpi-row">
           {primaryKpis.map((kpi) => (
             <KpiCard
               key={kpi.id}

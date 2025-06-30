@@ -1,6 +1,6 @@
 import React from 'react';
-import { BarChart01 } from '../../../template_sync/charts/BarChart01';
-import { useOptimizedData } from '../../transactions/hooks/useOptimizedData';
+import BarChart01 from '../../../template_sync/charts/BarChart01';
+import { useDashboardData } from '../../transactions/hooks/useOptimizedData';
 
 interface TransactionVolumeAdapterProps {
   dateRange?: string;
@@ -9,7 +9,7 @@ interface TransactionVolumeAdapterProps {
 }
 
 export function TransactionVolumeAdapter({ dateRange = 'last7Days', height = 350, width = 595 }: TransactionVolumeAdapterProps) {
-  const { data, isLoading } = useOptimizedData.useTransactionVolume({ dateRange });
+  const { data, isLoading } = useDashboardData({ dateRange });
 
   if (isLoading) {
     return (
@@ -20,15 +20,16 @@ export function TransactionVolumeAdapter({ dateRange = 'last7Days', height = 350
   }
 
   // Transform Scout data to Cruip chart format
+  const hourlyData = data?.hourlyTransactions || [];
   const chartData = {
-    labels: data?.map(d => {
+    labels: hourlyData.map(d => {
       const hour = parseInt(d.hour);
       return hour === 0 ? '12 AM' : hour < 12 ? `${hour} AM` : hour === 12 ? '12 PM' : `${hour - 12} PM`;
-    }) || [],
+    }),
     datasets: [
       {
         label: 'Transactions',
-        data: data?.map(d => d.transactions) || [],
+        data: hourlyData.map(d => d.count),
         backgroundColor: '#6366f1',
         hoverBackgroundColor: '#4f46e5',
         barPercentage: 0.7,
