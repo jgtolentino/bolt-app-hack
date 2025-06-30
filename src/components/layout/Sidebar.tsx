@@ -18,6 +18,7 @@ import {
 const Sidebar: React.FC = () => {
   const navItems = [
     { path: '/', icon: LayoutDashboard, label: 'Dashboard', description: 'Command center' },
+    { path: '/cruip', icon: BarChart3, label: 'Cruip Theme', description: 'Template showcase' },
     { path: '/overview', icon: Home, label: 'Overview', description: 'Analytics home' },
     { path: '/transactions', icon: TrendingUp, label: 'Transactions', description: 'Sales analytics' },
     { path: '/products', icon: Package, label: 'Products', description: 'Product performance' },

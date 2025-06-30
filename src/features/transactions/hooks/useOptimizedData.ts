@@ -1,6 +1,6 @@
 import { useQuery, useQueries, UseQueryResult } from '@tanstack/react-query';
-import { optimizedDataService, DashboardMetrics } from '../services/optimizedDataService';
-import { fallbackDataService } from '../services/fallbackDataService';
+import { optimizedDataService, DashboardMetrics } from '../optimizedDataService';
+import { fallbackDataService } from '../fallbackDataService';
 import { subDays } from 'date-fns';
 
 interface DataFilters {

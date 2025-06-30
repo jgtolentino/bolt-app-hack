@@ -18,6 +18,7 @@ const GeographicAnalytics = lazy(() => import('./pages/GeographicAnalytics'));
 const AIAssistant = lazy(() => import('./pages/AIAssistant'));
 const Reports = lazy(() => import('./pages/Reports'));
 const DatabaseValidation = lazy(() => import('./pages/DatabaseValidation'));
+const CruipDashboard = lazy(() => import('./pages/CruipDashboard'));
 
 // Loading component
 const PageLoader = () => (
@@ -69,6 +70,7 @@ function App() {
                 <Routes>
                   <Route path="/" element={useOptimizedDashboard ? <OptimizedDashboard /> : <DashboardOverview />} />
                   <Route path="/overview" element={<Navigate to="/" replace />} />
+                  <Route path="/cruip" element={<CruipDashboard />} />
                   <Route path="/transactions" element={<TransactionAnalysis />} />
                   <Route path="/products" element={<ProductAnalysis />} />
                   <Route path="/consumers" element={<ConsumerInsights />} />
