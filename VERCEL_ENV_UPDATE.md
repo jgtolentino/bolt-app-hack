@@ -13,19 +13,22 @@ The Supabase ANON key in the Vercel environment variables is outdated or incorre
 Go to your [Vercel Dashboard](https://vercel.com/dashboard) and navigate to:
 1. Select the `bolt-app-hack` project
 2. Go to **Settings** → **Environment Variables**
-3. Update the following variables:
+3. Update the variables using one of these methods:
 
+#### Method A: Copy from Files (Recommended)
+1. Use the complete environment variables from one of these files:
+   - `VERCEL_ENV_COMPLETE.txt` - Plain text format
+   - `vercel-env.json` - JSON format for bulk import
+   - `.env.production.example` - Standard .env format
+
+2. Copy all the variables and add them to Vercel
+
+#### Method B: Manual Entry
 ```bash
 VITE_SUPABASE_URL=https://baqlxgwdfjltivlfmsbr.supabase.co
-VITE_SUPABASE_ANON_KEY=[Use the ANON key from credentials.ts or your Supabase dashboard]
-```
-
-### 2. Verify Other Environment Variables
-
-Ensure these are also set if needed:
-```bash
-VITE_OPENAI_API_KEY=[Your OpenAI API key]
-VITE_ANTHROPIC_API_KEY=[Your Anthropic API key]
+VITE_SUPABASE_ANON_KEY=[Use the ANON key from the files above]
+VITE_OPENAI_API_KEY=[Use the OpenAI key from the files above]
+VITE_ANTHROPIC_API_KEY=[Use the Anthropic key from the files above]
 VITE_AI_MODEL=gpt-4
 VITE_ANTHROPIC_MODEL=claude-3-sonnet-20240229
 VITE_APP_ENV=production
