@@ -219,20 +219,8 @@ export class QueryOrchestrator {
     } catch (error) {
       console.error('SQL execution failed:', error);
       
-      // Fallback to AI insight
-      const aiResponse = await adsbotService.query({
-        prompt: `The user asked: "${request.query}". I couldn't execute the SQL query. Please provide insights based on general retail analytics knowledge.`,
-        context: 'fallback',
-        filters: request.filters
-      });
-      
-      return {
-        type: 'ai_insight',
-        insight: aiResponse.response,
-        confidence: 0.6,
-        processing_time: 0,
-        fallback_used: true
-      };
+      // No fallback - propagate error
+      throw new Error(`❌ SQL execution failed: ${error.message}. Check your query and try again.`);
     }
   }
 
@@ -259,32 +247,27 @@ export class QueryOrchestrator {
    * Handle operational/alert queries
    */
   private async handleOperationalQuery(request: QueryRequest): Promise<QueryResponse> {
-    // Mock alert data - in production, this would come from your monitoring system
-    const alerts = [
-      {
-        type: 'critical',
-        message: 'Milo 300ml projected to stock out in 2 days',
-        region: 'NCR',
-        priority: 'urgent'
-      },
-      {
-        type: 'warning',
-        message: 'JTI sales down 15% vs last week in Mindanao',
-        region: 'Mindanao',
-        priority: 'high'
-      }
-    ];
+    // Use anomaly detection engine for real alerts
+    const anomalyEngine = await anomalyDetectionEngine.detectAll();
+    const alerts = anomalyEngine.filter(anomaly => anomaly.severity === 'critical' || anomaly.severity === 'warning');
 
     const relevantAlerts = alerts.filter(alert => 
-      request.query.toLowerCase().includes(alert.region.toLowerCase()) ||
+      request.query.toLowerCase().includes(alert.region?.toLowerCase() || '') ||
       request.query.toLowerCase().includes('all') ||
       request.query.toLowerCase().includes('current')
     );
 
+    // Get AI insights about the alerts
+    const aiResponse = await adsbotService.query({
+      prompt: `Analyze these operational alerts and provide actionable recommendations: ${JSON.stringify(relevantAlerts)}`,
+      context: 'operational',
+      filters: request.filters
+    });
+
     return {
       type: 'alert',
       data: relevantAlerts,
-      insight: `Found ${relevantAlerts.length} relevant alerts requiring attention.`,
+      insight: aiResponse.response,
       confidence: 0.9,
       processing_time: 0,
       next_suggestions: [

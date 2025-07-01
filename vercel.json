@@ -1,4 +1,11 @@
 {
+  "env": {
+    "VITE_OPENAI_API_KEY": "@openai_api_key",
+    "VITE_OPENAI_API_BASE": "@openai_api_base",
+    "VITE_OPENAI_MODEL": "@openai_model",
+    "VITE_ANTHROPIC_API_KEY": "@anthropic_api_key",
+    "VITE_ANTHROPIC_MODEL": "@anthropic_model"
+  },
   "headers": [
     {
       "source": "/data/(.*)",

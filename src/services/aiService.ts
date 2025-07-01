@@ -47,7 +47,7 @@ class AIService {
     }
 
     if (!this.apiKey && !this.fallbackApiKey) {
-      console.warn(`No API keys found. AI features will use mock data.`);
+      throw new Error('❌ LLM Key not set. Refusing to proceed in fallback mode. Please add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to your environment variables.');
     }
   }
 
@@ -61,9 +61,9 @@ class AIService {
       throw new Error(`Template ${templateId} not found`);
     }
 
-    // If no API key, return mock response
+    // Enforce API key requirement
     if (!this.apiKey) {
-      return this.generateMockInsight(template, data, filters);
+      throw new Error('❌ AI API key required. Add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to enable AI features.');
     }
 
     // Build the prompt
@@ -105,8 +105,8 @@ class AIService {
         }
       }
       
-      // Final fallback to mock response
-      return this.generateMockInsight(template, data, filters);
+      // No fallback - fail fast
+      throw new Error('❌ All AI providers failed. Check your API keys and network connection.');
     }
   }
 
@@ -212,7 +212,7 @@ class AIService {
 
   async askQuestion(question: string, context?: Record<string, any>): Promise<string> {
     if (!this.apiKey) {
-      return this.generateMockAnswer(question, context);
+      throw new Error('❌ AI API key required. Add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to enable AI features.');
     }
 
     const prompt = `
@@ -259,7 +259,7 @@ class AIService {
         }
       }
       
-      return this.generateMockAnswer(question, context);
+      throw new Error('❌ All AI providers failed. Check your API keys and network connection.');
     }
   }
 

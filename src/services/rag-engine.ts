@@ -455,18 +455,12 @@ RESPONSE FORMAT:
         }
       }
 
-      throw new Error('No AI providers available');
+      throw new Error('❌ No AI providers available. Please set VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY in your environment.');
     } catch (error) {
       console.error('AI SQL generation failed:', error);
       
-      // Return template fallback
-      return {
-        sql: QUERY_TEMPLATES.daily_sales,
-        intent,
-        explanation: 'AI generation failed, using template fallback',
-        confidence: 0.4,
-        fallback_reason: 'AI provider unavailable'
-      };
+      // No fallback - fail fast
+      throw new Error('❌ AI SQL generation failed. Check your API keys and try again.');
     }
   }
 
