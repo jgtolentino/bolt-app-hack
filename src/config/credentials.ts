@@ -57,7 +57,8 @@ interface Credentials {
 function loadCredentials(): Credentials {
   // Helper to get env var with fallback
   const getEnv = (key: string, fallback?: string): string => {
-    const value = import.meta.env[key] || process.env[key] || fallback;
+    // Try import.meta.env first (Vite)
+    const value = import.meta.env[key] || fallback;
     if (!value && !fallback) {
       console.warn(`Missing environment variable: ${key}`);
     }
@@ -75,10 +76,10 @@ function loadCredentials(): Credentials {
       password: getEnv('PGPASSWORD', '')
     },
     
-    // Supabase Configuration
+    // Supabase Configuration - with hardcoded fallbacks for production
     supabase: {
-      url: getEnv('VITE_SUPABASE_URL', ''),
-      anonKey: getEnv('VITE_SUPABASE_ANON_KEY', ''),
+      url: getEnv('VITE_SUPABASE_URL', 'https://baqlxgwdfjltivlfmsbr.supabase.co'),
+      anonKey: getEnv('VITE_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhcWx4Z3dkZmpsdGl2bGZtc2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MjE5Mjc5MzMsImV4cCI6MjAzNzUwMzkzM30.QKJE3fwyXJZxPufNOKw3wAjJmNKMRVKaShFD4aofYbw'),
       serviceRoleKey: getEnv('SUPABASE_SERVICE_ROLE_KEY')
     },
     
