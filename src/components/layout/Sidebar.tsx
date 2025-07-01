@@ -20,7 +20,8 @@ import {
   Brain,
   ArrowLeftRight,
   UserCheck,
-  Save
+  Save,
+  AlertTriangle
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
@@ -33,6 +34,8 @@ const Sidebar: React.FC = () => {
     { path: '/demographics', icon: UserCheck, label: 'Demographics', description: 'Customer profiles' },
     { path: '/ai-chat', icon: Bot, label: 'AI Chat', description: 'Ask anything' },
     { path: '/saved-queries', icon: Save, label: 'Saved Queries', description: 'Analyst views' },
+    { path: '/alerts-anomalies', icon: AlertTriangle, label: 'Alerts & Anomalies', description: 'Real-time monitoring' },
+    { path: '/forecasting', icon: TrendingUp, label: 'Forecasting', description: 'Demand planning' },
     { path: '/validation', icon: Database, label: 'Data Validation', description: 'System checks' },
   ];
 

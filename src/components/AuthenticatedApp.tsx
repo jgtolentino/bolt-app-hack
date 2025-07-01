@@ -19,6 +19,9 @@ const AIChat = lazy(() => import('../pages/AIChat'));
 const SavedQueries = lazy(() => import('../pages/SavedQueries'));
 const Validation = lazy(() => import('../pages/Validation'));
 const TestAI = lazy(() => import('../pages/TestAI'));
+const AlertsAnomalies = lazy(() => import('../pages/AlertsAnomalies'));
+const TestAgenticAnalysis = lazy(() => import('../pages/TestAgenticAnalysis'));
+const ForecastingDashboard = lazy(() => import('../pages/ForecastingDashboard'));
 
 // Loading component
 const PageLoader = () => (
@@ -79,7 +82,10 @@ function AuthenticatedApp() {
                   <Route path="/ai-chat" element={<AIChat />} />
                   <Route path="/saved-queries" element={<SavedQueries />} />
                   <Route path="/validation" element={<Validation />} />
+                  <Route path="/alerts-anomalies" element={<AlertsAnomalies />} />
+                  <Route path="/forecasting" element={<ForecastingDashboard />} />
                   <Route path="/test-ai" element={<TestAI />} />
+                  <Route path="/test-agentic" element={<TestAgenticAnalysis />} />
                   {/* Redirect any unknown routes to overview */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>

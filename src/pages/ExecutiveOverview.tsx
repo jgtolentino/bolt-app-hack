@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { useDataStore } from '../stores/dataStore';
 import { useFilterStore } from '../features/filters/filterStore';
 import KPICard from '../components/charts/KPICard';
@@ -8,8 +9,10 @@ import { ParetoChart } from '../components/charts/ParetoChart';
 import GeographicMap from '../components/maps/GeographicMap';
 import AIInsightPanel from '../components/insights/AIInsightPanel';
 import { TrendingUp, Store, ShoppingCart, ArrowLeftRight, Target, DollarSign } from 'lucide-react';
+import { drillDown, KPI_DRILL_PATHS } from '../utils/navigationUtils';
 
 const ExecutiveOverview: React.FC = () => {
+  const navigate = useNavigate();
   const { 
     kpiMetrics, 
     salesTrendData, 
@@ -31,6 +34,18 @@ const ExecutiveOverview: React.FC = () => {
     loadGeographicData();
   }, []);
 
+  // Handle KPI drill-down navigation
+  const handleKPIDrillDown = (kpiId: string, value: any) => {
+    const drillPath = KPI_DRILL_PATHS[kpiId];
+    if (drillPath) {
+      drillDown(navigate, drillPath.path, {
+        metric: kpiId,
+        value,
+        filters: { ...filters, ...drillPath.defaultFilters }
+      });
+    }
+  };
+
   // Enhanced KPI metrics with substitution and suggestion rates
   const enhancedKPIs = [
     {
@@ -41,7 +56,8 @@ const ExecutiveOverview: React.FC = () => {
       trend: kpiMetrics.find(m => m.id === 'total_sales')?.trend || 'up',
       format: 'currency',
       icon: DollarSign,
-      color: 'bg-gradient-to-br from-emerald-400 to-emerald-600'
+      color: 'bg-gradient-to-br from-emerald-400 to-emerald-600',
+      onClick: () => handleKPIDrillDown('total_sales', kpiMetrics.find(m => m.id === 'total_sales')?.value)
     },
     {
       id: 'active_stores',
@@ -51,7 +67,8 @@ const ExecutiveOverview: React.FC = () => {
       trend: kpiMetrics.find(m => m.id === 'active_outlets')?.trend || 'up',
       format: 'number',
       icon: Store,
-      color: 'bg-gradient-to-br from-blue-400 to-blue-600'
+      color: 'bg-gradient-to-br from-blue-400 to-blue-600',
+      onClick: () => handleKPIDrillDown('active_stores', kpiMetrics.find(m => m.id === 'active_outlets')?.value)
     },
     {
       id: 'avg_basket',
@@ -61,7 +78,8 @@ const ExecutiveOverview: React.FC = () => {
       trend: kpiMetrics.find(m => m.id === 'avg_basket')?.trend || 'up',
       format: 'currency',
       icon: ShoppingCart,
-      color: 'bg-gradient-to-br from-purple-400 to-purple-600'
+      color: 'bg-gradient-to-br from-purple-400 to-purple-600',
+      onClick: () => handleKPIDrillDown('avg_basket', kpiMetrics.find(m => m.id === 'avg_basket')?.value)
     },
     {
       id: 'substitution_rate',
@@ -71,7 +89,8 @@ const ExecutiveOverview: React.FC = () => {
       trend: 'down',
       format: 'percentage',
       icon: ArrowLeftRight,
-      color: 'bg-gradient-to-br from-orange-400 to-orange-600'
+      color: 'bg-gradient-to-br from-orange-400 to-orange-600',
+      onClick: () => handleKPIDrillDown('substitution_rate', 12.5)
     },
     {
       id: 'suggestion_conversion',
@@ -81,7 +100,8 @@ const ExecutiveOverview: React.FC = () => {
       trend: 'up',
       format: 'percentage',
       icon: Target,
-      color: 'bg-gradient-to-br from-teal-400 to-teal-600'
+      color: 'bg-gradient-to-br from-teal-400 to-teal-600',
+      onClick: () => handleKPIDrillDown('suggestion_conversion', 78.2)
     }
   ];
 
@@ -132,10 +152,12 @@ const ExecutiveOverview: React.FC = () => {
           enhancedKPIs.map((metric, index) => (
             <motion.div
               key={metric.id}
-              className={`relative overflow-hidden rounded-xl shadow-lg ${metric.color} p-6 text-white`}
+              className={`relative overflow-hidden rounded-xl shadow-lg ${metric.color} p-6 text-white cursor-pointer transition-transform hover:scale-105`}
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.3, delay: index * 0.1 }}
+              onClick={metric.onClick}
+              title={`Click to drill down to ${metric.title} details`}
             >
               <div className="flex justify-between items-start mb-4">
                 <metric.icon className="w-8 h-8 opacity-80" />
