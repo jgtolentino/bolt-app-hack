@@ -451,16 +451,40 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
     if (geoJsonData.features.length > 0) {
       const mapboxgl = (window as any).mapboxgl;
       const bounds = new mapboxgl.LngLatBounds();
+      let hasValidCoordinates = false;
       
       geoJsonData.features.forEach(feature => {
         if (feature.geometry.type === 'Polygon') {
           feature.geometry.coordinates[0].forEach(coord => {
-            bounds.extend(coord);
+            if (Array.isArray(coord) && coord.length >= 2 && 
+                typeof coord[0] === 'number' && typeof coord[1] === 'number' &&
+                !isNaN(coord[0]) && !isNaN(coord[1])) {
+              bounds.extend(coord);
+              hasValidCoordinates = true;
+            }
+          });
+        } else if (feature.geometry.type === 'MultiPolygon') {
+          feature.geometry.coordinates.forEach(polygon => {
+            polygon[0].forEach(coord => {
+              if (Array.isArray(coord) && coord.length >= 2 && 
+                  typeof coord[0] === 'number' && typeof coord[1] === 'number' &&
+                  !isNaN(coord[0]) && !isNaN(coord[1])) {
+                bounds.extend(coord);
+                hasValidCoordinates = true;
+              }
+            });
           });
         }
       });
       
-      map.fitBounds(bounds, { padding: 50 });
+      // Only fit bounds if we have valid coordinates
+      if (hasValidCoordinates && !bounds.isEmpty()) {
+        map.fitBounds(bounds, { padding: 50 });
+      } else {
+        // Fallback to Philippines center if no valid bounds
+        map.setCenter([121.0, 14.6]);
+        map.setZoom(6);
+      }
     }
   };
 
