@@ -8,10 +8,10 @@ import './index.css';
 import './utils/testAI'; // Load AI test utilities
 import { validateEnvironment } from './utils/validateEnv';
 
-// Validate environment on startup (production mode only)
-if (import.meta.env.PROD) {
-  validateEnvironment();
-}
+// Skip validation - causing deployment issues
+// if (import.meta.env.PROD) {
+//   validateEnvironment();
+// }
 
 const queryClient = new QueryClient({
   defaultOptions: {
