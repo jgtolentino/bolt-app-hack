@@ -1,0 +1,96 @@
+{
+  "overview": {
+    "totalTransactions": 1500,
+    "totalStores": 48,
+    "totalProducts": 23,
+    "dateRange": {
+      "from": "2025-04-02",
+      "to": "2025-07-01"
+    },
+    "totalRevenue": 702665.6000000004,
+    "averageTransactionValue": 468.4437333333336
+  },
+  "jtiPerformance": {
+    "marketShare": "57.43%",
+    "topBrands": [
+      {
+        "brand": "Winston",
+        "totalSales": 115500,
+        "marketShare": "18.41",
+        "isJTI": true
+      },
+      {
+        "brand": "Camel",
+        "totalSales": 82305,
+        "marketShare": "13.12",
+        "isJTI": true
+      },
+      {
+        "brand": "Mevius",
+        "totalSales": 81600,
+        "marketShare": "13.01",
+        "isJTI": true
+      }
+    ],
+    "vsCompetitors": {
+      "jtiSales": 360255,
+      "competitorSales": 267125
+    }
+  },
+  "topRegions": [
+    {
+      "region": "NCR",
+      "totalSales": 155915.19999999998,
+      "percentage": "22.19"
+    },
+    {
+      "region": "Region IV-A",
+      "totalSales": 72083.19999999994,
+      "percentage": "10.26"
+    },
+    {
+      "region": "Region XI",
+      "totalSales": 67037.59999999998,
+      "percentage": "9.54"
+    },
+    {
+      "region": "Region III",
+      "totalSales": 62803.99999999997,
+      "percentage": "8.94"
+    },
+    {
+      "region": "Region VII",
+      "totalSales": 62109.600000000006,
+      "percentage": "8.84"
+    }
+  ],
+  "topStoreTypes": [
+    {
+      "storeType": "sari-sari",
+      "totalSales": 319222.4000000002,
+      "percentage": "45.43"
+    },
+    {
+      "storeType": "grocery",
+      "totalSales": 270188.80000000005,
+      "percentage": "38.45"
+    },
+    {
+      "storeType": "convenience",
+      "totalSales": 97238.39999999997,
+      "percentage": "13.84"
+    },
+    {
+      "storeType": "mini-mart",
+      "totalSales": 16015.999999999998,
+      "percentage": "2.28"
+    }
+  ],
+  "insights": [
+    "Sari-sari stores account for majority of tobacco sales",
+    "NCR and Region III show highest sales volumes",
+    "Winston brand leads JTI portfolio in market share",
+    "Morning (6-8 AM) and evening (5-8 PM) are peak sales hours",
+    "Cash remains dominant payment method (>70%)"
+  ]
+}

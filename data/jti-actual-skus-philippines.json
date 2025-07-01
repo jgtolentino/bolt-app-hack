@@ -1,0 +1,353 @@
+{
+  "jti_philippines_skus": {
+    "last_updated": "2024-07-01",
+    "currency": "PHP",
+    "tax_per_pack_20s": 50.00,
+    "brands": {
+      "winston": {
+        "brand_name": "Winston",
+        "company": "JTI Philippines",
+        "positioning": "Premium International",
+        "features": ["Freshloc Technology", "Fresh Swipe"],
+        "skus": [
+          {
+            "sku_id": "WIN-RED-20",
+            "product_name": "Winston Red 20s",
+            "variant": "Red (Full Flavor)",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335100201"
+          },
+          {
+            "sku_id": "WIN-RED-10",
+            "product_name": "Winston Red 10s",
+            "variant": "Red (Full Flavor)",
+            "pack_size": 10,
+            "format": "Hard Pack",
+            "srp": 82.00,
+            "wholesale": 78.00,
+            "barcode": "4904335100101"
+          },
+          {
+            "sku_id": "WIN-BLUE-20",
+            "product_name": "Winston Blue 20s",
+            "variant": "Blue (Lights)",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335100202"
+          },
+          {
+            "sku_id": "WIN-BLUE-10",
+            "product_name": "Winston Blue 10s",
+            "variant": "Blue (Lights)",
+            "pack_size": 10,
+            "format": "Hard Pack",
+            "srp": 82.00,
+            "wholesale": 78.00,
+            "barcode": "4904335100102"
+          },
+          {
+            "sku_id": "WIN-CASTER-20",
+            "product_name": "Winston Caster 20s",
+            "variant": "Caster (Ultra Smooth)",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335100203"
+          },
+          {
+            "sku_id": "WIN-XMINT-20",
+            "product_name": "Winston Extreme Mint 20s",
+            "variant": "Extreme Mint",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "features": ["Menthol Capsule"],
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335100204"
+          },
+          {
+            "sku_id": "WIN-MBMAX-20",
+            "product_name": "Winston Mint Burst Max 20s",
+            "variant": "Mint Burst Max",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "features": ["Double Capsule"],
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335100205"
+          }
+        ]
+      },
+      "mevius": {
+        "brand_name": "Mevius",
+        "company": "JTI Philippines",
+        "positioning": "Premium Japanese Quality",
+        "former_name": "Mild Seven",
+        "skus": [
+          {
+            "sku_id": "MEV-WBLUE-20",
+            "product_name": "Mevius Wind Blue 20s",
+            "variant": "Wind Blue",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335200201"
+          },
+          {
+            "sku_id": "MEV-OPDUO-20",
+            "product_name": "Mevius Option Duo 20s",
+            "variant": "Option Duo",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "features": ["Double Menthol Capsule", "High Menthol + Flavored Menthol"],
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335200202"
+          },
+          {
+            "sku_id": "MEV-KIWAMI-20",
+            "product_name": "Mevius Kiwami 20s",
+            "variant": "Kiwami",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "features": ["Gold Filter", "Strong Tobacco Taste"],
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335200203"
+          },
+          {
+            "sku_id": "MEV-SKYBLUE-20",
+            "product_name": "Mevius Sky Blue 20s",
+            "variant": "Sky Blue",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335200204"
+          },
+          {
+            "sku_id": "MEV-PURPLE-20",
+            "product_name": "Mevius Purple Option 20s",
+            "variant": "Purple Option",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "features": ["Berry Capsule"],
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335200205"
+          }
+        ]
+      },
+      "camel": {
+        "brand_name": "Camel",
+        "company": "JTI Philippines",
+        "positioning": "Iconic International",
+        "market_position": "#1 in West Visayas",
+        "skus": [
+          {
+            "sku_id": "CAM-YELLOW-20",
+            "product_name": "Camel Yellow 20s",
+            "variant": "Yellow (Lights)",
+            "pack_size": 20,
+            "format": "Soft Pack",
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335300201"
+          },
+          {
+            "sku_id": "CAM-BLUE-20",
+            "product_name": "Camel Blue 20s",
+            "variant": "Blue (Full Flavor)",
+            "pack_size": 20,
+            "format": "Soft Pack",
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335300202"
+          },
+          {
+            "sku_id": "CAM-ACTIVATE-20",
+            "product_name": "Camel Activate 20s",
+            "variant": "Activate",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "features": ["Menthol Capsule"],
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335300203"
+          },
+          {
+            "sku_id": "CAM-PURPLE-20",
+            "product_name": "Camel Purple Mint 20s",
+            "variant": "Purple Mint",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "features": ["Berry Menthol Capsule"],
+            "srp": 145.00,
+            "wholesale": 138.00,
+            "barcode": "4904335300204"
+          }
+        ]
+      },
+      "mighty": {
+        "brand_name": "Mighty",
+        "company": "JTI Philippines (acquired 2017)",
+        "positioning": "Local Premium",
+        "market_share": "20.9% (2021)",
+        "skus": [
+          {
+            "sku_id": "MGT-RED-20",
+            "product_name": "Mighty Filter KS 20s",
+            "variant": "Red (Full Flavor)",
+            "pack_size": 20,
+            "format": "Hard Pack",
+            "srp": 105.00,
+            "wholesale": 100.00,
+            "barcode": "4904335400201"
+          },
+          {
+            "sku_id": "MGT-LIGHTS-20",
+            "product_name": "Mighty Lights 20s",
+            "variant": "Lights",
+            "pack_size": 20,
+            "format": "Hard Pack",
+            "srp": 105.00,
+            "wholesale": 100.00,
+            "barcode": "4904335400202"
+          },
+          {
+            "sku_id": "MGT-MENTHOL-20",
+            "product_name": "Mighty Menthol 100s 20s",
+            "variant": "Menthol 100s",
+            "pack_size": 20,
+            "format": "Soft Pack",
+            "length": "100mm",
+            "srp": 105.00,
+            "wholesale": 100.00,
+            "barcode": "4904335400203"
+          },
+          {
+            "sku_id": "MGT-MENTHOL-HP20",
+            "product_name": "Mighty Menthol 100s Hard Pack 20s",
+            "variant": "Menthol 100s",
+            "pack_size": 20,
+            "format": "Hard Pack",
+            "length": "100mm",
+            "srp": 105.00,
+            "wholesale": 100.00,
+            "barcode": "4904335400204"
+          },
+          {
+            "sku_id": "MGT-MAXCOOL-20",
+            "product_name": "Mighty Max Cool 20s",
+            "variant": "Max Cool",
+            "pack_size": 20,
+            "format": "Flip Top Box",
+            "features": ["Extra Menthol"],
+            "srp": 105.00,
+            "wholesale": 100.00,
+            "barcode": "4904335400205"
+          },
+          {
+            "sku_id": "MGT-PLATINUM-20",
+            "product_name": "Mighty Platinum 20s",
+            "variant": "Platinum",
+            "pack_size": 20,
+            "format": "Hard Pack",
+            "srp": 105.00,
+            "wholesale": 100.00,
+            "barcode": "4904335400206"
+          },
+          {
+            "sku_id": "MGT-RED-10",
+            "product_name": "Mighty Red 10s",
+            "variant": "Red (Full Flavor)",
+            "pack_size": 10,
+            "format": "Hard Pack",
+            "srp": 55.00,
+            "wholesale": 52.00,
+            "barcode": "4904335400101"
+          }
+        ]
+      },
+      "marvels": {
+        "brand_name": "Marvels",
+        "company": "JTI Philippines (acquired 2017)",
+        "positioning": "Value Local",
+        "market_share": "4.1% (2021)",
+        "skus": [
+          {
+            "sku_id": "MRV-FILTER-20",
+            "product_name": "Marvels Filter 20s",
+            "variant": "Filter",
+            "pack_size": 20,
+            "format": "Soft Pack",
+            "srp": 85.00,
+            "wholesale": 81.00,
+            "barcode": "4904335500201"
+          },
+          {
+            "sku_id": "MRV-MENTHOL-20",
+            "product_name": "Marvels Menthol 20s",
+            "variant": "Menthol",
+            "pack_size": 20,
+            "format": "Soft Pack",
+            "srp": 85.00,
+            "wholesale": 81.00,
+            "barcode": "4904335500202"
+          },
+          {
+            "sku_id": "MRV-LIGHTS-20",
+            "product_name": "Marvels Lights 20s",
+            "variant": "Lights",
+            "pack_size": 20,
+            "format": "Soft Pack",
+            "srp": 85.00,
+            "wholesale": 81.00,
+            "barcode": "4904335500203"
+          }
+        ]
+      }
+    },
+    "competitor_reference": {
+      "philip_morris": {
+        "brands": ["Marlboro", "Fortune", "Philip Morris"],
+        "market_share": "42.9% (Marlboro alone)"
+      },
+      "local_brands": {
+        "brands": ["Hope", "More", "Champion"],
+        "positioning": "Budget segment"
+      }
+    },
+    "distribution_channels": {
+      "traditional_trade": {
+        "sari_sari_stores": {
+          "percentage": 65,
+          "notes": "Often sell per stick (tingi)",
+          "credit_sales": "Common (listahan system)"
+        },
+        "grocery_stores": 20,
+        "convenience_stores": 10,
+        "supermarkets": 5
+      },
+      "payment_methods": {
+        "cash": 75,
+        "gcash": 15,
+        "maya": 8,
+        "credit_card": 2
+      }
+    },
+    "regulatory_notes": {
+      "sin_tax_2024": "PHP 50.00 per pack + 5% annual increase",
+      "graphic_warnings": "Required on 85% of pack",
+      "plain_packaging": "Under consideration",
+      "age_restriction": "21 years old minimum"
+    }
+  }
+}
