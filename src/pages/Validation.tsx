@@ -2,19 +2,23 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { supabase } from '../lib/supabase';
 import { DatabaseValidator, ValidationResult } from '../utils/databaseValidator';
+import { FilteredDatabaseValidator, FilteredValidationResult } from '../utils/filteredDatabaseValidator';
 import { ProAccountValidator, ProValidationResult } from '../utils/proValidation';
 import { AIValidator, AIValidationResult } from '../utils/aiValidation';
-import { Database, CheckCircle, XCircle, AlertCircle, RefreshCcw, Download, Play, BarChart3, Zap, Brain, Pause, Clock, Info } from 'lucide-react';
+import { useFilterStore } from '../features/filters/filterStore';
+import { Database, CheckCircle, XCircle, AlertCircle, RefreshCcw, Download, Play, BarChart3, Zap, Brain, Pause, Clock, Info, Filter } from 'lucide-react';
 
 const DatabaseValidation: React.FC = () => {
+  const filters = useFilterStore(state => state);
   const [validationResults, setValidationResults] = useState<ValidationResult[]>([]);
+  const [filteredValidationResults, setFilteredValidationResults] = useState<FilteredValidationResult[]>([]);
   const [proResults, setProResults] = useState<ProValidationResult[]>([]);
   const [aiResults, setAiResults] = useState<AIValidationResult[]>([]);
   const [generationProgress, setGenerationProgress] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [lastValidated, setLastValidated] = useState<Date | null>(null);
-  const [activeTab, setActiveTab] = useState<'validation' | 'generation' | 'pro-features' | 'ai-validation'>('validation');
+  const [activeTab, setActiveTab] = useState<'validation' | 'filtered-validation' | 'generation' | 'pro-features' | 'ai-validation'>('filtered-validation');
   const [generationCount, setGenerationCount] = useState<number>(10000);
   const [batchSize, setBatchSize] = useState<number>(1000);
   const [generationError, setGenerationError] = useState<string | null>(null);
@@ -23,6 +27,7 @@ const DatabaseValidation: React.FC = () => {
 
   useEffect(() => {
     runValidation();
+    runFilteredValidation();
     return () => {
       if (monitorInterval) {
         clearInterval(monitorInterval);
@@ -65,6 +70,19 @@ const DatabaseValidation: React.FC = () => {
       setLastValidated(new Date());
     } catch (error) {
       console.error('Validation failed:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const runFilteredValidation = async () => {
+    setIsLoading(true);
+    try {
+      const results = await FilteredDatabaseValidator.runFilteredValidation(filters);
+      setFilteredValidationResults(results);
+      setLastValidated(new Date());
+    } catch (error) {
+      console.error('Filtered validation failed:', error);
     } finally {
       setIsLoading(false);
     }
@@ -178,6 +196,19 @@ const DatabaseValidation: React.FC = () => {
     URL.revokeObjectURL(url);
   };
 
+  const downloadFilteredReport = () => {
+    const report = FilteredDatabaseValidator.generateValidationReport(filteredValidationResults);
+    const blob = new Blob([report], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `filtered-validation-report-${new Date().toISOString().split('T')[0]}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
   const downloadProReport = () => {
     const report = ProAccountValidator.generateProReport(proResults);
     const blob = new Blob([report], { type: 'text/plain' });
@@ -208,7 +239,8 @@ const DatabaseValidation: React.FC = () => {
   const formatCurrency = (value: number) => `₱${value?.toLocaleString() || '0'}`;
 
   const tabs = [
-    { id: 'validation', label: 'Data Validation', icon: Database },
+    { id: 'filtered-validation', label: 'Current Filter Validation', icon: Filter },
+    { id: 'validation', label: 'Full Data Validation', icon: Database },
     { id: 'generation', label: 'Transaction Generation', icon: Zap },
     { id: 'pro-features', label: 'Pro Features', icon: BarChart3 },
     { id: 'ai-validation', label: 'AI Validation', icon: Brain }
@@ -239,16 +271,22 @@ const DatabaseValidation: React.FC = () => {
         </div>
         <div className="flex items-center space-x-3">
           <button
-            onClick={runValidation}
+            onClick={() => {
+              if (activeTab === 'filtered-validation') {
+                runFilteredValidation();
+              } else {
+                runValidation();
+              }
+            }}
             disabled={isLoading}
             className="flex items-center space-x-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
           >
             <RefreshCcw className={`w-4 h-4 ${isLoading ? 'animate-spin' : ''}`} />
             <span>{isLoading ? 'Validating...' : 'Refresh'}</span>
           </button>
-          {validationResults.length > 0 && (
+          {(validationResults.length > 0 || filteredValidationResults.length > 0) && (
             <button
-              onClick={downloadReport}
+              onClick={activeTab === 'filtered-validation' ? downloadFilteredReport : downloadReport}
               className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
             >
               <Download className="w-4 h-4" />
@@ -288,6 +326,213 @@ const DatabaseValidation: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
+        {activeTab === 'filtered-validation' && (
+          <div className="space-y-6">
+            {/* Current Filter Info */}
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+              <h3 className="font-semibold text-blue-900 mb-2 flex items-center space-x-2">
+                <Filter className="w-5 h-5" />
+                <span>Current Filter Context</span>
+              </h3>
+              <div className="text-sm text-blue-800">
+                <p>Date Range: {filters.date_from || 'Last 30 days'} to {filters.date_to || 'Today'}</p>
+                {filters.region && <p>Region: {filters.region}</p>}
+                {filters.city_municipality && <p>City: {filters.city_municipality}</p>}
+                {filters.brand && <p>Brand: {filters.brand}</p>}
+                {filters.category && <p>Category: {filters.category}</p>}
+                {!filters.date_from && !filters.date_to && (
+                  <p className="mt-2 font-medium">Expected: 1000 transactions for last 30 days</p>
+                )}
+              </div>
+            </div>
+
+            {/* Filtered Validation Results */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {filteredValidationResults.map((result, index) => (
+                <motion.div
+                  key={result.section}
+                  className="chart-container"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.1 }}
+                >
+                  <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900 flex items-center space-x-2">
+                      {result.validationStatus === 'pass' ? (
+                        <CheckCircle className="w-5 h-5 text-green-500" />
+                      ) : result.validationStatus === 'warning' ? (
+                        <AlertCircle className="w-5 h-5 text-yellow-500" />
+                      ) : (
+                        <XCircle className="w-5 h-5 text-red-500" />
+                      )}
+                      <span>{result.section}</span>
+                    </h3>
+                    <span className={`px-2 py-1 text-xs rounded-full ${
+                      result.validationStatus === 'pass' ? 'bg-green-100 text-green-800' :
+                      result.validationStatus === 'warning' ? 'bg-yellow-100 text-yellow-800' :
+                      'bg-red-100 text-red-800'
+                    }`}>
+                      {result.validationStatus.toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Validation Messages */}
+                  {result.validationMessages.length > 0 && (
+                    <div className="mb-4 p-3 bg-gray-50 rounded-lg">
+                      <h4 className="text-sm font-medium text-gray-700 mb-2">Validation Results:</h4>
+                      <ul className="space-y-1">
+                        {result.validationMessages.map((msg, i) => (
+                          <li key={i} className={`text-sm flex items-start ${
+                            msg.startsWith('✓') ? 'text-green-700' :
+                            msg.includes('mismatch') || msg.includes('Expected') ? 'text-yellow-700' :
+                            'text-gray-700'
+                          }`}>
+                            <span>{msg}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {result.error ? (
+                    <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
+                      <p className="text-red-800 text-sm">Error: {result.error}</p>
+                    </div>
+                  ) : result.data.length === 0 ? (
+                    <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                      <p className="text-yellow-800 text-sm">No data found</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {/* KPI Metrics */}
+                      {result.section.includes('KPI Metrics') && result.data[0] && (
+                        <>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="bg-blue-50 p-3 rounded-lg">
+                              <div className="text-sm text-blue-600">Total Sales</div>
+                              <div className="text-xl font-bold text-blue-900">
+                                {formatCurrency(result.data[0].total_sales)}
+                              </div>
+                            </div>
+                            <div className="bg-green-50 p-3 rounded-lg">
+                              <div className="text-sm text-green-600">Transactions</div>
+                              <div className="text-xl font-bold text-green-900">
+                                {formatNumber(result.data[0].transaction_count)}
+                              </div>
+                            </div>
+                            <div className="bg-purple-50 p-3 rounded-lg">
+                              <div className="text-sm text-purple-600">Avg Basket</div>
+                              <div className="text-xl font-bold text-purple-900">
+                                {formatCurrency(result.data[0].avg_basket)}
+                              </div>
+                            </div>
+                            <div className="bg-orange-50 p-3 rounded-lg">
+                              <div className="text-sm text-orange-600">Active Outlets</div>
+                              <div className="text-xl font-bold text-orange-900">
+                                {formatNumber(result.data[0].active_outlets)}
+                              </div>
+                            </div>
+                          </div>
+                        </>
+                      )}
+
+                      {/* Regional Performance */}
+                      {result.section.includes('Regional Performance') && (
+                        <div className="space-y-2">
+                          {result.data.slice(0, 5).map((region, idx) => (
+                            <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                              <span className="font-medium">{region.region}</span>
+                              <span className="text-green-600 font-bold">
+                                {formatCurrency(region.total_sales)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Payment Methods */}
+                      {result.section.includes('Payment Methods') && (
+                        <div className="space-y-2">
+                          {result.data.map((method, idx) => (
+                            <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                              <span className="font-medium">{method.payment_method}</span>
+                              <div className="text-right">
+                                <div className="font-bold">{method.percentage_of_transactions}%</div>
+                                <div className="text-sm text-gray-600">
+                                  {formatNumber(method.transaction_count)} transactions
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* Top Products */}
+                      {result.section.includes('Top Products') && (
+                        <div className="space-y-2">
+                          {result.data.slice(0, 5).map((product, idx) => (
+                            <div key={idx} className="flex justify-between items-center p-2 bg-gray-50 rounded">
+                              <div>
+                                <div className="font-medium">{product.sku}</div>
+                                <div className="text-sm text-gray-600">{product.brand}</div>
+                              </div>
+                              <span className="text-green-600 font-bold">
+                                {formatCurrency(product.total_sales)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Filtered Validation Summary */}
+            {filteredValidationResults.length > 0 && (
+              <motion.div
+                className="chart-container"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: 0.5 }}
+              >
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Filtered Validation Summary</h3>
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="text-center p-4 bg-green-50 rounded-lg">
+                    <div className="text-2xl font-bold text-green-600">
+                      {filteredValidationResults.filter(r => r.validationStatus === 'pass').length}
+                    </div>
+                    <div className="text-sm text-green-700">Passed</div>
+                  </div>
+                  <div className="text-center p-4 bg-yellow-50 rounded-lg">
+                    <div className="text-2xl font-bold text-yellow-600">
+                      {filteredValidationResults.filter(r => r.validationStatus === 'warning').length}
+                    </div>
+                    <div className="text-sm text-yellow-700">Warnings</div>
+                  </div>
+                  <div className="text-center p-4 bg-red-50 rounded-lg">
+                    <div className="text-2xl font-bold text-red-600">
+                      {filteredValidationResults.filter(r => r.validationStatus === 'fail').length}
+                    </div>
+                    <div className="text-sm text-red-700">Failed</div>
+                  </div>
+                </div>
+                
+                <div className="mt-4 flex justify-center">
+                  <button
+                    onClick={downloadFilteredReport}
+                    className="flex items-center space-x-2 px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700"
+                  >
+                    <Download className="w-4 h-4" />
+                    <span>Download Filtered Report</span>
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </div>
+        )}
+
         {activeTab === 'validation' && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {validationResults.map((result, index) => (
