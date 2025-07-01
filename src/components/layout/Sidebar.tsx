@@ -14,19 +14,26 @@ import {
   Database,
   LayoutDashboard,
   Grid,
-  Terminal
+  Terminal,
+  Clock,
+  ShoppingBag,
+  Brain,
+  ArrowLeftRight,
+  UserCheck,
+  Save
 } from 'lucide-react';
 
 const Sidebar: React.FC = () => {
   const navItems = [
-    { path: '/', icon: Home, label: 'Overview', description: 'Analytics home' },
-    { path: '/transactions', icon: TrendingUp, label: 'Transactions', description: 'Sales analytics' },
-    { path: '/products', icon: Package, label: 'Products', description: 'Product performance' },
-    { path: '/consumers', icon: Users, label: 'Consumers', description: 'Customer insights' },
-    { path: '/geography', icon: MapPin, label: 'Geography', description: 'Location analytics' },
-    { path: '/ai-assistant', icon: Bot, label: 'AI Assistant', description: 'Retail intelligence' },
-    { path: '/validation', icon: Database, label: 'Validation', description: 'Data validation' },
-    { path: '/query-builder', icon: Terminal, label: 'Query Builder', description: 'Custom queries' },
+    { path: '/', icon: LayoutDashboard, label: 'Executive Overview', description: 'System health' },
+    { path: '/transaction-timing', icon: Clock, label: 'Transaction Timing', description: 'Volume patterns' },
+    { path: '/product-sku', icon: ShoppingBag, label: 'Product & SKU', description: 'SKU analysis' },
+    { path: '/consumer-patterns', icon: Brain, label: 'Consumer Patterns', description: 'Request types' },
+    { path: '/brand-switching', icon: ArrowLeftRight, label: 'Brand Switching', description: 'Substitutions' },
+    { path: '/demographics', icon: UserCheck, label: 'Demographics', description: 'Customer profiles' },
+    { path: '/ai-chat', icon: Bot, label: 'AI Chat', description: 'Ask anything' },
+    { path: '/saved-queries', icon: Save, label: 'Saved Queries', description: 'Analyst views' },
+    { path: '/validation', icon: Database, label: 'Data Validation', description: 'System checks' },
   ];
 
   return (

@@ -9,14 +9,15 @@ import PerformanceMonitor from './PerformanceMonitor';
 import { Loader2 } from 'lucide-react';
 
 // Lazy load pages for better performance
-const Overview = lazy(() => import('../pages/Overview'));
-const Transactions = lazy(() => import('../pages/Transactions'));
-const Products = lazy(() => import('../pages/Products'));
-const Consumers = lazy(() => import('../pages/Consumers'));
-const Geography = lazy(() => import('../pages/Geography'));
-const AIAssistant = lazy(() => import('../pages/AIAssistant'));
+const ExecutiveOverview = lazy(() => import('../pages/ExecutiveOverview'));
+const TransactionTiming = lazy(() => import('../pages/TransactionTiming'));
+const ProductSKU = lazy(() => import('../pages/ProductSKU'));
+const ConsumerPatterns = lazy(() => import('../pages/ConsumerPatterns'));
+const BrandSwitching = lazy(() => import('../pages/BrandSwitching'));
+const Demographics = lazy(() => import('../pages/Demographics'));
+const AIChat = lazy(() => import('../pages/AIChat'));
+const SavedQueries = lazy(() => import('../pages/SavedQueries'));
 const Validation = lazy(() => import('../pages/Validation'));
-const QueryBuilder = lazy(() => import('../pages/QueryBuilder'));
 
 // Loading component
 const PageLoader = () => (
@@ -68,14 +69,15 @@ function AuthenticatedApp() {
             >
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                  <Route path="/" element={<Overview />} />
-                  <Route path="/transactions" element={<Transactions />} />
-                  <Route path="/products" element={<Products />} />
-                  <Route path="/consumers" element={<Consumers />} />
-                  <Route path="/geography" element={<Geography />} />
-                  <Route path="/ai-assistant" element={<AIAssistant />} />
+                  <Route path="/" element={<ExecutiveOverview />} />
+                  <Route path="/transaction-timing" element={<TransactionTiming />} />
+                  <Route path="/product-sku" element={<ProductSKU />} />
+                  <Route path="/consumer-patterns" element={<ConsumerPatterns />} />
+                  <Route path="/brand-switching" element={<BrandSwitching />} />
+                  <Route path="/demographics" element={<Demographics />} />
+                  <Route path="/ai-chat" element={<AIChat />} />
+                  <Route path="/saved-queries" element={<SavedQueries />} />
                   <Route path="/validation" element={<Validation />} />
-                  <Route path="/query-builder" element={<QueryBuilder />} />
                   {/* Redirect any unknown routes to overview */}
                   <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
