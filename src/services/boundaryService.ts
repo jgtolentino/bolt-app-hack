@@ -163,11 +163,11 @@ export class BoundaryService {
     }
 
     try {
-      // GADM Level 2 = Provinces
-      const response = await fetch(`${this.GADM_BASE_URL}/gadm41_PHL_2.json`);
+      // Try local file first
+      const localResponse = await fetch('/data/gadm41_PHL_2.json');
       
-      if (response.ok) {
-        const data = await response.json();
+      if (localResponse.ok) {
+        const data = await localResponse.json();
         
         // Transform GADM data
         const transformedData = {
@@ -188,7 +188,36 @@ export class BoundaryService {
         return transformedData;
       }
     } catch (error) {
-      console.warn('GADM provinces failed:', error);
+      console.warn('Local GADM provinces failed, trying remote:', error);
+      
+      try {
+        // Fallback to remote URL
+        const response = await fetch(`${this.GADM_BASE_URL}/gadm41_PHL_2.json`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Transform GADM data
+          const transformedData = {
+            type: 'FeatureCollection',
+            features: data.features.map((feature: any) => ({
+              ...feature,
+              properties: {
+                ...feature.properties,
+                REGCODE: feature.properties.HASC_1?.split('.')[1] || '',
+                REGNAME: feature.properties.NAME_1 || '',
+                PROVCODE: feature.properties.HASC_2?.split('.')[2] || '',
+                PROVNAME: feature.properties.NAME_2 || ''
+              }
+            }))
+          };
+          
+          this.boundaryCache.set(cacheKey, transformedData);
+          return transformedData;
+        }
+      } catch (remoteError) {
+        console.warn('Remote GADM provinces also failed:', remoteError);
+      }
     }
 
     return this.getMockProvinceData();
@@ -205,11 +234,11 @@ export class BoundaryService {
     }
 
     try {
-      // GADM Level 3 = Municipalities
-      const response = await fetch(`${this.GADM_BASE_URL}/gadm41_PHL_3.json`);
+      // Try local file first - GADM Level 3 = Municipalities
+      const localResponse = await fetch('/data/gadm41_PHL_3.json');
       
-      if (response.ok) {
-        const data = await response.json();
+      if (localResponse.ok) {
+        const data = await localResponse.json();
         
         // Transform GADM data
         const transformedData = {
@@ -232,7 +261,38 @@ export class BoundaryService {
         return transformedData;
       }
     } catch (error) {
-      console.warn('GADM municipalities failed:', error);
+      console.warn('Local GADM municipalities failed, trying remote:', error);
+      
+      try {
+        // Fallback to remote URL
+        const response = await fetch(`${this.GADM_BASE_URL}/gadm41_PHL_3.json`);
+        
+        if (response.ok) {
+          const data = await response.json();
+          
+          // Transform GADM data
+          const transformedData = {
+            type: 'FeatureCollection',
+            features: data.features.map((feature: any) => ({
+              ...feature,
+              properties: {
+                ...feature.properties,
+                REGCODE: feature.properties.HASC_1?.split('.')[1] || '',
+                REGNAME: feature.properties.NAME_1 || '',
+                PROVCODE: feature.properties.HASC_2?.split('.')[2] || '',
+                PROVNAME: feature.properties.NAME_2 || '',
+                MUNCODE: feature.properties.HASC_3?.split('.')[3] || '',
+                MUNNAME: feature.properties.NAME_3 || ''
+              }
+            }))
+          };
+          
+          this.boundaryCache.set(cacheKey, transformedData);
+          return transformedData;
+        }
+      } catch (remoteError) {
+        console.warn('Remote GADM municipalities also failed:', remoteError);
+      }
     }
 
     return this.getMockMunicipalityData();
