@@ -1,5 +1,13 @@
 # Claude Assistant Guidelines
 
+## Make Links Clickable
+
+**IMPORTANT**: Always make links clickable for the user by using markdown link syntax:
+- ❌ Bad: `https://supabase.com/dashboard/project/baqlxgwdfjltivlfmsbr/sql`
+- ✅ Good: [Open Supabase SQL Editor](https://supabase.com/dashboard/project/baqlxgwdfjltivlfmsbr/sql)
+
+This makes it easier for users to click directly instead of copy-pasting URLs.
+
 ## Console Error Verification
 
 **IMPORTANT**: Always verify console errors before claiming success. Follow these guidelines:

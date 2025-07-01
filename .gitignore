@@ -27,3 +27,34 @@ dist-ssr
 # Local Netlify folder
 .netlify
 .vercel
+
+# Database infrastructure (moved to bolt-db repo)
+migrations/
+docker-compose.yml
+scripts/seed-*.js
+scripts/*migration*.js
+scripts/*migrate*.sh
+scripts/check-*.js
+scripts/apply-*.js
+scripts/apply-*.sh
+scripts/test-*.js
+scripts/generate-*.js
+scripts/verify-*.js
+scripts/debug-*.sh
+scripts/update-*.sh
+scripts/preflight-*.js
+scripts/auto-patch.js
+scripts/schema-*.js
+scripts/*.sql
+scripts/*.bak
+snapshots/
+*.sql
+*MIGRATION*.md
+*_CREDENTIALS.md
+SUPABASE_*.md
+LOCAL_*.md
+MEDALLION_*.md
+TBWA_*.md
+.env.migration
+.env.local.example
+.pgpass
