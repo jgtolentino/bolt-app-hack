@@ -98,9 +98,8 @@ export class OptimizedDataService {
         store_id,
         stores(region)
       `)
-      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
-      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
-      .eq('status', 'completed');
+      .gte('datetime', dateFrom.toISOString())
+      .lte('datetime', dateTo.toISOString());
 
     // Apply filters
     if (filters?.storeId) {
@@ -208,14 +207,13 @@ export class OptimizedDataService {
     let query = supabase
       .from('transactions')
       .select(`
-        transaction_date,
+        datetime,
         total_amount,
         store_id,
         stores(region)
       `)
-      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
-      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
-      .eq('status', 'completed');
+      .gte('datetime', dateFrom.toISOString())
+      .lte('datetime', dateTo.toISOString());
 
     // Apply filters
     if (filters?.storeId) {
@@ -232,7 +230,7 @@ export class OptimizedDataService {
 
     // Group by date and calculate daily metrics
     const dailySales = filteredTransactions.reduce((acc: any, transaction) => {
-      const date = transaction.transaction_date;
+      const date = format(new Date(transaction.datetime), 'yyyy-MM-dd');
       if (!acc[date]) {
         acc[date] = {
           transaction_date: date,
@@ -257,14 +255,13 @@ export class OptimizedDataService {
     let query = supabase
       .from('transactions')
       .select(`
-        transaction_time,
+        datetime,
         total_amount,
         store_id,
         stores(region)
       `)
-      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
-      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
-      .eq('status', 'completed');
+      .gte('datetime', dateFrom.toISOString())
+      .lte('datetime', dateTo.toISOString());
 
     // Apply filters
     if (filters?.storeId) {
@@ -281,8 +278,8 @@ export class OptimizedDataService {
 
     // Group by hour and calculate hourly patterns
     const hourlyData = filteredTransactions.reduce((acc: any, transaction) => {
-      // Extract hour from transaction_time (HH:MM:SS format)
-      const hour = parseInt(transaction.transaction_time.split(':')[0]);
+      // Extract hour from datetime
+      const hour = new Date(transaction.datetime).getHours();
       if (!acc[hour]) {
         acc[hour] = {
           hour_of_day: hour,
@@ -322,9 +319,8 @@ export class OptimizedDataService {
         store_id,
         stores!inner(region)
       `)
-      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
-      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
-      .eq('status', 'completed');
+      .gte('datetime', dateFrom.toISOString())
+      .lte('datetime', dateTo.toISOString());
 
     // Apply filters
     if (filters?.region) {
@@ -395,9 +391,8 @@ export class OptimizedDataService {
         store_id,
         stores(region)
       `)
-      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
-      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
-      .eq('status', 'completed');
+      .gte('datetime', dateFrom.toISOString())
+      .lte('datetime', dateTo.toISOString());
 
     // Apply filters
     if (filters?.storeId) {
@@ -468,9 +463,8 @@ export class OptimizedDataService {
         store_id,
         stores(region)
       `)
-      .gte('transaction_date', format(dateFrom, 'yyyy-MM-dd'))
-      .lte('transaction_date', format(dateTo, 'yyyy-MM-dd'))
-      .eq('status', 'completed');
+      .gte('datetime', dateFrom.toISOString())
+      .lte('datetime', dateTo.toISOString());
 
     if (error) throw error;
 
@@ -500,18 +494,31 @@ export class OptimizedDataService {
       .from('transactions')
       .select(`
         id,
-        receipt_number,
-        transaction_datetime,
+        datetime,
         total_amount,
-        items_count,
         payment_method,
-        stores (store_name, city, region)
+        stores (store_name, city_municipality, region),
+        transaction_items(item_id)
       `)
-      .order('transaction_datetime', { ascending: false })
+      .order('datetime', { ascending: false })
       .limit(limit);
 
     if (error) throw error;
-    return data || [];
+    
+    // Transform data to match expected format
+    return (data || []).map(transaction => ({
+      id: transaction.id,
+      receipt_number: transaction.id,
+      transaction_datetime: transaction.datetime,
+      total_amount: transaction.total_amount,
+      items_count: transaction.transaction_items?.length || 0,
+      payment_method: transaction.payment_method,
+      stores: transaction.stores ? {
+        store_name: transaction.stores.store_name,
+        city: transaction.stores.city_municipality,
+        region: transaction.stores.region
+      } : null
+    }));
   }
 
   // Clear cache

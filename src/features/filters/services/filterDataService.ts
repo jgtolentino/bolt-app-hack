@@ -39,16 +39,16 @@ export class FilterDataService {
   static async getCities(region: string): Promise<FilterOption[]> {
     const { data, error } = await supabase
       .from('stores')
-      .select('city')
+      .select('city_municipality')
       .eq('region', region)
-      .not('city', 'is', null)
-      .order('city');
+      .not('city_municipality', 'is', null)
+      .order('city_municipality');
     
     if (error) throw error;
     
     // Get unique cities with counts
     const cityCounts = data?.reduce((acc: Record<string, number>, store) => {
-      const city = store.city?.trim();
+      const city = store.city_municipality?.trim();
       if (city) {
         acc[city] = (acc[city] || 0) + 1;
       }
@@ -70,7 +70,7 @@ export class FilterDataService {
       .from('stores')
       .select('barangay')
       .eq('region', region)
-      .eq('city', city)
+      .eq('city_municipality', city)
       .not('barangay', 'is', null)
       .order('barangay');
     
@@ -362,17 +362,17 @@ export class FilterDataService {
   static async getYears(): Promise<FilterOption[]> {
     const { data, error } = await supabase
       .from('transactions')
-      .select('transaction_date')
-      .not('transaction_date', 'is', null)
-      .order('transaction_date', { ascending: false })
+      .select('datetime')
+      .not('datetime', 'is', null)
+      .order('datetime', { ascending: false })
       .limit(10000); // Limit to prevent huge queries
     
     if (error) throw error;
     
     // Extract unique years
     const yearCounts = data?.reduce((acc: Record<string, number>, transaction) => {
-      if (transaction.transaction_date) {
-        const year = new Date(transaction.transaction_date).getFullYear().toString();
+      if (transaction.datetime) {
+        const year = new Date(transaction.datetime).getFullYear().toString();
         acc[year] = (acc[year] || 0) + 1;
       }
       return acc;
@@ -394,15 +394,15 @@ export class FilterDataService {
     
     const { data, error } = await supabase
       .from('transactions')
-      .select('transaction_date')
-      .gte('transaction_date', startDate)
-      .lte('transaction_date', endDate);
+      .select('datetime')
+      .gte('datetime', startDate)
+      .lte('datetime', endDate);
     
     if (error) throw error;
     
     // Extract unique months
     const monthCounts = data?.reduce((acc: Record<string, number>, transaction) => {
-      const date = new Date(transaction.transaction_date);
+      const date = new Date(transaction.datetime);
       const month = date.toLocaleString('default', { month: 'long' });
       const monthKey = `${date.getMonth() + 1}-${month}`;
       acc[monthKey] = (acc[monthKey] || 0) + 1;

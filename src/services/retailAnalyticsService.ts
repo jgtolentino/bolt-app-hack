@@ -265,15 +265,14 @@ class RetailAnalyticsService {
       let query = supabase
         .from('transactions')
         .select(`
-          payment_method_id,
-          payment_methods!inner(method_name, method_type),
+          payment_method,
           total_amount
         `);
 
       if (dateRange) {
         query = query
-          .gte('transaction_date', format(dateRange.start, 'yyyy-MM-dd'))
-          .lte('transaction_date', format(dateRange.end, 'yyyy-MM-dd'));
+          .gte('datetime', dateRange.start.toISOString())
+          .lte('datetime', dateRange.end.toISOString());
       }
 
       const { data, error } = await query;
@@ -281,13 +280,12 @@ class RetailAnalyticsService {
 
       // Aggregate by payment method
       const distribution = data?.reduce((acc: any, transaction: any) => {
-        const methodName = transaction.payment_methods?.method_name || 'Unknown';
-        const methodType = transaction.payment_methods?.method_type || 'unknown';
+        const methodName = transaction.payment_method || 'Unknown';
         
         if (!acc[methodName]) {
           acc[methodName] = {
             name: methodName,
-            type: methodType,
+            type: methodName, // Use method name as type for simplicity
             count: 0,
             totalAmount: 0,
             percentage: 0
