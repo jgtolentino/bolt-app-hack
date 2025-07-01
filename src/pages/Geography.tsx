@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { useFilterStore } from '../features/filters/filterStore';
+import { useDataStore } from '../stores/dataStore';
 import { KpiCard, ChartPanel, RankedList, InsightCard } from '../components/widgets';
 import { AIInsightsPanel } from '../components/ai/AIInsightsPanel';
 import { 
@@ -19,22 +20,22 @@ import { fmt } from '../utils/formatters';
 const GeographicAnalytics: React.FC = () => {
   const navigate = useNavigate();
   const filters = useFilterStore();
+  const { geographicData, storeGeographicData, loading } = useDataStore();
   const [activeTab, setActiveTab] = useState('regional-overview');
   const [mapView, setMapView] = useState('sales');
-  const [loading, setLoading] = useState(false);
   const [lastUpdate] = useState(new Date());
 
-  // Mock data - replace with API calls
-  const geographicData = {
+  // Mock data for fallback - replace with API calls
+  const mockGeographicData = {
     regionalPerformance: [
-      { region: 'NCR', sales: 850000, growth: 22.5, stores: 45, population: 13484462 },
-      { region: 'Region VII', sales: 545000, growth: 18.2, stores: 32, population: 7396898 },
-      { region: 'Region III', sales: 423000, growth: 15.7, stores: 28, population: 11218177 },
-      { region: 'Region IV-A', sales: 389000, growth: 14.3, stores: 25, population: 14414774 },
-      { region: 'Region VI', sales: 312000, growth: 12.8, stores: 22, population: 7536383 },
-      { region: 'Region V', sales: 278000, growth: 11.2, stores: 20, population: 5796989 },
-      { region: 'Region XI', sales: 245000, growth: 9.8, stores: 18, population: 4893318 },
-      { region: 'Region X', sales: 198000, growth: 8.5, stores: 15, population: 4689302 }
+      { region: 'NCR', sales: 850000, growth: 22.5, stores: 45, population: 13484462, latitude: 14.5995, longitude: 120.9842 },
+      { region: 'Region VII', sales: 545000, growth: 18.2, stores: 32, population: 7396898, latitude: 10.3157, longitude: 123.8854 },
+      { region: 'Region III', sales: 423000, growth: 15.7, stores: 28, population: 11218177, latitude: 15.4817, longitude: 120.5979 },
+      { region: 'Region IV-A', sales: 389000, growth: 14.3, stores: 25, population: 14414774, latitude: 14.2206, longitude: 121.1500 },
+      { region: 'Region VI', sales: 312000, growth: 12.8, stores: 22, population: 7536383, latitude: 10.7202, longitude: 122.5621 },
+      { region: 'Region V', sales: 278000, growth: 11.2, stores: 20, population: 5796989, latitude: 13.1391, longitude: 123.7437 },
+      { region: 'Region XI', sales: 245000, growth: 9.8, stores: 18, population: 4893318, latitude: 7.0731, longitude: 125.6128 },
+      { region: 'Region X', sales: 198000, growth: 8.5, stores: 15, population: 4689302, latitude: 8.4542, longitude: 124.6319 }
     ],
     cityPerformance: [
       { city: 'Quezon City', sales: 234000, growth: 28.5, stores: 12 },
@@ -53,6 +54,41 @@ const GeographicAnalytics: React.FC = () => {
       { metric: 'Expansion Potential', value: 31.5, unit: '%' }
     ]
   };
+
+  // Transform store geographic data for the map component
+  const mapData = useMemo(() => {
+    if (storeGeographicData && storeGeographicData.length > 0) {
+      // Use real store data if available
+      return storeGeographicData.map(store => ({
+        id: store.id,
+        name: store.store_name || store.region,
+        region: store.region,
+        city_municipality: store.city_municipality,
+        barangay: store.barangay,
+        latitude: store.latitude,
+        longitude: store.longitude,
+        sales: store.sales || 0,
+        growth: store.growth || 0,
+        stores: 1,
+        population: store.population || 0
+      }));
+    } else {
+      // Use mock data with proper lat/lng as fallback
+      return mockGeographicData.regionalPerformance.map(region => ({
+        id: region.region,
+        name: region.region,
+        region: region.region,
+        city_municipality: region.region,
+        barangay: '',
+        latitude: region.latitude,
+        longitude: region.longitude,
+        sales: region.sales,
+        growth: region.growth,
+        stores: region.stores,
+        population: region.population
+      }));
+    }
+  }, [storeGeographicData]);
 
   // KPI Cards
   const kpiCards = useMemo(() => [
@@ -127,7 +163,7 @@ const GeographicAnalytics: React.FC = () => {
 
   // Transform data for ranked lists
   const topRegions = useMemo(() => {
-    return geographicData.regionalPerformance.map(region => ({
+    return mockGeographicData.regionalPerformance.map(region => ({
       id: region.region,
       label: fmt.region(region.region),
       value: region.sales,
@@ -137,7 +173,7 @@ const GeographicAnalytics: React.FC = () => {
   }, []);
 
   const topCities = useMemo(() => {
-    return geographicData.cityPerformance.map(city => ({
+    return mockGeographicData.cityPerformance.map(city => ({
       id: city.city,
       label: city.city,
       value: city.sales,
@@ -184,7 +220,7 @@ const GeographicAnalytics: React.FC = () => {
         updatedAt={lastUpdate}
         chart={
           <GeographicMap
-            data={geographicData.regionalPerformance}
+            data={mapData}
             metric={mapView}
             onRegionClick={(region) => console.log('Region clicked:', region)}
           />
@@ -236,7 +272,7 @@ const GeographicAnalytics: React.FC = () => {
         updatedAt={lastUpdate}
         chart={
           <ResponsiveContainer width="100%" height={300}>
-            <ComposedChart data={geographicData.regionalPerformance}>
+            <ComposedChart data={mockGeographicData.regionalPerformance}>
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" opacity={0.25} />
               <XAxis dataKey="region" tick={{ fill: '#6B7280', fontSize: 11 }} />
               <YAxis yAxisId="left" tick={{ fill: '#6B7280', fontSize: 12 }} />
@@ -271,13 +307,13 @@ const GeographicAnalytics: React.FC = () => {
         updatedAt={lastUpdate}
         chart={
           <ResponsiveContainer width="100%" height={300}>
-            <BarChart data={geographicData.cityPerformance} layout="horizontal">
+            <BarChart data={mockGeographicData.cityPerformance} layout="horizontal">
               <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" opacity={0.25} />
               <XAxis type="number" tick={{ fill: '#6B7280', fontSize: 12 }} />
               <YAxis dataKey="city" type="category" tick={{ fill: '#6B7280', fontSize: 11 }} />
               <Tooltip content={<CustomTooltip />} />
               <Bar dataKey="sales" fill="#8B5CF6" radius={[0, 4, 4, 0]}>
-                {geographicData.cityPerformance.map((entry, index) => (
+                {mockGeographicData.cityPerformance.map((entry, index) => (
                   <Cell key={`cell-${index}`} fill={entry.growth > 20 ? '#10B981' : '#8B5CF6'} />
                 ))}
               </Bar>
