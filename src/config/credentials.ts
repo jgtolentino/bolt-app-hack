@@ -89,10 +89,10 @@ function loadCredentials(): Credentials {
       password: getEnv('PGPASSWORD', '')
     },
     
-    // Supabase Configuration
+    // Supabase Configuration - Hardcoded for POC
     supabase: {
-      url: getEnv('VITE_SUPABASE_URL', ''),
-      anonKey: getEnv('VITE_SUPABASE_ANON_KEY', ''),
+      url: getEnv('VITE_SUPABASE_URL', 'https://baqlxgwdfjltivlfmsbr.supabase.co'),
+      anonKey: getEnv('VITE_SUPABASE_ANON_KEY', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJhcWx4Z3dkZmpsdGl2bGZtc2JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA4NTk4OTYsImV4cCI6MjA0NjQzNTg5Nn0.pboVC-YgyH7CrJfh7N5fxJLAaW13ej-lqV-tVvFHF3A'),
       serviceRoleKey: getEnv('SUPABASE_SERVICE_ROLE_KEY')
     },
     
