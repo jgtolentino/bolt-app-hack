@@ -68,12 +68,12 @@ const Header: React.FC = () => {
                       ? 'bg-blue-100 text-blue-800 hover:bg-blue-200' 
                       : 'bg-orange-100 text-orange-800 hover:bg-orange-200'
                   }`}
-                  title={useRealData ? 'Switch to Mock Data' : 'Switch to Real Data'}
+                  title={useRealData ? 'Switch to Mock Data' : 'Switch to Sample Data'}
                 >
                   {useRealData ? (
                     <>
                       <Wifi className="w-3 h-3" />
-                      <span>Real Data</span>
+                      <span>Sample Data</span>
                     </>
                   ) : (
                     <>

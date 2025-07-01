@@ -1,0 +1,36 @@
+# Vercel Environment Variables Template
+# 
+# Instructions:
+# 1. Replace the placeholder values with your ACTUAL API keys
+# 2. In Vercel Dashboard, go to Settings > Environment Variables
+# 3. For each variable below, click "Add New"
+# 4. Set Scope to "Production" only
+# 5. Copy the KEY and VALUE exactly as shown
+
+# OpenAI Configuration
+KEY: VITE_OPENAI_API_KEY
+VALUE: sk-proj-REPLACE-WITH-YOUR-ACTUAL-OPENAI-KEY
+SCOPE: Production
+
+# Anthropic Configuration (Optional but recommended)
+KEY: VITE_ANTHROPIC_API_KEY  
+VALUE: sk-ant-api03-REPLACE-WITH-YOUR-ACTUAL-ANTHROPIC-KEY
+SCOPE: Production
+
+# Additional Settings (Optional)
+KEY: VITE_OPENAI_MODEL
+VALUE: gpt-4
+SCOPE: Production
+
+KEY: VITE_ANTHROPIC_MODEL
+VALUE: claude-3-sonnet-20240229
+SCOPE: Production
+
+# IMPORTANT NOTES:
+# - Replace the entire VALUE with your actual API key
+# - OpenAI keys start with "sk-proj-" or "sk-"
+# - Anthropic keys start with "sk-ant-"
+# - Do NOT include quotes around the values
+# - These are already configured in the app:
+#   VITE_SUPABASE_URL (already set)
+#   VITE_SUPABASE_ANON_KEY (already set)
