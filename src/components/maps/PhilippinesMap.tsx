@@ -449,9 +449,10 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
 
     // Fit map to boundaries
     if (geoJsonData.features.length > 0) {
-      const mapboxgl = (window as any).mapboxgl;
-      const bounds = new mapboxgl.LngLatBounds();
-      let hasValidCoordinates = false;
+      try {
+        const mapboxgl = (window as any).mapboxgl;
+        const bounds = new mapboxgl.LngLatBounds();
+        let hasValidCoordinates = false;
       
       geoJsonData.features.forEach(feature => {
         if (feature.geometry.type === 'Polygon') {
@@ -459,7 +460,9 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
             if (Array.isArray(coord) && coord.length >= 2 && 
                 typeof coord[0] === 'number' && typeof coord[1] === 'number' &&
                 !isNaN(coord[0]) && !isNaN(coord[1])) {
-              bounds.extend(coord);
+              // Ensure coordinates are in [lng, lat] format
+              const lngLat: [number, number] = [coord[0], coord[1]];
+              bounds.extend(lngLat);
               hasValidCoordinates = true;
             }
           });
@@ -469,7 +472,9 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
               if (Array.isArray(coord) && coord.length >= 2 && 
                   typeof coord[0] === 'number' && typeof coord[1] === 'number' &&
                   !isNaN(coord[0]) && !isNaN(coord[1])) {
-                bounds.extend(coord);
+                // Ensure coordinates are in [lng, lat] format
+                const lngLat: [number, number] = [coord[0], coord[1]];
+                bounds.extend(lngLat);
                 hasValidCoordinates = true;
               }
             });
@@ -482,6 +487,12 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
         map.fitBounds(bounds, { padding: 50 });
       } else {
         // Fallback to Philippines center if no valid bounds
+        map.setCenter([121.0, 14.6]);
+        map.setZoom(6);
+      }
+      } catch (error) {
+        console.error('Error fitting bounds:', error);
+        // Fallback to Philippines center on any error
         map.setCenter([121.0, 14.6]);
         map.setZoom(6);
       }
