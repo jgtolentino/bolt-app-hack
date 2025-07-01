@@ -55,9 +55,10 @@ interface Credentials {
  * Load and validate credentials from environment variables
  */
 function loadCredentials(): Credentials {
-  // Helper to get env var with fallback
+  // Helper to get env var with fallback (browser-safe)
   const getEnv = (key: string, fallback?: string): string => {
-    const value = import.meta.env[key] || process.env[key] || fallback;
+    // In browser, only import.meta.env is available
+    const value = import.meta.env[key] || fallback;
     if (!value && !fallback) {
       console.warn(`Missing environment variable: ${key}`);
     }
