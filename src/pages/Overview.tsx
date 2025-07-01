@@ -58,7 +58,7 @@ const Overview: React.FC = () => {
         transition={{ duration: 0.5 }}
       >
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Analytics Overview</h1>
+          <h1 className="text-2xl font-bold text-gray-900">Overview</h1>
           <div className="flex items-center space-x-3">
             <p className="text-gray-600">
               Real-time insights across {totalCombinations.toLocaleString()} data combinations
@@ -99,11 +99,11 @@ const Overview: React.FC = () => {
             <span>AI Assistant</span>
           </button>
           <button
-            onClick={() => navigate('/reports')}
+            onClick={() => navigate('/query-builder')}
             className="filter-button flex items-center space-x-2"
           >
             <FileText className="w-4 h-4" />
-            <span>Generate Report</span>
+            <span>Query Builder</span>
           </button>
         </div>
       </motion.div>

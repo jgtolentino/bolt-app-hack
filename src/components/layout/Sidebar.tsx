@@ -19,16 +19,18 @@ import {
 
 const Sidebar: React.FC = () => {
   const navItems = [
-    { path: '/', icon: LayoutDashboard, label: 'Dashboard', description: 'Main overview' },
-    { path: '/command-center', icon: Terminal, label: 'Command Center', description: 'Query builder' },
-    { path: '/products', icon: Package, label: 'Products', description: 'SKU & mix analysis' },
-    { path: '/consumers', icon: Users, label: 'Consumers', description: 'Behavior & profiling' },
-    { path: '/geography', icon: MapPin, label: 'Geography', description: 'Location insights' },
-    { path: '/validation', icon: Database, label: 'Validation', description: 'Data quality' },
+    { path: '/', icon: Home, label: 'Overview', description: 'Analytics home' },
+    { path: '/transactions', icon: TrendingUp, label: 'Transactions', description: 'Sales analytics' },
+    { path: '/products', icon: Package, label: 'Products', description: 'Product performance' },
+    { path: '/consumers', icon: Users, label: 'Consumers', description: 'Customer insights' },
+    { path: '/geography', icon: MapPin, label: 'Geography', description: 'Location analytics' },
+    { path: '/ai-assistant', icon: Bot, label: 'AI Assistant', description: 'Retail intelligence' },
+    { path: '/validation', icon: Database, label: 'Validation', description: 'Data validation' },
+    { path: '/query-builder', icon: Terminal, label: 'Query Builder', description: 'Custom queries' },
   ];
 
   return (
-    <aside className="w-56 bg-white border-r border-gray-200 flex flex-col">
+    <aside className="w-64 bg-white border-r border-gray-200 flex flex-col">
       {/* Navigation */}
       <nav className="flex-1 p-4 space-y-2">
         {navItems.map((item) => (

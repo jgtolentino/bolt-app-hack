@@ -9,18 +9,14 @@ import PerformanceMonitor from './PerformanceMonitor';
 import { Loader2 } from 'lucide-react';
 
 // Lazy load pages for better performance
-const DashboardOverview = lazy(() => import('../pages/DashboardOverview'));
-const OptimizedDashboard = lazy(() => import('../pages/OptimizedDashboard'));
-const TransactionAnalysis = lazy(() => import('../pages/TransactionAnalysis'));
-const ProductAnalysis = lazy(() => import('../pages/ProductAnalysis'));
-const ConsumerInsights = lazy(() => import('../pages/ConsumerInsights'));
-const GeographicAnalytics = lazy(() => import('../pages/GeographicAnalytics'));
+const Overview = lazy(() => import('../pages/Overview'));
+const Transactions = lazy(() => import('../pages/Transactions'));
+const Products = lazy(() => import('../pages/Products'));
+const Consumers = lazy(() => import('../pages/Consumers'));
+const Geography = lazy(() => import('../pages/Geography'));
 const AIAssistant = lazy(() => import('../pages/AIAssistant'));
-const Reports = lazy(() => import('../pages/Reports'));
-const DatabaseValidation = lazy(() => import('../pages/DatabaseValidation'));
-const CruipDashboard = lazy(() => import('../pages/CruipDashboard'));
-const WidgetShowcase = lazy(() => import('../pages/WidgetShowcase'));
-const CommandCenter = lazy(() => import('../pages/CommandCenter'));
+const Validation = lazy(() => import('../pages/Validation'));
+const QueryBuilder = lazy(() => import('../pages/QueryBuilder'));
 
 // Loading component
 const PageLoader = () => (
@@ -72,19 +68,16 @@ function AuthenticatedApp() {
             >
               <Suspense fallback={<PageLoader />}>
                 <Routes>
-                  <Route path="/" element={<OptimizedDashboard />} />
-                  <Route path="/command-center" element={<CommandCenter />} />
-                  <Route path="/products" element={<ProductAnalysis />} />
-                  <Route path="/consumers" element={<ConsumerInsights />} />
-                  <Route path="/geography" element={<GeographicAnalytics />} />
-                  <Route path="/validation" element={<DatabaseValidation />} />
-                  {/* Legacy routes redirect to dashboard */}
-                  <Route path="/overview" element={<Navigate to="/" replace />} />
-                  <Route path="/transactions" element={<Navigate to="/" replace />} />
-                  <Route path="/ai-assistant" element={<Navigate to="/command-center" replace />} />
-                  <Route path="/reports" element={<Navigate to="/command-center" replace />} />
-                  <Route path="/widgets" element={<Navigate to="/" replace />} />
-                  <Route path="/cruip" element={<Navigate to="/" replace />} />
+                  <Route path="/" element={<Overview />} />
+                  <Route path="/transactions" element={<Transactions />} />
+                  <Route path="/products" element={<Products />} />
+                  <Route path="/consumers" element={<Consumers />} />
+                  <Route path="/geography" element={<Geography />} />
+                  <Route path="/ai-assistant" element={<AIAssistant />} />
+                  <Route path="/validation" element={<Validation />} />
+                  <Route path="/query-builder" element={<QueryBuilder />} />
+                  {/* Redirect any unknown routes to overview */}
+                  <Route path="*" element={<Navigate to="/" replace />} />
                 </Routes>
               </Suspense>
             </motion.div>
