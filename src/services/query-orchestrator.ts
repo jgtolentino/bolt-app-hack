@@ -4,7 +4,7 @@
  */
 
 import { ragEngine, RAGResponse, QueryIntent } from './rag-engine';
-import { adsbotService } from './adsbot-runtime';
+import { adsbotService } from './adsbotService';
 import { useFilterStore } from '../features/filters/filterStore';
 
 export interface QueryRequest {

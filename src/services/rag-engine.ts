@@ -3,7 +3,7 @@
  * Core system for converting natural language to SQL and generating contextual insights
  */
 
-import { supabase } from '../config/supabase';
+import { supabase } from '../lib/supabase';
 import { credentials } from '../config/credentials';
 
 export interface SchemaColumn {
