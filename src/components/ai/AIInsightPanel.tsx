@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Brain, Sparkles, TrendingUp, AlertTriangle, Info } from 'lucide-react';
 import { insightTemplates } from '../../lib/insightTemplates';
+import { useAdsBot } from '../../hooks/useAdsBot';
 
 interface AIInsightPanelProps {
   templateId?: string;
@@ -19,27 +20,75 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
   className = ''
 }) => {
   const [insights, setInsights] = useState<string[]>([]);
-  const [isLoading, setIsLoading] = useState(false);
   const [insightType, setInsightType] = useState<'trend' | 'alert' | 'opportunity'>('trend');
+  const [confidence, setConfidence] = useState<number>(0);
+  
+  // Use AdsBot for AI insights
+  const { generateInsight, isLoading, error } = useAdsBot();
 
   useEffect(() => {
     // Generate insights when data or filters change
-    generateInsights();
+    generateContextualInsights();
   }, [data, filters, templateId]);
 
-  const generateInsights = async () => {
-    setIsLoading(true);
-    
-    // Simulate AI processing
-    setTimeout(() => {
-      const template = templateId ? insightTemplates.find(t => t.id === templateId) : null;
-      const contextualInsights = generateContextualInsights(context, data, filters, template);
-      setInsights(contextualInsights);
-      setIsLoading(false);
-    }, 1000);
+  const generateContextualInsights = async () => {
+    try {
+      if (templateId) {
+        // Use template-based insight
+        const insight = await generateInsight(templateId, data);
+        const response = await useAdsBot().query({
+          type: 'insight',
+          templateId,
+          data,
+          filters
+        });
+        
+        // Extract insights and confidence
+        setInsights([response.content]);
+        setConfidence(Math.round(response.confidence * 100));
+        
+        // Add suggestions if available
+        if (response.suggestions && response.suggestions.length > 0) {
+          setInsights(prev => [...prev, ...response.suggestions.slice(0, 2)]);
+        }
+      } else {
+        // Generate context-aware insights
+        const contextualInsights = await generateSmartInsights(context, data, filters);
+        setInsights(contextualInsights);
+      }
+    } catch (err) {
+      console.error('Failed to generate insights:', err);
+      // Fallback to static insights
+      setInsights(generateFallbackInsights(context, data, filters));
+    }
   };
 
-  const generateContextualInsights = (
+  const generateSmartInsights = async (
+    context: string,
+    data: any,
+    filters: any
+  ): Promise<string[]> => {
+    // Use AdsBot to generate smart insights based on context
+    const { query } = useAdsBot();
+    
+    try {
+      const response = await query({
+        type: 'analysis',
+        text: `Generate 3 key insights for ${context} dashboard`,
+        context: { dashboardType: context },
+        data,
+        filters
+      });
+      
+      // Parse response into insights
+      const insights = response.content.split('\n').filter(line => line.trim());
+      return insights.slice(0, 3);
+    } catch (error) {
+      return generateFallbackInsights(context, data, filters);
+    }
+  };
+
+  const generateFallbackInsights = (
     context: string, 
     data: any, 
     filters: any, 
@@ -173,9 +222,25 @@ export const AIInsightPanel: React.FC<AIInsightPanelProps> = ({
           </div>
         )}
 
+        {/* Confidence Score */}
+        {confidence > 0 && (
+          <div className="mt-3 flex items-center space-x-2">
+            <div className="flex-1 bg-gray-200 rounded-full h-2">
+              <div 
+                className="bg-blue-500 h-2 rounded-full transition-all duration-500"
+                style={{ width: `${confidence}%` }}
+              />
+            </div>
+            <span className="text-xs text-gray-500">{confidence}% confidence</span>
+          </div>
+        )}
+
         {/* Action Buttons */}
         <div className="mt-4 flex items-center justify-between">
-          <button className="text-xs text-blue-600 hover:text-blue-800 font-medium">
+          <button 
+            className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+            onClick={() => window.location.href = '/ai-chat'}
+          >
             Ask follow-up →
           </button>
           <div className="flex space-x-2">

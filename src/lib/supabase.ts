@@ -1,8 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
+import { getCredentials } from '../config/credentials'
 
-// Environment variables - these must be set when connecting to Supabase
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
+// Get credentials from centralized config
+const credentials = getCredentials()
+const supabaseUrl = credentials.supabase.url
+const supabaseAnonKey = credentials.supabase.anonKey
 
 // Check if environment variables are placeholder values
 const isPlaceholderUrl = !supabaseUrl || 

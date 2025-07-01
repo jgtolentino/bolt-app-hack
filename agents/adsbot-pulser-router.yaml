@@ -1,0 +1,305 @@
+# AdsBot Pulser CLI Router Configuration
+# Maps Pulser commands to AdsBot capabilities
+
+name: adsbot-router
+version: 1.0.0
+description: "Pulser CLI routing configuration for AdsBot orchestrator"
+
+# Command aliases for quick access
+aliases:
+  - ads: adsbot
+  - ai: adsbot
+  - insight: "adsbot insight"
+  - forecast: "adsbot forecast"
+  - analyze: "adsbot analyze"
+
+# Main command structure
+commands:
+  adsbot:
+    description: "AdsBot - Centralized Retail Analytics AI"
+    subcommands:
+      # Direct query interface
+      query:
+        description: "Send a direct query to AdsBot"
+        usage: "pulser adsbot query <question>"
+        examples:
+          - 'pulser adsbot query "What are the top selling products today?"'
+          - 'pulser ai query "Show me price elasticity for beverages"'
+        flags:
+          --type:
+            description: "Query type"
+            options: [insight, chat, alert, analysis, forecast, substitution, demographic]
+            default: chat
+          --template:
+            description: "Use specific insight template"
+            options: [priceSensitivity, substitutionMap, basketComposition, peakHourAnalysis, etc]
+          --format:
+            description: "Output format"
+            options: [text, json, table, markdown]
+            default: text
+          --cache:
+            description: "Use cached responses"
+            type: boolean
+            default: true
+
+      # Template-based insights
+      insight:
+        description: "Generate insights using templates"
+        subcommands:
+          price:
+            description: "Price sensitivity analysis"
+            usage: "pulser adsbot insight price [--category CATEGORY] [--region REGION]"
+            template: priceSensitivity
+            
+          substitution:
+            description: "Brand substitution patterns"
+            usage: "pulser adsbot insight substitution [--brand BRAND]"
+            template: substitutionMap
+            
+          basket:
+            description: "Basket composition analysis"
+            usage: "pulser adsbot insight basket [--store STORE]"
+            template: basketComposition
+            
+          peak:
+            description: "Peak hour analysis"
+            usage: "pulser adsbot insight peak [--day DAY]"
+            template: peakHourAnalysis
+            
+          demographic:
+            description: "Demographic preferences"
+            usage: "pulser adsbot insight demographic [--age AGE] [--gender GENDER]"
+            template: genderPreference
+
+      # Predictive analytics
+      forecast:
+        description: "Generate forecasts and predictions"
+        subcommands:
+          demand:
+            description: "7-day demand forecast"
+            usage: "pulser adsbot forecast demand [--sku SKU]"
+            template: demandForecast
+            
+          stockout:
+            description: "Stock-out risk prediction"
+            usage: "pulser adsbot forecast stockout [--threshold DAYS]"
+            template: stockoutPrediction
+            
+          churn:
+            description: "Customer churn risk"
+            usage: "pulser adsbot forecast churn [--segment SEGMENT]"
+            template: churnRiskAnalysis
+
+      # Analysis commands
+      analyze:
+        description: "Deep analysis of retail data"
+        subcommands:
+          promotion:
+            description: "Promotion effectiveness"
+            usage: "pulser adsbot analyze promotion [--campaign CAMPAIGN]"
+            template: promotionEffectiveness
+            
+          crosssell:
+            description: "Cross-sell opportunities"
+            usage: "pulser adsbot analyze crosssell [--category CATEGORY]"
+            template: crossSellOpportunities
+            
+          region:
+            description: "Regional performance"
+            usage: "pulser adsbot analyze region [--region REGION]"
+            complexity: high
+            
+          trend:
+            description: "Trend analysis"
+            usage: "pulser adsbot analyze trend [--metric METRIC] [--period PERIOD]"
+            complexity: medium
+
+      # Emulated agent commands
+      agent:
+        description: "Access emulated agent capabilities"
+        subcommands:
+          elasticmeter:
+            description: "Price elasticity analysis (ElasticMeter agent)"
+            usage: "pulser adsbot agent elasticmeter [--product PRODUCT]"
+            emulates: ElasticMeter
+            
+          subswitch:
+            description: "Substitution mapping (SubSwitch agent)"
+            usage: "pulser adsbot agent subswitch [--from BRAND] [--to BRAND]"
+            emulates: SubSwitch
+            
+          demographai:
+            description: "Demographic insights (DemographAI agent)"
+            usage: "pulser adsbot agent demographai [--segment SEGMENT]"
+            emulates: DemographAI
+            
+          demandoracle:
+            description: "Demand forecasting (DemandOracle agent)"
+            usage: "pulser adsbot agent demandoracle [--horizon DAYS]"
+            emulates: DemandOracle
+
+      # Interactive chat mode
+      chat:
+        description: "Start interactive chat session"
+        usage: "pulser adsbot chat"
+        flags:
+          --context:
+            description: "Load context from file"
+            type: string
+          --mode:
+            description: "Chat mode"
+            options: [conversational, analytical, executive]
+            default: conversational
+
+      # Monitoring and management
+      status:
+        description: "Check AdsBot status and metrics"
+        usage: "pulser adsbot status"
+        subcommands:
+          health:
+            description: "Health check"
+            usage: "pulser adsbot status health"
+            
+          metrics:
+            description: "View performance metrics"
+            usage: "pulser adsbot status metrics [--period PERIOD]"
+            
+          cache:
+            description: "Cache statistics"
+            usage: "pulser adsbot status cache"
+            
+          costs:
+            description: "API cost tracking"
+            usage: "pulser adsbot status costs [--provider PROVIDER]"
+
+      # Cache management
+      cache:
+        description: "Manage AdsBot cache"
+        subcommands:
+          clear:
+            description: "Clear cache"
+            usage: "pulser adsbot cache clear [--type TYPE]"
+            
+          stats:
+            description: "Cache statistics"
+            usage: "pulser adsbot cache stats"
+            
+          export:
+            description: "Export cache data"
+            usage: "pulser adsbot cache export [--format FORMAT]"
+
+# Global flags (available for all commands)
+global_flags:
+  --verbose:
+    description: "Verbose output"
+    type: boolean
+    default: false
+    
+  --json:
+    description: "Output as JSON"
+    type: boolean
+    default: false
+    
+  --no-cache:
+    description: "Bypass cache"
+    type: boolean
+    default: false
+    
+  --provider:
+    description: "Force specific AI provider"
+    options: [anthropic, openai, auto]
+    default: auto
+    
+  --model:
+    description: "Force specific model"
+    type: string
+    
+  --timeout:
+    description: "Request timeout in seconds"
+    type: number
+    default: 30
+
+# Integration with Pulser CLI
+pulser_integration:
+  # Hook into Pulser's command system
+  command_prefix: "ai"
+  
+  # Register as default AI handler
+  default_handler: true
+  
+  # Auto-complete support
+  autocomplete:
+    enabled: true
+    cache_ttl: 3600
+    
+  # Shell integration
+  shell_aliases:
+    - "alias ai='pulser adsbot'"
+    - "alias insight='pulser adsbot insight'"
+    - "alias forecast='pulser adsbot forecast'"
+
+# Examples for documentation
+examples:
+  basic_queries:
+    - command: "pulser ai query 'What products are trending?'"
+      description: "Get trending products analysis"
+      
+    - command: "pulser ai insight price --category beverages"
+      description: "Analyze price sensitivity for beverages"
+      
+    - command: "pulser ai forecast demand --sku COKE-1.5L"
+      description: "Forecast demand for specific SKU"
+
+  advanced_usage:
+    - command: "pulser adsbot analyze trend --metric revenue --period 30d --json"
+      description: "Get 30-day revenue trend as JSON"
+      
+    - command: "pulser adsbot agent subswitch --from Coke --to Pepsi --region NCR"
+      description: "Analyze brand switching in NCR region"
+      
+    - command: "pulser adsbot chat --context ./retail_context.json"
+      description: "Start chat with pre-loaded context"
+
+  pipeline_examples:
+    - command: "pulser adsbot forecast stockout | pulser notify slack"
+      description: "Send stockout alerts to Slack"
+      
+    - command: "pulser adsbot insight price --json | jq '.suggestions[]'"
+      description: "Extract suggestions from price insights"
+      
+    - command: "watch -n 3600 'pulser adsbot status metrics --period 1h'"
+      description: "Monitor hourly metrics"
+
+# Error handling
+error_messages:
+  no_api_key: "No API keys configured. Set VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY"
+  rate_limit: "Rate limit exceeded. Using cached response or try again later."
+  invalid_template: "Unknown template '{template}'. Use 'pulser adsbot templates' to list available templates."
+  connection_error: "Cannot connect to AI service. Check your internet connection."
+
+# Help text customization
+help:
+  header: |
+    AdsBot - Centralized Retail Analytics AI Orchestrator
+    
+    A unified AI agent that handles all retail analytics insights,
+    predictions, and analysis with intelligent provider routing.
+    
+  footer: |
+    For more information:
+      Documentation: https://docs.pulser.ai/adsbot
+      Examples: pulser adsbot examples
+      Support: support@pulser.ai
+
+# Telemetry configuration
+telemetry:
+  enabled: true
+  events:
+    - command_executed
+    - query_processed
+    - cache_hit
+    - provider_selected
+    - error_occurred
+  
+  anonymize: true
+  endpoint: "https://telemetry.pulser.ai/v1/events"

@@ -1,0 +1,339 @@
+# AdsBot - Centralized Retail Analytics AI Orchestrator
+# Full-stack Pulser agent for multi-role analytics
+
+name: AdsBot
+version: 1.0.0
+description: "Centralized Retail Analytics AI Orchestrator - Handles all retail insights, predictions, and analysis"
+type: orchestrator
+author: "Pulser Team"
+tags:
+  - retail
+  - analytics
+  - orchestrator
+  - ai
+  - claude
+  - gpt4
+
+# Core capabilities that replace individual agents
+capabilities:
+  - multi_intent_comprehension
+  - dynamic_prompt_switching
+  - ai_model_routing
+  - insight_template_matching
+  - structured_output_generation
+  - fallback_retry_logic
+  - contextual_embedding
+  - cache_management
+  - agent_emulation
+
+# AI Provider Configuration
+providers:
+  primary:
+    - provider: anthropic
+      model: claude-3-opus-20240229
+      temperature: 0.7
+      max_tokens: 1500
+      use_cases:
+        - complex_analysis
+        - substitution_mapping
+        - demographic_insights
+        - predictive_analytics
+        - executive_summaries
+    
+    - provider: anthropic
+      model: claude-3-sonnet-20240229
+      temperature: 0.7
+      max_tokens: 1000
+      use_cases:
+        - general_analysis
+        - pattern_detection
+        - trend_analysis
+        - regional_insights
+  
+  fallback:
+    - provider: openai
+      model: gpt-4
+      temperature: 0.7
+      max_tokens: 1000
+      use_cases:
+        - quick_queries
+        - chat_interface
+        - real_time_alerts
+        - simple_aggregations
+    
+    - provider: openai
+      model: gpt-3.5-turbo
+      temperature: 0.5
+      max_tokens: 500
+      use_cases:
+        - basic_queries
+        - metric_explanations
+        - ui_tooltips
+
+# Routing rules for provider selection
+routing_rules:
+  - condition: "query.complexity == 'high' || query.type == 'insight'"
+    provider: anthropic
+    model: claude-3-opus-20240229
+    
+  - condition: "query.type in ['substitution', 'demographic', 'forecast']"
+    provider: anthropic
+    model: claude-3-opus-20240229
+    
+  - condition: "query.realtime == true || query.type == 'chat'"
+    provider: openai
+    model: gpt-4
+    
+  - condition: "query.type == 'alert' || query.priority == 'urgent'"
+    provider: openai
+    model: gpt-4
+    
+  - condition: "cache.has(query.hash) && cache.age < 3600"
+    action: return_cache
+    
+  - default:
+    provider: anthropic
+    model: claude-3-sonnet-20240229
+
+# Emulated agent capabilities
+emulated_agents:
+  InsightSynth:
+    templates:
+      - priceSensitivity
+      - basketComposition
+      - peakHourAnalysis
+    primary_model: claude-3-opus-20240229
+    
+  SubSwitch:
+    templates:
+      - substitutionMap
+      - brandLoyalty
+    primary_model: claude-3-opus-20240229
+    
+  PromoTrigger:
+    templates:
+      - promotionEffectiveness
+      - discountOptimization
+    primary_model: gpt-4
+    
+  ElasticMeter:
+    templates:
+      - priceSensitivity
+      - demandForecast
+    primary_model: claude-3-opus-20240229
+    
+  DemographAI:
+    templates:
+      - genderPreference
+      - ageGroupAnalysis
+      - demographicSegmentation
+    primary_model: claude-3-opus-20240229
+    
+  QueryPilot:
+    mode: conversational
+    primary_model: gpt-4
+    
+  DemandOracle:
+    templates:
+      - demandForecast
+      - stockoutPrediction
+      - seasonalTrends
+    primary_model: claude-3-sonnet-20240229
+    
+  RegionHeatAI:
+    templates:
+      - regionalPerformance
+      - barangayAnalysis
+    primary_model: claude-3-sonnet-20240229
+    
+  ChurnRiskBot:
+    templates:
+      - churnRiskAnalysis
+      - customerRetention
+    primary_model: claude-3-opus-20240229
+
+# Insight templates (references insightTemplates.ts)
+insight_templates:
+  - id: priceSensitivity
+    name: "Price Sensitivity Analysis"
+    category: sales
+    complexity: high
+    cache_ttl: 86400  # 24 hours
+    
+  - id: substitutionMap
+    name: "Brand Substitution Mapping"
+    category: behavior
+    complexity: high
+    cache_ttl: 43200  # 12 hours
+    
+  - id: basketComposition
+    name: "Basket Composition Patterns"
+    category: behavior
+    complexity: medium
+    cache_ttl: 21600  # 6 hours
+    
+  - id: peakHourAnalysis
+    name: "Peak Hour Traffic Analysis"
+    category: operational
+    complexity: medium
+    cache_ttl: 3600   # 1 hour
+    
+  - id: genderPreference
+    name: "Gender-based Product Preferences"
+    category: demographic
+    complexity: high
+    cache_ttl: 172800 # 48 hours
+    
+  - id: demandForecast
+    name: "7-Day Demand Forecast"
+    category: predictive
+    complexity: high
+    cache_ttl: 3600   # 1 hour
+    
+  - id: stockoutPrediction
+    name: "Stock-out Risk Prediction"
+    category: predictive
+    complexity: high
+    cache_ttl: 1800   # 30 minutes
+    
+  - id: churnRiskAnalysis
+    name: "Customer Churn Risk Assessment"
+    category: predictive
+    complexity: high
+    cache_ttl: 86400  # 24 hours
+    
+  - id: promotionEffectiveness
+    name: "Promotion ROI Analysis"
+    category: sales
+    complexity: medium
+    cache_ttl: 43200  # 12 hours
+    
+  - id: crossSellOpportunities
+    name: "Cross-sell Opportunity Detection"
+    category: behavior
+    complexity: medium
+    cache_ttl: 86400  # 24 hours
+
+# Entry points for the agent
+entrypoints:
+  - type: component
+    path: "/src/components/ai/AIInsightPanel"
+    description: "Contextual insights embedded in dashboard pages"
+    
+  - type: page
+    path: "/ai-chat"
+    description: "Dedicated conversational interface"
+    
+  - type: api
+    path: "/api/ai/query"
+    description: "REST API endpoint for queries"
+    
+  - type: cli
+    command: "pulser ai"
+    description: "Pulser CLI integration"
+    
+  - type: hook
+    path: "/src/hooks/useAIAgent"
+    description: "React hook for custom integrations"
+
+# Output format configurations
+output_formats:
+  insight:
+    structure:
+      - content: string
+      - confidence: number
+      - template: string
+      - suggestions: array
+      - data: object
+      
+  chat:
+    structure:
+      - message: string
+      - references: array
+      - actions: array
+      - visualizations: array
+      
+  api:
+    structure:
+      - status: string
+      - result: object
+      - metadata: object
+      - timing: object
+
+# Caching configuration
+cache:
+  provider: memory  # Options: memory, redis, dynamodb
+  ttl_default: 3600
+  ttl_max: 86400
+  size_limit: "100MB"
+  eviction_policy: lru
+
+# Monitoring and telemetry
+telemetry:
+  enabled: true
+  providers:
+    - opentelemetry
+    - prometheus
+  metrics:
+    - query_count
+    - response_time
+    - cache_hit_rate
+    - provider_usage
+    - error_rate
+    - cost_per_query
+
+# Security configuration
+security:
+  api_key_rotation: 30d
+  data_masking:
+    - pii_fields
+    - payment_info
+    - personal_identifiers
+  rate_limits:
+    per_minute: 60
+    per_hour: 1000
+    per_day: 10000
+
+# Error handling
+error_handling:
+  retry_attempts: 3
+  retry_delay: 1000  # ms
+  fallback_sequence:
+    - primary_provider
+    - fallback_provider
+    - cached_response
+    - mock_response
+  
+# Development configuration
+development:
+  debug: true
+  mock_mode: auto  # auto, always, never
+  log_level: info
+  test_endpoints:
+    - /api/ai/test
+    - /debug/ai/inspect
+
+# Production configuration
+production:
+  debug: false
+  mock_mode: never
+  log_level: warn
+  cdn_cache: true
+  compression: true
+
+# Deployment targets
+deployment:
+  platforms:
+    - vercel
+    - netlify
+    - azure
+    - aws-lambda
+  docker:
+    image: "pulser/adsbot:latest"
+    ports:
+      - 3000
+    env_vars:
+      - VITE_OPENAI_API_KEY
+      - VITE_ANTHROPIC_API_KEY
+      - VITE_SUPABASE_URL
+      - VITE_SUPABASE_ANON_KEY

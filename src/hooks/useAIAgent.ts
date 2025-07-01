@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
 import { insightTemplates, getTemplateById } from '../lib/insightTemplates';
+import { adsbotService } from '../services/adsbotService';
 
 interface AIResponse {
   content: string;
@@ -39,9 +40,25 @@ export const useAIAgent = (options: UseAIAgentOptions = {}) => {
       timestamp: new Date().toISOString()
     };
 
-    // In production, this would call the actual AI API
-    // For now, we'll simulate a response
-    return simulateAIResponse(template, context);
+    // Use AdsBot service to generate real insights
+    const response = await adsbotService.query({
+      type: 'insight',
+      templateId,
+      data,
+      filters,
+      context: {
+        template: template.name,
+        description: template.description,
+        timestamp: new Date().toISOString()
+      }
+    });
+    
+    return {
+      content: response.content,
+      template: template.name,
+      confidence: response.confidence,
+      suggestions: response.suggestions || [`Explore ${template.category} insights`, 'View detailed analysis', 'Compare time periods']
+    };
   }, []);
 
   const askQuestion = useCallback(async (
@@ -52,8 +69,21 @@ export const useAIAgent = (options: UseAIAgentOptions = {}) => {
     setError(null);
 
     try {
-      // In production, this would call the AI API
-      const aiResponse = await simulateQuestionResponse(question, context);
+      // Use AdsBot for question answering
+      const response = await adsbotService.query({
+        type: 'chat',
+        text: question,
+        context: context || {},
+        realtime: true
+      });
+      
+      const aiResponse: AIResponse = {
+        content: response.content,
+        confidence: response.confidence,
+        template: response.template,
+        suggestions: response.suggestions
+      };
+      
       setResponse(aiResponse);
       return aiResponse;
     } catch (err) {
