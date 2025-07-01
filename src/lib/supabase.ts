@@ -66,13 +66,9 @@ Current values:
     global: {
       headers: { 
         'apikey': supabaseAnonKey,
-<<<<<<< HEAD
-        'Authorization': `Bearer ${supabaseAnonKey}`
-=======
         'Authorization': `Bearer ${supabaseAnonKey}`,
         'X-Supabase-Range': '0-50000',
         'X-Supabase-Prefer': 'count=exact'
->>>>>>> feature/adsbot-ai-integration
       }
     }
   })
