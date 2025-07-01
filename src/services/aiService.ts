@@ -47,7 +47,7 @@ class AIService {
     }
 
     if (!this.apiKey && !this.fallbackApiKey) {
-      throw new Error('❌ LLM Key not set. Refusing to proceed in fallback mode. Please add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to your environment variables.');
+      console.warn('AI API keys not found. Some features may be limited.');
     }
   }
 
@@ -61,9 +61,10 @@ class AIService {
       throw new Error(`Template ${templateId} not found`);
     }
 
-    // Enforce API key requirement
+    // Check API key
     if (!this.apiKey) {
-      throw new Error('❌ AI API key required. Add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY to enable AI features.');
+      console.warn('AI API key not found, some features limited');
+      return 'AI features require API keys. Add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY in Vercel settings.';
     }
 
     // Build the prompt
