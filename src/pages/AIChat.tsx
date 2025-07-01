@@ -6,6 +6,8 @@ import { useDataStore } from '../stores/dataStore';
 import { useFilterStore } from '../features/filters/filterStore';
 import { useQueryOrchestrator, useQuerySuggestions } from '../hooks/useQueryOrchestrator';
 import { QueryResponse } from '../services/query-orchestrator';
+import { ApiKeyInstructions } from '../components/ApiKeyInstructions';
+import { hasAIProvider } from '../config/credentials';
 
 interface Message {
   id: string;
@@ -41,6 +43,7 @@ const AIChat: React.FC = () => {
   
   const { kpiMetrics, salesTrendData, productPerformanceData } = useDataStore();
   const filters = useFilterStore();
+  const hasAI = hasAIProvider('openai') || hasAIProvider('anthropic');
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -211,6 +214,13 @@ const AIChat: React.FC = () => {
             </div>
           </div>
         </div>
+
+        {/* API Key Instructions */}
+        {!hasAI && (
+          <div className="px-6 pt-4">
+            <ApiKeyInstructions />
+          </div>
+        )}
 
         {/* Messages */}
         <div className="flex-1 overflow-y-auto px-6 py-4 space-y-4">

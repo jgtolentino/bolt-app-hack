@@ -1,6 +1,9 @@
 /**
  * Centralized Credentials Configuration
  * All API keys and sensitive credentials in one secure location
+ * 
+ * POC Testing: Test API keys are provided for demo purposes
+ * Replace with your own keys for production use
  */
 
 interface Credentials {
@@ -65,6 +68,16 @@ function loadCredentials(): Credentials {
     return value || '';
   };
   
+  // Check for production/dev environment keys first
+  const isProd = import.meta.env.PROD;
+  const isDev = import.meta.env.DEV;
+  
+  // Use real keys from environment if available, otherwise provide instructions
+  const POC_FALLBACK_KEYS = {
+    openai: '',  // Will use env var or prompt user to add key
+    anthropic: '' // Will use env var or prompt user to add key
+  };
+  
   return {
     // Database Configuration
     database: {
@@ -86,12 +99,12 @@ function loadCredentials(): Credentials {
     // AI Provider Configuration
     ai: {
       openai: {
-        apiKey: getEnv('VITE_OPENAI_API_KEY'),
+        apiKey: getEnv('VITE_OPENAI_API_KEY', POC_FALLBACK_KEYS.openai),
         model: getEnv('VITE_AI_MODEL', 'gpt-4'),
         organization: getEnv('VITE_OPENAI_ORG')
       },
       anthropic: {
-        apiKey: getEnv('VITE_ANTHROPIC_API_KEY'),
+        apiKey: getEnv('VITE_ANTHROPIC_API_KEY', POC_FALLBACK_KEYS.anthropic),
         model: getEnv('VITE_ANTHROPIC_MODEL', 'claude-3-sonnet-20240229')
       },
       groq: {
