@@ -163,8 +163,8 @@ export const useDataStore = create<DataStore>((set, get) => ({
           start: subDays(new Date(), 30),
           end: new Date()
         };
-        // Use fallback service that works with actual table structure
-        const metricsData = await dataServiceFallback.getKPIMetrics(dateRange);
+        // Use main data service
+        const metricsData = await dataService.getKPIMetrics(dateRange);
         // Map the data to match the expected KPIMetric interface
         const metrics = metricsData.map(m => ({
           id: m.id,
@@ -196,8 +196,8 @@ export const useDataStore = create<DataStore>((set, get) => ({
     try {
       if (useRealData && hasValidSupabaseConfig()) {
         const [salesTrend, productPerformance] = await Promise.all([
-          dataServiceFallback.getSalesTrendData('hourly', 1),
-          dataServiceFallback.getProductPerformanceData(10)
+          dataService.getSalesTrendData('hourly', 1),
+          dataService.getProductPerformanceData(10)
         ]);
         
         set({ 
@@ -230,7 +230,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
     
     try {
       if (useRealData && hasValidSupabaseConfig()) {
-        const data = await dataServiceFallback.getGeographicData();
+        const data = await dataService.getGeographicData();
         set({ geographicData: data, isConnected: true });
       } else {
         set({ geographicData: mockGeographicData });
@@ -248,7 +248,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
     
     try {
       if (useRealData && hasValidSupabaseConfig()) {
-        const data = await dataServiceFallback.getProductPerformanceData(20);
+        const data = await dataService.getProductPerformanceData(20);
         set({ productPerformanceData: data });
       }
     } catch (error) {

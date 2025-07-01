@@ -124,9 +124,9 @@ class DataService {
     try {
       const { data: transactions, error } = await supabase
         .from('transactions')
-        .select('total_amount, items_count, customer_id')
-        .gte('transaction_date', format(dateRange.start, 'yyyy-MM-dd'))
-        .lte('transaction_date', format(dateRange.end, 'yyyy-MM-dd'))
+        .select('total_amount, customer_id')
+        .gte('datetime', format(dateRange.start, 'yyyy-MM-dd'))
+        .lte('datetime', format(dateRange.end, 'yyyy-MM-dd'))
         .eq('status', 'completed');
 
       if (error) throw error;
@@ -134,7 +134,7 @@ class DataService {
       const totalSales = transactions?.reduce((sum, t) => sum + (t.total_amount || 0), 0) || 0;
       const totalTransactions = transactions?.length || 0;
       const avgBasketSize = totalTransactions > 0 ? totalSales / totalTransactions : 0;
-      const totalItems = transactions?.reduce((sum, t) => sum + (t.items_count || 0), 0) || 0;
+      const totalItems = transactions?.length || 0; // Count transactions as items for now
       const uniqueCustomers = new Set(transactions?.map(t => t.customer_id).filter(Boolean)).size;
 
       // Calculate growth (compare with previous period)
