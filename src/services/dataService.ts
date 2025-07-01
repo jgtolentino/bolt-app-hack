@@ -124,10 +124,9 @@ class DataService {
     try {
       const { data: transactions, error } = await supabase
         .from('transactions')
-        .select('total_amount, customer_id')
+        .select('total_amount, customer_type')
         .gte('datetime', format(dateRange.start, 'yyyy-MM-dd'))
-        .lte('datetime', format(dateRange.end, 'yyyy-MM-dd'))
-        .eq('status', 'completed');
+        .lte('datetime', format(dateRange.end, 'yyyy-MM-dd'));
 
       if (error) throw error;
 
@@ -135,7 +134,7 @@ class DataService {
       const totalTransactions = transactions?.length || 0;
       const avgBasketSize = totalTransactions > 0 ? totalSales / totalTransactions : 0;
       const totalItems = transactions?.length || 0; // Count transactions as items for now
-      const uniqueCustomers = new Set(transactions?.map(t => t.customer_id).filter(Boolean)).size;
+      const uniqueCustomers = new Set(transactions?.map(t => t.customer_type).filter(Boolean)).size;
 
       // Calculate growth (compare with previous period)
       const previousStart = subDays(dateRange.start, 30);
@@ -144,9 +143,8 @@ class DataService {
       const { data: previousTransactions } = await supabase
         .from('transactions')
         .select('total_amount')
-        .gte('transaction_date', format(previousStart, 'yyyy-MM-dd'))
-        .lte('transaction_date', format(previousEnd, 'yyyy-MM-dd'))
-        .eq('status', 'completed');
+        .gte('datetime', format(previousStart, 'yyyy-MM-dd'))
+        .lte('datetime', format(previousEnd, 'yyyy-MM-dd'));
 
       const previousSales = previousTransactions?.reduce((sum, t) => sum + (t.total_amount || 0), 0) || 0;
       const salesGrowth = previousSales > 0 ? ((totalSales - previousSales) / previousSales) * 100 : 0;
@@ -209,7 +207,7 @@ class DataService {
     try {
       if (period === 'hourly') {
         const { data, error } = await supabase
-          .from('mv_hourly_patterns')
+          .from('v_hourly_patterns')
           .select('*')
           .order('hour_of_day', { ascending: true });
 
@@ -221,19 +219,35 @@ class DataService {
           transactions: item.transaction_count
         })) || [];
       } else {
+        // For daily data, query transactions directly and aggregate
         const { data, error } = await supabase
-          .from('mv_daily_sales')
-          .select('*')
-          .gte('transaction_date', format(subDays(new Date(), days), 'yyyy-MM-dd'))
-          .order('transaction_date', { ascending: true });
+          .from('transactions')
+          .select('datetime, total_amount')
+          .gte('datetime', format(subDays(new Date(), days), 'yyyy-MM-dd'))
+          .order('datetime', { ascending: true });
 
         if (error) throw error;
 
-        return data?.map(item => ({
-          name: format(new Date(item.transaction_date), 'MMM dd'),
-          value: item.net_sales,
+        // Group by date
+        const dailyData = data?.reduce((acc: any, transaction: any) => {
+          const date = format(new Date(transaction.datetime), 'yyyy-MM-dd');
+          if (!acc[date]) {
+            acc[date] = {
+              date,
+              total_sales: 0,
+              transaction_count: 0
+            };
+          }
+          acc[date].total_sales += transaction.total_amount || 0;
+          acc[date].transaction_count += 1;
+          return acc;
+        }, {});
+
+        return Object.values(dailyData || {}).map((item: any) => ({
+          name: format(new Date(item.date), 'MMM dd'),
+          value: item.total_sales,
           transactions: item.transaction_count
-        })) || [];
+        }));
       }
     } catch (error) {
       console.error('Error fetching sales trend:', error);
@@ -241,34 +255,87 @@ class DataService {
     }
   }
 
-  // Geographic Data
+  // Geographic Data with coordinates for map visualization
   async getGeographicData() {
     try {
+      // Get geographic data with coordinates from the geography table
+      // and join with transaction data for sales metrics
       const { data, error } = await supabase
-        .from('mv_daily_sales')
-        .select('region, city, SUM(net_sales) as total_sales, SUM(transaction_count) as total_transactions')
-        .gte('transaction_date', format(subDays(new Date(), 30), 'yyyy-MM-dd'));
+        .from('geography')
+        .select(`
+          id,
+          region,
+          city_municipality,
+          barangay,
+          store_name,
+          latitude,
+          longitude,
+          store_type
+        `);
 
       if (error) throw error;
 
-      // Group by region
-      const regionData = data?.reduce((acc: any[], item: any) => {
+      // Get transaction data for the last 30 days
+      const { data: transactionData, error: transactionError } = await supabase
+        .from('transactions')
+        .select('geography_id, total_amount')
+        .gte('datetime', format(subDays(new Date(), 30), 'yyyy-MM-dd'));
+
+      if (transactionError) throw transactionError;
+
+      // Aggregate transaction data by geography
+      const salesByGeography = transactionData?.reduce((acc: any, transaction: any) => {
+        const geoId = transaction.geography_id;
+        if (!acc[geoId]) {
+          acc[geoId] = {
+            total_sales: 0,
+            transaction_count: 0
+          };
+        }
+        acc[geoId].total_sales += transaction.total_amount || 0;
+        acc[geoId].transaction_count += 1;
+        return acc;
+      }, {}) || {};
+
+      // Combine geographic data with sales data
+      const combinedData = data?.map(geo => ({
+        id: geo.id,
+        region: geo.region,
+        city: geo.city_municipality,
+        barangay: geo.barangay,
+        store_name: geo.store_name,
+        latitude: geo.latitude,
+        longitude: geo.longitude,
+        store_type: geo.store_type,
+        total_sales: salesByGeography[geo.id]?.total_sales || 0,
+        transaction_count: salesByGeography[geo.id]?.transaction_count || 0,
+        lng: geo.longitude, // Add lng property for map compatibility
+        lat: geo.latitude   // Add lat property for map compatibility
+      })) || [];
+
+      // Group by region for summary data
+      const regionData = combinedData.reduce((acc: any[], item: any) => {
         const existing = acc.find(r => r.region === item.region);
         if (existing) {
           existing.value += item.total_sales;
-          existing.transactions += item.total_transactions;
+          existing.transactions += item.transaction_count;
+          existing.stores = (existing.stores || 0) + 1;
         } else {
           acc.push({
             region: item.region,
             value: item.total_sales,
-            transactions: item.total_transactions,
+            transactions: item.transaction_count,
+            stores: 1,
             cities: []
           });
         }
         return acc;
-      }, []) || [];
+      }, []);
 
-      return regionData;
+      return {
+        regions: regionData,
+        stores: combinedData
+      };
     } catch (error) {
       console.error('Error fetching geographic data:', error);
       throw error;
@@ -279,19 +346,19 @@ class DataService {
   async getProductPerformanceData(limit: number = 10) {
     try {
       const { data, error } = await supabase
-        .from('mv_product_performance')
+        .from('v_product_performance')
         .select('*')
-        .order('total_revenue', { ascending: false })
+        .order('total_sales', { ascending: false })
         .limit(limit);
 
       if (error) throw error;
 
       return data?.map(item => ({
-        name: item.product_name,
-        sales: item.total_revenue,
+        name: item.sku_description || item.sku,
+        sales: item.total_sales,
         units: item.total_quantity_sold,
-        category: item.category_name,
-        brand: item.brand_name
+        category: item.category,
+        brand: item.brand
       })) || [];
     } catch (error) {
       console.error('Error fetching product performance:', error);
@@ -303,21 +370,14 @@ class DataService {
   async getCategoryPerformance() {
     try {
       const { data, error } = await supabase
-        .from('transaction_items')
-        .select(`
-          products!inner(
-            category:product_categories(category_name)
-          ),
-          line_total,
-          quantity
-        `)
-        .gte('created_at', format(subDays(new Date(), 30), 'yyyy-MM-dd'));
+        .from('v_product_performance')
+        .select('category, total_sales, total_quantity_sold, transaction_count');
 
       if (error) throw error;
 
       // Group by category
       const categoryData = data?.reduce((acc: any, item: any) => {
-        const categoryName = item.products?.category?.category_name || 'Unknown';
+        const categoryName = item.category || 'Unknown';
         if (!acc[categoryName]) {
           acc[categoryName] = {
             category: categoryName,
@@ -326,9 +386,9 @@ class DataService {
             transactions: 0
           };
         }
-        acc[categoryName].sales += item.line_total || 0;
-        acc[categoryName].units += item.quantity || 0;
-        acc[categoryName].transactions += 1;
+        acc[categoryName].sales += item.total_sales || 0;
+        acc[categoryName].units += item.total_quantity_sold || 0;
+        acc[categoryName].transactions += item.transaction_count || 0;
         return acc;
       }, {});
 
@@ -343,44 +403,19 @@ class DataService {
   async getCustomerSegments() {
     try {
       const { data, error } = await supabase
-        .from('customers')
-        .select(`
-          customer_type,
-          transactions(total_amount, items_count)
-        `)
-        .not('customer_type', 'is', null);
+        .from('v_customer_analysis')
+        .select('*');
 
       if (error) throw error;
 
-      // Group by customer type
-      const segmentData = data?.reduce((acc: any, customer: any) => {
-        const type = customer.customer_type || 'Unknown';
-        if (!acc[type]) {
-          acc[type] = {
-            segment: type,
-            count: 0,
-            totalSpend: 0,
-            avgSpend: 0,
-            transactions: 0
-          };
-        }
-        acc[type].count += 1;
-        
-        if (customer.transactions && customer.transactions.length > 0) {
-          acc[type].transactions += customer.transactions.length;
-          acc[type].totalSpend += customer.transactions.reduce((sum: number, t: any) => sum + (t.total_amount || 0), 0);
-        }
-        
-        return acc;
-      }, {});
-
-      // Calculate averages
-      Object.values(segmentData || {}).forEach((segment: any) => {
-        segment.avgSpend = segment.count > 0 ? segment.totalSpend / segment.count : 0;
-        segment.percentage = 0; // Calculate based on total
-      });
-
-      return Object.values(segmentData || {});
+      return data?.map(segment => ({
+        segment: segment.customer_type,
+        count: segment.transaction_count,
+        totalSpend: segment.total_sales,
+        avgSpend: segment.avg_transaction_value,
+        transactions: segment.transaction_count,
+        percentage: segment.percentage_of_transactions
+      })) || [];
     } catch (error) {
       console.error('Error fetching customer segments:', error);
       throw error;
@@ -392,83 +427,63 @@ class DataService {
     try {
       // Hourly patterns
       const { data: hourlyData, error: hourlyError } = await supabase
-        .from('transactions')
-        .select('transaction_time, total_amount, items_count')
-        .gte('transaction_date', format(dateRange.start, 'yyyy-MM-dd'))
-        .lte('transaction_date', format(dateRange.end, 'yyyy-MM-dd'))
-        .eq('status', 'completed');
+        .from('v_hourly_patterns')
+        .select('*')
+        .order('hour_of_day', { ascending: true });
 
       if (hourlyError) throw hourlyError;
 
-      // Process hourly data
-      const hourlyPatterns = Array.from({ length: 24 }, (_, hour) => {
-        const hourTransactions = hourlyData?.filter(t => {
-          const transactionHour = new Date(`2000-01-01 ${t.transaction_time}`).getHours();
-          return transactionHour === hour;
-        }) || [];
-
-        return {
-          hour: `${hour}:00`,
-          transactions: hourTransactions.length,
-          value: hourTransactions.reduce((sum, t) => sum + (t.total_amount || 0), 0),
-          avg_size: hourTransactions.length > 0 
-            ? hourTransactions.reduce((sum, t) => sum + (t.total_amount || 0), 0) / hourTransactions.length 
-            : 0
-        };
-      });
-
-      // Daily patterns
-      const { data: dailyData, error: dailyError } = await supabase
-        .from('mv_daily_sales')
-        .select('*')
-        .gte('transaction_date', format(dateRange.start, 'yyyy-MM-dd'))
-        .lte('transaction_date', format(dateRange.end, 'yyyy-MM-dd'))
-        .order('transaction_date', { ascending: true });
-
-      if (dailyError) throw dailyError;
-
-      const dailyPatterns = dailyData?.map(day => ({
-        day: format(new Date(day.transaction_date), 'EEEE'),
-        transactions: day.transaction_count,
-        value: day.net_sales,
-        growth: 0 // Calculate if needed
+      const hourlyPatterns = hourlyData?.map(item => ({
+        hour: `${item.hour_of_day}:00`,
+        transactions: item.transaction_count,
+        value: item.total_sales,
+        avg_size: item.avg_transaction_value
       })) || [];
 
       // Payment methods
       const { data: paymentData, error: paymentError } = await supabase
-        .from('transactions')
-        .select('payment_method, total_amount')
-        .gte('transaction_date', format(dateRange.start, 'yyyy-MM-dd'))
-        .lte('transaction_date', format(dateRange.end, 'yyyy-MM-dd'))
-        .eq('status', 'completed');
+        .from('v_payment_method_analysis')
+        .select('*');
 
       if (paymentError) throw paymentError;
 
-      const paymentMethods = paymentData?.reduce((acc: any, t: any) => {
-        const method = t.payment_method || 'Unknown';
-        if (!acc[method]) {
-          acc[method] = {
-            name: method,
-            value: 0,
-            count: 0,
-            percentage: 0
-          };
-        }
-        acc[method].value += t.total_amount || 0;
-        acc[method].count += 1;
-        return acc;
-      }, {});
+      const paymentMethods = paymentData?.map(method => ({
+        name: method.payment_method,
+        value: method.total_amount,
+        count: method.transaction_count,
+        percentage: method.percentage_of_sales
+      })) || [];
 
-      // Calculate percentages
-      const totalPaymentValue = Object.values(paymentMethods || {}).reduce((sum: number, m: any) => sum + m.value, 0);
-      Object.values(paymentMethods || {}).forEach((method: any) => {
-        method.percentage = totalPaymentValue > 0 ? (method.value / totalPaymentValue) * 100 : 0;
+      // Daily patterns - use transaction data directly
+      const { data: dailyTransactions, error: dailyError } = await supabase
+        .from('transactions')
+        .select('datetime, total_amount')
+        .gte('datetime', format(dateRange.start, 'yyyy-MM-dd'))
+        .lte('datetime', format(dateRange.end, 'yyyy-MM-dd'));
+
+      if (dailyError) throw dailyError;
+
+      // Group by day of week
+      const dailyPatterns = Array.from({ length: 7 }, (_, dayIndex) => {
+        const dayTransactions = dailyTransactions?.filter(t => {
+          const transactionDay = new Date(t.datetime).getDay();
+          return transactionDay === dayIndex;
+        }) || [];
+
+        const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        
+        return {
+          day: dayNames[dayIndex],
+          transactions: dayTransactions.length,
+          value: dayTransactions.reduce((sum, t) => sum + (t.total_amount || 0), 0),
+          growth: 0 // Calculate if needed
+        };
       });
 
       return {
         hourlyPatterns,
         dailyPatterns,
-        paymentMethods: Object.values(paymentMethods || {})
+        paymentMethods
       };
     } catch (error) {
       console.error('Error fetching transaction patterns:', error);
@@ -479,32 +494,31 @@ class DataService {
   // Product Substitution Patterns
   async getSubstitutionPatterns() {
     try {
-      // This would require a more complex query analyzing purchase patterns
-      // For now, return mock data structure
-      return [
-        {
-          source: 'Coca-Cola 355ml',
-          target: 'Pepsi 355ml',
-          value: 450,
-          percentage: 65
-        },
-        {
-          source: 'Oishi Prawn Crackers',
-          target: 'Piattos',
-          value: 320,
-          percentage: 48
-        }
-      ];
+      const { data, error } = await supabase
+        .from('v_substitution_analysis')
+        .select('*')
+        .limit(10);
+
+      if (error) throw error;
+
+      return data?.map(item => ({
+        source: `${item.original_brand} ${item.original_sku}`,
+        target: `${item.substituted_brand} ${item.substituted_sku}`,
+        value: item.substitution_count,
+        percentage: item.acceptance_rate
+      })) || [];
     } catch (error) {
       console.error('Error fetching substitution patterns:', error);
-      throw error;
+      // Return empty array instead of mock data if there's an error
+      return [];
     }
   }
 
   // Refresh materialized views
   async refreshMaterializedViews() {
     try {
-      await supabase.rpc('refresh_materialized_views');
+      // Since we're using views instead of materialized views, this is not needed
+      // But we can keep it for future use
       return { success: true };
     } catch (error) {
       console.error('Error refreshing materialized views:', error);

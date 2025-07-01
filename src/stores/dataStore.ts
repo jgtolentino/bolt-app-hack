@@ -82,11 +82,11 @@ const mockSalesTrendData: ChartDataPoint[] = Array.from({ length: 24 }, (_, i) =
 }));
 
 const mockGeographicData = [
-  { region: 'NCR', value: 450000, growth: 15.2 },
-  { region: 'Region VII', value: 320000, growth: 12.8 },
-  { region: 'Region III', value: 280000, growth: 18.5 },
-  { region: 'Region IV-A', value: 220000, growth: 8.9 },
-  { region: 'Region VI', value: 180000, growth: 22.1 }
+  { region: 'NCR', value: 450000, growth: 15.2, lat: 14.5995, lng: 120.9842 },
+  { region: 'Region VII', value: 320000, growth: 12.8, lat: 10.3157, lng: 123.8854 },
+  { region: 'Region III', value: 280000, growth: 18.5, lat: 15.4817, lng: 120.5979 },
+  { region: 'Region IV-A', value: 220000, growth: 8.9, lat: 14.2456, lng: 121.0467 },
+  { region: 'Region VI', value: 180000, growth: 22.1, lat: 10.7202, lng: 122.5621 }
 ];
 
 const mockProductPerformanceData: ChartDataPoint[] = [
@@ -140,8 +140,8 @@ export const useDataStore = create<DataStore>((set, get) => ({
         return;
       }
       
-      // Test connection with a simple query
-      const { error } = await supabase.from('stores').select('count', { count: 'exact', head: true });
+      // Test connection with a simple query to an existing table
+      const { error } = await supabase.from('geography').select('count', { count: 'exact', head: true });
       
       if (error) {
         set({ isConnected: false, connectionError: error.message });
@@ -171,10 +171,9 @@ export const useDataStore = create<DataStore>((set, get) => ({
           title: m.title,
           value: m.value,
           change: m.change,
-          changeType: m.trend === 'up' ? 'increase' : m.trend === 'down' ? 'decrease' : 'neutral' as 'increase' | 'decrease' | 'neutral',
-          format: m.id.includes('sales') || m.id.includes('basket') ? 'currency' : m.id.includes('percent') ? 'percentage' : 'number' as 'currency' | 'number' | 'percentage',
+          trend: m.trend,
           icon: m.icon || 'TrendingUp',
-          trend: undefined // We don't have historical trend data yet
+          color: m.color
         }));
         set({ kpiMetrics: metrics, isConnected: true });
       } else {
@@ -231,7 +230,9 @@ export const useDataStore = create<DataStore>((set, get) => ({
     try {
       if (useRealData && hasValidSupabaseConfig()) {
         const data = await dataService.getGeographicData();
-        set({ geographicData: data, isConnected: true });
+        // Handle the new structure with regions and stores
+        const geographicData = data.stores || data.regions || data;
+        set({ geographicData, isConnected: true });
       } else {
         set({ geographicData: mockGeographicData });
       }
@@ -304,7 +305,7 @@ export const useDataStore = create<DataStore>((set, get) => ({
     
     try {
       if (useRealData && hasValidSupabaseConfig()) {
-        const data = await retailAnalyticsService.getSubstitutionPatterns();
+        const data = await dataService.getSubstitutionPatterns();
         set({ substitutionPatternsData: data });
       } else {
         // Use mock substitution data
