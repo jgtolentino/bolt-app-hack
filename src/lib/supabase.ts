@@ -62,21 +62,15 @@ Current values:
     auth: {
       autoRefreshToken: true,
       persistSession: true,
-      detectSessionInUrl: true,
-      flowType: 'pkce'
-    },
-    realtime: {
-      params: {
-        eventsPerSecond: 10
-      }
+      detectSessionInUrl: true
     },
     db: {
       schema: 'public'
     },
     global: {
       headers: { 
-        'X-Supabase-Range': '0-50000',
-        'X-Supabase-Prefer': 'count=exact'
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`
       }
     }
   })
