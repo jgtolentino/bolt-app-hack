@@ -7,11 +7,41 @@ import PhilippinesMap from './PhilippinesMap';
 interface GeographicMapProps {
   data: GeographyData[];
   height?: number;
+  title?: string;
 }
 
-const GeographicMap: React.FC<GeographicMapProps> = ({ data, height = 400 }) => {
+const GeographicMap: React.FC<GeographicMapProps> = ({ 
+  data = [], 
+  height = 400,
+  title = "Geographic Performance"
+}) => {
   const [viewMode, setViewMode] = useState<'bubble' | 'choropleth' | 'hybrid'>('bubble');
   const [selectedLocation, setSelectedLocation] = useState<GeographyData | null>(null);
+
+  // Ensure data has required properties
+  const validData = data.filter(item => 
+    item && 
+    typeof item.latitude === 'number' && 
+    typeof item.longitude === 'number' && 
+    !isNaN(item.latitude) && 
+    !isNaN(item.longitude)
+  );
+
+  // If no valid data, provide fallback
+  const mapData = validData.length > 0 ? validData : [
+    {
+      id: 'fallback-1',
+      region: 'NCR',
+      city_municipality: 'Manila',
+      barangay: 'Tondo',
+      store_name: 'Sample Store',
+      latitude: 14.6042,
+      longitude: 120.9822,
+      total_sales: 100000,
+      transaction_count: 500,
+      avg_transaction_value: 200
+    }
+  ];
 
   const handleLocationSelect = (location: GeographyData) => {
     setSelectedLocation(location);
@@ -26,7 +56,7 @@ const GeographicMap: React.FC<GeographicMapProps> = ({ data, height = 400 }) => 
     >
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">Geographic Performance</h3>
+        <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
         
         {/* View Mode Controls */}
         <div className="flex items-center space-x-2">
@@ -50,7 +80,7 @@ const GeographicMap: React.FC<GeographicMapProps> = ({ data, height = 400 }) => 
 
       {/* Enhanced Philippines Map */}
       <PhilippinesMap 
-        data={data} 
+        data={mapData} 
         height={height}
         onLocationSelect={handleLocationSelect}
       />

@@ -353,11 +353,25 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
       }
     });
 
-    // Add data points if bubble mode is enabled
-    if ((viewMode === 'bubble' || viewMode === 'hybrid') && data.length > 0) {
+    // Add data points if bubble mode is enabled and data is available
+    if ((viewMode === 'bubble' || viewMode === 'hybrid') && data && data.length > 0) {
+      // Ensure all data points have valid coordinates before creating the GeoJSON
+      const validData = data.filter(location => 
+        location && 
+        typeof location.longitude === 'number' && 
+        typeof location.latitude === 'number' &&
+        !isNaN(location.longitude) && 
+        !isNaN(location.latitude)
+      );
+      
+      if (validData.length === 0) {
+        console.warn('No valid geographic data points with coordinates found');
+        return;
+      }
+      
       const dataPoints = {
         type: 'FeatureCollection',
-        features: data.map(location => ({
+        features: validData.map(location => ({
           type: 'Feature',
           properties: {
             ...location,
@@ -376,7 +390,7 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
       });
 
       // Ensure maxSales is at least 1 to prevent interpolation errors
-      const maxSales = Math.max(1, ...data.map(d => d.total_sales));
+      const maxSales = Math.max(1, ...validData.map(d => d.total_sales));
 
       map.addLayer({
         id: 'data-points',
@@ -406,6 +420,8 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
 
       // Add click handler for data points
       map.on('click', 'data-points', (e: any) => {
+        if (!e.features || e.features.length === 0) return;
+        
         const feature = e.features[0];
         const location = feature.properties;
         
@@ -432,6 +448,8 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
 
     // Add click handler for boundaries
     map.on('click', 'boundary-fills', (e: any) => {
+      if (!e.features || e.features.length === 0) return;
+      
       const feature = e.features[0];
       const properties = feature.properties;
       
