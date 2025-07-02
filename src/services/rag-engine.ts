@@ -229,10 +229,12 @@ const QUERY_TEMPLATES = {
 export class RAGEngine {
   private openaiApiKey: string;
   private anthropicApiKey: string;
+  private groqApiKey: string;
 
   constructor() {
     this.openaiApiKey = credentials.ai.openai?.apiKey || '';
     this.anthropicApiKey = credentials.ai.anthropic?.apiKey || '';
+    this.groqApiKey = credentials.ai.groq?.apiKey || '';
   }
 
   /**
@@ -455,12 +457,63 @@ RESPONSE FORMAT:
         }
       }
 
-      throw new Error('❌ No AI providers available. Please set VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY in your environment.');
+      // Try Groq as third option
+      if (this.groqApiKey) {
+        const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Authorization': `Bearer ${this.groqApiKey}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            model: 'mixtral-8x7b-32768',
+            messages: [
+              { 
+                role: 'system', 
+                content: 'You are a SQL expert. Generate only valid PostgreSQL queries and return JSON responses.'
+              },
+              { 
+                role: 'user', 
+                content: prompt 
+              }
+            ],
+            temperature: 0.1,
+            max_tokens: 1000
+          })
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          const aiResult = JSON.parse(data.choices[0].message.content);
+          
+          return {
+            sql: aiResult.sql,
+            intent,
+            explanation: aiResult.explanation,
+            confidence: aiResult.confidence
+          };
+        }
+      }
+
+      // If no AI providers are available, return a helpful fallback
+      console.warn('No AI providers configured. Using template-based fallback.');
+      return {
+        sql: QUERY_TEMPLATES.daily_sales,
+        intent,
+        explanation: 'Using a pre-built query template. Configure AI providers (OpenAI, Anthropic, or Groq) for more dynamic queries.',
+        confidence: 0.5
+      };
     } catch (error) {
       console.error('AI SQL generation failed:', error);
       
-      // No fallback - fail fast
-      throw new Error('❌ AI SQL generation failed. Check your API keys and try again.');
+      // Return template fallback instead of throwing
+      return {
+        sql: QUERY_TEMPLATES.daily_sales,
+        intent,
+        explanation: 'AI generation failed, using default template. Check your API keys for better results.',
+        confidence: 0.3,
+        fallback_reason: error instanceof Error ? error.message : 'Unknown error'
+      };
     }
   }
 

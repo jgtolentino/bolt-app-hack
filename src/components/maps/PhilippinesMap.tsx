@@ -299,20 +299,33 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
 
     const map = mapInstanceRef.current;
 
-    // Remove existing sources and layers
-    if (map.getSource('boundaries')) {
-      if (map.getLayer('boundary-fills')) map.removeLayer('boundary-fills');
-      if (map.getLayer('boundary-borders')) map.removeLayer('boundary-borders');
-      if (map.getLayer('data-points')) map.removeLayer('data-points');
-      map.removeSource('boundaries');
-      map.removeSource('data-points');
+    // Wait for map style to load if not ready
+    if (!map.isStyleLoaded()) {
+      map.once('style.load', () => {
+        renderBoundaries(geoJsonData);
+      });
+      return;
     }
 
-    // Add boundary source
-    map.addSource('boundaries', {
-      type: 'geojson',
-      data: geoJsonData
-    });
+    try {
+      // Remove existing sources and layers safely
+      ['boundary-fills', 'boundary-borders', 'data-points'].forEach(layerId => {
+        if (map.getLayer(layerId)) {
+          map.removeLayer(layerId);
+        }
+      });
+
+      ['boundaries', 'data-points'].forEach(sourceId => {
+        if (map.getSource(sourceId)) {
+          map.removeSource(sourceId);
+        }
+      });
+
+      // Add boundary source
+      map.addSource('boundaries', {
+        type: 'geojson',
+        data: geoJsonData
+      });
 
     // Add choropleth layer if enabled
     if (viewMode === 'choropleth' || viewMode === 'hybrid') {
@@ -514,6 +527,15 @@ const PhilippinesMap: React.FC<PhilippinesMapProps> = ({
         map.setCenter([121.0, 14.6]);
         map.setZoom(6);
       }
+    }
+    } catch (error) {
+      console.error('Error rendering boundaries:', error);
+      // If there's an error, try again after a short delay
+      setTimeout(() => {
+        if (mapInstanceRef.current && mapInstanceRef.current.isStyleLoaded()) {
+          renderBoundaries(geoJsonData);
+        }
+      }, 1000);
     }
   };
 

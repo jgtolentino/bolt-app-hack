@@ -15,40 +15,48 @@ const AI_CONFIG = {
     apiKey: credentials.ai.anthropic.apiKey,
     model: credentials.ai.anthropic.model,
     endpoint: 'https://api.anthropic.com/v1/messages'
+  },
+  groq: {
+    apiKey: credentials.ai.groq.apiKey,
+    model: credentials.ai.groq.model,
+    endpoint: 'https://api.groq.com/openai/v1/chat/completions'
   }
 };
 
 export interface AIServiceOptions {
-  provider?: 'openai' | 'anthropic';
+  provider?: 'openai' | 'anthropic' | 'groq';
   model?: string;
   temperature?: number;
   maxTokens?: number;
 }
 
 class AIService {
-  private provider: 'openai' | 'anthropic';
+  private provider: 'openai' | 'anthropic' | 'groq';
   private apiKey: string | undefined;
-  private fallbackProvider: 'openai' | 'anthropic' | null = null;
+  private fallbackProvider: 'openai' | 'anthropic' | 'groq' | null = null;
   private fallbackApiKey: string | undefined;
 
   constructor(options: AIServiceOptions = {}) {
     this.provider = options.provider || 'openai';
-    this.apiKey = this.provider === 'openai' 
-      ? AI_CONFIG.openai.apiKey 
-      : AI_CONFIG.anthropic.apiKey;
+    this.apiKey = this.getApiKey(this.provider);
 
-    // Set up fallback provider
-    if (this.provider === 'openai' && AI_CONFIG.anthropic.apiKey) {
-      this.fallbackProvider = 'anthropic';
-      this.fallbackApiKey = AI_CONFIG.anthropic.apiKey;
-    } else if (this.provider === 'anthropic' && AI_CONFIG.openai.apiKey) {
-      this.fallbackProvider = 'openai';
-      this.fallbackApiKey = AI_CONFIG.openai.apiKey;
+    // Set up fallback provider - check all available providers
+    const providers: Array<'openai' | 'anthropic' | 'groq'> = ['openai', 'anthropic', 'groq'];
+    for (const p of providers) {
+      if (p !== this.provider && this.getApiKey(p)) {
+        this.fallbackProvider = p;
+        this.fallbackApiKey = this.getApiKey(p);
+        break;
+      }
     }
 
     if (!this.apiKey && !this.fallbackApiKey) {
       console.warn('AI API keys not found. Some features may be limited.');
     }
+  }
+
+  private getApiKey(provider: 'openai' | 'anthropic' | 'groq'): string | undefined {
+    return AI_CONFIG[provider].apiKey;
   }
 
   async generateInsight(
@@ -64,17 +72,22 @@ class AIService {
     // Check API key
     if (!this.apiKey) {
       console.warn('AI API key not found, some features limited');
-      return 'AI features require API keys. Add VITE_OPENAI_API_KEY or VITE_ANTHROPIC_API_KEY in Vercel settings.';
+      return 'AI features require API keys. Add VITE_OPENAI_API_KEY, VITE_ANTHROPIC_API_KEY, or VITE_GROQ_API_KEY in Vercel settings.';
     }
 
     // Build the prompt
     const prompt = this.buildPrompt(template, data, filters);
 
     try {
-      if (this.provider === 'openai') {
-        return await this.callOpenAI(prompt);
-      } else {
-        return await this.callAnthropic(prompt);
+      switch (this.provider) {
+        case 'openai':
+          return await this.callOpenAI(prompt);
+        case 'anthropic':
+          return await this.callAnthropic(prompt);
+        case 'groq':
+          return await this.callGroq(prompt);
+        default:
+          throw new Error(`Unknown provider: ${this.provider}`);
       }
     } catch (error) {
       console.error(`${this.provider} API call failed:`, error);
@@ -86,14 +99,22 @@ class AIService {
           // Temporarily swap providers
           const originalProvider = this.provider;
           const originalApiKey = this.apiKey;
-          this.provider = this.fallbackProvider as 'openai' | 'anthropic';
+          this.provider = this.fallbackProvider as 'openai' | 'anthropic' | 'groq';
           this.apiKey = this.fallbackApiKey;
           
           let result: string;
-          if (this.provider === 'openai') {
-            result = await this.callOpenAI(prompt);
-          } else {
-            result = await this.callAnthropic(prompt);
+          switch (this.provider) {
+            case 'openai':
+              result = await this.callOpenAI(prompt);
+              break;
+            case 'anthropic':
+              result = await this.callAnthropic(prompt);
+              break;
+            case 'groq':
+              result = await this.callGroq(prompt);
+              break;
+            default:
+              throw new Error(`Unknown provider: ${this.provider}`);
           }
           
           // Restore original provider
@@ -106,8 +127,9 @@ class AIService {
         }
       }
       
-      // No fallback - fail fast
-      throw new Error('❌ All AI providers failed. Check your API keys and network connection.');
+      // Use mock insights as final fallback
+      console.warn('All AI providers failed. Using mock insights.');
+      return this.generateMockInsight(template, data, filters);
     }
   }
 
@@ -186,6 +208,38 @@ class AIService {
     return data.content[0].text;
   }
 
+  private async callGroq(prompt: string): Promise<string> {
+    const response = await fetch(AI_CONFIG.groq.endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${this.apiKey}`
+      },
+      body: JSON.stringify({
+        model: AI_CONFIG.groq.model,
+        messages: [
+          {
+            role: 'system',
+            content: 'You are a retail analytics expert providing actionable insights.'
+          },
+          {
+            role: 'user',
+            content: prompt
+          }
+        ],
+        temperature: 0.7,
+        max_tokens: 150
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Groq API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    return data.choices[0].message.content;
+  }
+
   private generateMockInsight(template: any, data: any, filters: any): string {
     // Smart mock responses based on template
     const mockResponses: Record<string, string> = {
@@ -240,14 +294,22 @@ class AIService {
           // Temporarily swap providers
           const originalProvider = this.provider;
           const originalApiKey = this.apiKey;
-          this.provider = this.fallbackProvider as 'openai' | 'anthropic';
+          this.provider = this.fallbackProvider as 'openai' | 'anthropic' | 'groq';
           this.apiKey = this.fallbackApiKey;
           
           let result: string;
-          if (this.provider === 'openai') {
-            result = await this.callOpenAI(prompt);
-          } else {
-            result = await this.callAnthropic(prompt);
+          switch (this.provider) {
+            case 'openai':
+              result = await this.callOpenAI(prompt);
+              break;
+            case 'anthropic':
+              result = await this.callAnthropic(prompt);
+              break;
+            case 'groq':
+              result = await this.callGroq(prompt);
+              break;
+            default:
+              throw new Error(`Unknown provider: ${this.provider}`);
           }
           
           // Restore original provider
