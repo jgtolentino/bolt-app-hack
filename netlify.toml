@@ -1,12 +1,18 @@
 [[headers]]
-  for = "/data/*"
-  [headers.values]
-    Access-Control-Allow-Origin = "*"
-    Access-Control-Allow-Methods = "GET"
+for = "/data/*"
+
+[headers.values]
+Access-Control-Allow-Origin = "*"
+Access-Control-Allow-Methods = "GET"
 
 [[headers]]
-  for = "/geo/gadm41_PHL_1.json.gz"
-  [headers.values]
-    Content-Encoding = "gzip"
-    Content-Type = "application/json"
-    Access-Control-Allow-Origin = "*"
+for = "/geo/gadm41_PHL_1.json.gz"
+
+[headers.values]
+Content-Encoding = "gzip"
+Content-Type = "application/json"
+Access-Control-Allow-Origin = "*"
+
+[build]
+command = "npx vite build"
+publish = "dist"
