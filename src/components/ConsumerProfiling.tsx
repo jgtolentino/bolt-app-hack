@@ -1,8 +1,8 @@
 import React from 'react';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LabelList, Cell } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LabelList } from 'recharts';
 import { Users, UserCircle, MapPin, Activity } from 'lucide-react';
 import { Transaction } from '../utils/mockDataGenerator';
-import { CHART_COLORS, CHART_CONFIG, formatters } from '../utils/chartConfig';
+import { CHART_COLORS, CHART_CONFIG } from '../utils/chartConfig';
 
 interface ConsumerProfilingProps {
   transactions: Transaction[];
@@ -66,6 +66,52 @@ const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, fil
         count: ageCount.get(age)!,
         percentage: (ageCount.get(age)! / filteredTransactions.filter(t => t.customer_profile.age_bracket !== 'unknown').length) * 100
       }));
+  }, [filteredTransactions]);
+
+  // Calculate population pyramid data (age-gender distribution)
+  const populationPyramidData = React.useMemo(() => {
+    // Create age-gender matrix
+    const ageGenderMap = new Map<string, { male: number; female: number }>();
+    const ageOrder = ['55+', '45-54', '35-44', '25-34', '18-24']; // Reversed for pyramid (oldest on top)
+    
+    // Initialize all age groups
+    ageOrder.forEach(age => {
+      ageGenderMap.set(age, { male: 0, female: 0 });
+    });
+    
+    // Count by age and gender
+    filteredTransactions.forEach(t => {
+      if (t.customer_profile.age_bracket !== 'unknown' && t.customer_profile.gender !== 'unknown') {
+        const ageGroup = ageGenderMap.get(t.customer_profile.age_bracket);
+        if (ageGroup) {
+          if (t.customer_profile.gender === 'male') {
+            ageGroup.male++;
+          } else if (t.customer_profile.gender === 'female') {
+            ageGroup.female++;
+          }
+        }
+      }
+    });
+    
+    // Calculate total for percentage
+    const total = filteredTransactions.filter(t => 
+      t.customer_profile.age_bracket !== 'unknown' && 
+      t.customer_profile.gender !== 'unknown'
+    ).length;
+    
+    // Convert to pyramid format (male negative, female positive)
+    return ageOrder.map(age => {
+      const data = ageGenderMap.get(age)!;
+      return {
+        age,
+        male: total > 0 ? -(data.male / total) : 0, // Negative for left side
+        female: total > 0 ? (data.female / total) : 0, // Positive for right side
+        maleCount: data.male,
+        femaleCount: data.female,
+        malePercent: total > 0 ? (data.male / total) * 100 : 0,
+        femalePercent: total > 0 ? (data.female / total) * 100 : 0
+      };
+    });
   }, [filteredTransactions]);
 
   // Calculate geographic distribution
@@ -157,6 +203,30 @@ const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, fil
       .sort((a, b) => b.avgSpending - a.avgSpending);
   }, [filteredTransactions]);
 
+  // Find largest cohort from population pyramid
+  const largestCohort = React.useMemo(() => {
+    let largest = { demographic: '', percentage: 0, count: 0 };
+    
+    populationPyramidData.forEach(row => {
+      if (row.malePercent > largest.percentage) {
+        largest = {
+          demographic: `Male ${row.age}`,
+          percentage: row.malePercent,
+          count: row.maleCount
+        };
+      }
+      if (row.femalePercent > largest.percentage) {
+        largest = {
+          demographic: `Female ${row.age}`,
+          percentage: row.femalePercent,
+          count: row.femaleCount
+        };
+      }
+    });
+    
+    return largest;
+  }, [populationPyramidData]);
+
   // Calculate KPIs
   const kpis = React.useMemo(() => {
     const profiledCustomers = filteredTransactions.filter(t => 
@@ -247,40 +317,71 @@ const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, fil
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Gender Distribution */}
+        {/* Population Pyramid */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Gender Distribution</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Age-Gender Population Pyramid</h3>
           <ResponsiveContainer width="100%" height={300}>
             <BarChart 
-              data={genderData}
+              data={populationPyramidData}
               layout="horizontal"
-              margin={CHART_CONFIG.margin}
+              margin={{ ...CHART_CONFIG.margin, left: 50 }}
             >
               <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
-              <XAxis type="number" tickFormatter={formatters.number} />
-              <YAxis type="category" dataKey="name" width={80} />
+              <XAxis 
+                type="number" 
+                domain={[-0.15, 0.15]}
+                tickFormatter={(value) => `${Math.abs(value * 100).toFixed(0)}%`}
+                ticks={[-0.15, -0.10, -0.05, 0, 0.05, 0.10, 0.15]}
+              />
+              <YAxis 
+                type="category" 
+                dataKey="age" 
+                width={50}
+                tick={{ fontSize: 12 }}
+              />
               <Tooltip 
-                formatter={(value: number) => formatters.number(value)}
+                formatter={(value: number, name: string) => {
+                  const dataPoint = populationPyramidData.find(d => 
+                    (name === 'Male' && d.male === value) || 
+                    (name === 'Female' && d.female === value)
+                  );
+                  if (dataPoint) {
+                    const count = name === 'Male' ? dataPoint.maleCount : dataPoint.femaleCount;
+                    const percent = name === 'Male' ? dataPoint.malePercent : dataPoint.femalePercent;
+                    return [`${count} (${percent.toFixed(1)}%)`, name];
+                  }
+                  return [value, name];
+                }}
                 contentStyle={CHART_CONFIG.tooltip.contentStyle}
               />
-              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+              <Bar dataKey="male" name="Male" fill={CHART_COLORS.gender.male} stackId="gender">
                 <LabelList 
-                  dataKey="percentage" 
-                  position="right" 
-                  formatter={(value: number) => `${value.toFixed(1)}%`}
-                  style={{ fontSize: '14px', fontWeight: 600 }}
+                  dataKey="malePercent" 
+                  position="left" 
+                  formatter={(value: number) => value > 2 ? `${value.toFixed(0)}%` : ''}
+                  style={{ fontSize: '11px', fontWeight: 500, fill: '#374151' }}
                 />
-                {genderData.map((entry, index) => (
-                  <Cell 
-                    key={`cell-${index}`} 
-                    fill={entry.name === 'Male' ? CHART_COLORS.gender.male : 
-                          entry.name === 'Female' ? CHART_COLORS.gender.female : 
-                          CHART_COLORS.gender.unknown} 
-                  />
-                ))}
               </Bar>
+              <Bar dataKey="female" name="Female" fill={CHART_COLORS.gender.female} stackId="gender">
+                <LabelList 
+                  dataKey="femalePercent" 
+                  position="right" 
+                  formatter={(value: number) => value > 2 ? `${value.toFixed(0)}%` : ''}
+                  style={{ fontSize: '11px', fontWeight: 500, fill: '#374151' }}
+                />
+              </Bar>
+              <Legend 
+                verticalAlign="top"
+                height={30}
+                iconType="rect"
+              />
             </BarChart>
           </ResponsiveContainer>
+          <div className="mt-3 p-3 bg-blue-50 rounded text-sm">
+            <p className="text-blue-800">
+              <strong>Largest cohort:</strong> {largestCohort.demographic} ({largestCohort.percentage.toFixed(1)}% of profiled customers)
+            </p>
+          </div>
         </div>
 
         {/* Age Distribution */}
