@@ -1,7 +1,8 @@
 import React from 'react';
-import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, Sankey } from 'recharts';
+import { BarChart, Bar, Line, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { Package2, ShoppingCart, TrendingUp, RefreshCw } from 'lucide-react';
 import { Transaction } from '../utils/mockDataGenerator';
+import { CHART_COLORS, CHART_CONFIG, formatters } from '../utils/chartConfig';
 
 interface ProductMixSKUProps {
   transactions: Transaction[];
@@ -13,7 +14,7 @@ interface ProductMixSKUProps {
   };
 }
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6', '#EC4899', '#14B8A6', '#F97316'];
+// Remove this line - using colors from chartConfig instead
 
 const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) => {
   // Apply filters
@@ -52,6 +53,21 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
       .map(([name, value]) => ({ name, value }))
       .sort((a, b) => b.value - a.value);
   }, [filteredTransactions, filters]);
+
+  // Calculate Pareto data for categories
+  const categoryParetoData = React.useMemo(() => {
+    const totalValue = categoryData.reduce((sum, item) => sum + item.value, 0);
+    let cumulativeValue = 0;
+    
+    return categoryData.map(item => {
+      cumulativeValue += item.value;
+      return {
+        ...item,
+        percentage: totalValue > 0 ? (item.value / totalValue) * 100 : 0,
+        cumulativePercentage: totalValue > 0 ? (cumulativeValue / totalValue) * 100 : 0
+      };
+    });
+  }, [categoryData]);
 
   // Calculate brand breakdown
   const brandData = React.useMemo(() => {
@@ -105,37 +121,6 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
       .slice(0, 10);
   }, [filteredTransactions, filters]);
 
-  // Calculate basket mix data
-  const basketMixData = React.useMemo(() => {
-    const coOccurrenceMap = new Map<string, Map<string, number>>();
-    
-    filteredTransactions.forEach(t => {
-      const categories = [...new Set(t.items.map(item => item.category))];
-      
-      categories.forEach(cat1 => {
-        categories.forEach(cat2 => {
-          if (cat1 !== cat2) {
-            if (!coOccurrenceMap.has(cat1)) {
-              coOccurrenceMap.set(cat1, new Map());
-            }
-            const cat1Map = coOccurrenceMap.get(cat1)!;
-            cat1Map.set(cat2, (cat1Map.get(cat2) || 0) + 1);
-          }
-        });
-      });
-    });
-
-    const links: any[] = [];
-    coOccurrenceMap.forEach((targets, source) => {
-      targets.forEach((value, target) => {
-        if (value > 5) { // Only show significant relationships
-          links.push({ source, target, value });
-        }
-      });
-    });
-
-    return links;
-  }, [filteredTransactions]);
 
   // Calculate substitution patterns
   const substitutionData = React.useMemo(() => {
@@ -229,28 +214,57 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Category Breakdown */}
+        {/* Category Breakdown - Pareto Chart */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales by Category</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Sales by Category (Pareto Analysis)</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={categoryData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
-              >
-                {categoryData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+            <ComposedChart 
+              data={categoryParetoData}
+              margin={CHART_CONFIG.margin}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis 
+                dataKey="name" 
+                angle={-45}
+                textAnchor="end"
+                height={60}
+              />
+              <YAxis yAxisId="left" tickFormatter={formatters.currency} />
+              <YAxis yAxisId="right" orientation="right" tickFormatter={(value) => `${value}%`} />
+              <Tooltip 
+                formatter={(value: number, name: string) => {
+                  if (name === 'Revenue') return formatters.currency(value);
+                  return `${value.toFixed(1)}%`;
+                }}
+                contentStyle={CHART_CONFIG.tooltip.contentStyle}
+              />
+              <Bar yAxisId="left" dataKey="value" name="Revenue" fill={CHART_COLORS.primary[0]}>
+                <LabelList 
+                  dataKey="percentage" 
+                  position="top" 
+                  formatter={(value: number) => `${value.toFixed(0)}%`}
+                  style={{ fontSize: '12px', fontWeight: 600 }}
+                />
+                {categoryParetoData.map((entry, index) => (
+                  <Cell key={`cell-${index}`} fill={CHART_COLORS.categories[entry.name as keyof typeof CHART_COLORS.categories] || CHART_COLORS.primary[index % CHART_COLORS.primary.length]} />
                 ))}
-              </Pie>
-              <Tooltip formatter={(value: number) => `₱${value.toFixed(2)}`} />
-            </PieChart>
+              </Bar>
+              <Line 
+                yAxisId="right" 
+                type="monotone" 
+                dataKey="cumulativePercentage" 
+                name="Cumulative %" 
+                stroke={CHART_COLORS.danger}
+                strokeWidth={3}
+                dot={{ r: 4 }}
+              />
+            </ComposedChart>
           </ResponsiveContainer>
+          <p className="mt-2 text-sm text-gray-600 text-center">
+            {categoryParetoData.length > 0 && categoryParetoData[0].cumulativePercentage < 80 
+              ? `Top ${categoryParetoData.findIndex(c => c.cumulativePercentage >= 80) + 1} categories drive 80% of sales`
+              : 'Category distribution is well balanced'}
+          </p>
         </div>
 
         {/* Brand Performance */}
@@ -283,7 +297,7 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
-              {topSKUs.map((sku, index) => (
+              {topSKUs.map((sku) => (
                 <tr key={sku.sku}>
                   <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{sku.name}</td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{sku.brand}</td>

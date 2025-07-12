@@ -1,5 +1,5 @@
 // Mock data generator for Scout Dashboard v4.0
-import { format, subDays, addHours, startOfDay } from 'date-fns';
+import { subDays, addHours, startOfDay } from 'date-fns';
 
 export interface Transaction {
   id: string;
@@ -131,7 +131,7 @@ function generateAudioSignals(): AudioSignals {
   
   const requestType = randomElement(requestTypes);
   const influence = requestType === 'unbranded' ? 
-    randomElement(['high', 'medium']) : 
+    randomElement(['high', 'medium'] as AudioSignals['storeowner_influence'][]) : 
     randomElement(influences);
   
   return {
@@ -171,7 +171,7 @@ function generateTransactionItems(): TransactionItem[] {
       quantity: randomInt(1, 3),
       price: product.price,
       was_substituted: wasSubstituted,
-      original_request
+      original_request: originalRequest
     });
   }
   

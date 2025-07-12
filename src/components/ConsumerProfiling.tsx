@@ -1,7 +1,8 @@
 import React from 'react';
-import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LabelList, Cell } from 'recharts';
 import { Users, UserCircle, MapPin, Activity } from 'lucide-react';
 import { Transaction } from '../utils/mockDataGenerator';
+import { CHART_COLORS, CHART_CONFIG, formatters } from '../utils/chartConfig';
 
 interface ConsumerProfilingProps {
   transactions: Transaction[];
@@ -13,7 +14,6 @@ interface ConsumerProfilingProps {
   };
 }
 
-const COLORS = ['#3B82F6', '#EC4899', '#10B981', '#F59E0B', '#8B5CF6', '#EF4444'];
 
 const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, filters }) => {
   // Apply filters
@@ -251,23 +251,35 @@ const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, fil
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Gender Distribution</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={genderData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                label={({ name, percentage }) => `${name} ${percentage.toFixed(0)}%`}
-              >
+            <BarChart 
+              data={genderData}
+              layout="horizontal"
+              margin={CHART_CONFIG.margin}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis type="number" tickFormatter={formatters.number} />
+              <YAxis type="category" dataKey="name" width={80} />
+              <Tooltip 
+                formatter={(value: number) => formatters.number(value)}
+                contentStyle={CHART_CONFIG.tooltip.contentStyle}
+              />
+              <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+                <LabelList 
+                  dataKey="percentage" 
+                  position="right" 
+                  formatter={(value: number) => `${value.toFixed(1)}%`}
+                  style={{ fontSize: '14px', fontWeight: 600 }}
+                />
                 {genderData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.name === 'Male' ? '#3B82F6' : '#EC4899'} />
+                  <Cell 
+                    key={`cell-${index}`} 
+                    fill={entry.name === 'Male' ? CHART_COLORS.gender.male : 
+                          entry.name === 'Female' ? CHART_COLORS.gender.female : 
+                          CHART_COLORS.gender.unknown} 
+                  />
                 ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
+              </Bar>
+            </BarChart>
           </ResponsiveContainer>
         </div>
 
@@ -306,7 +318,7 @@ const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, fil
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Distribution</h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-          {geographicData.map((region, index) => (
+          {geographicData.map((region) => (
             <div key={region.region} className="bg-gray-50 rounded-lg p-4 text-center">
               <p className="text-sm font-medium text-gray-900">{region.region}</p>
               <p className="text-2xl font-bold text-blue-600">{region.count}</p>

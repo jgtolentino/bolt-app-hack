@@ -1,7 +1,8 @@
 import React from 'react';
-import { BarChart, Bar, LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, FunnelChart, Funnel, LabelList } from 'recharts';
+import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { Users, MessageCircle, UserCheck, ShoppingBag } from 'lucide-react';
 import { Transaction } from '../utils/mockDataGenerator';
+import { CHART_COLORS, CHART_CONFIG, formatters } from '../utils/chartConfig';
 
 interface ConsumerBehaviorProps {
   transactions: Transaction[];
@@ -12,7 +13,12 @@ interface ConsumerBehaviorProps {
   };
 }
 
-const COLORS = ['#3B82F6', '#10B981', '#F59E0B', '#EF4444', '#8B5CF6'];
+// Color mapping for request types
+const REQUEST_TYPE_COLORS = {
+  Branded: CHART_COLORS.primary[0],
+  Unbranded: CHART_COLORS.primary[1],
+  Generic: CHART_COLORS.primary[2]
+};
 
 const ConsumerBehavior: React.FC<ConsumerBehaviorProps> = ({ transactions, filters }) => {
   // Apply filters
@@ -41,6 +47,26 @@ const ConsumerBehavior: React.FC<ConsumerBehaviorProps> = ({ transactions, filte
     }));
   }, [filteredTransactions]);
 
+  // Request types by hour for stacked bar chart
+  const requestTypeByHour = React.useMemo(() => {
+    const hourlyData = Array(24).fill(0).map((_, hour) => ({
+      hour: `${hour.toString().padStart(2, '0')}:00`,
+      Branded: 0,
+      Unbranded: 0,
+      Generic: 0
+    }));
+
+    filteredTransactions.forEach(t => {
+      const hour = t.timestamp.getHours();
+      const type = t.audio_signals.request_type;
+      const formattedType = type.charAt(0).toUpperCase() + type.slice(1) as 'Branded' | 'Unbranded' | 'Generic';
+      hourlyData[hour][formattedType]++;
+    });
+
+    // Filter to only show hours with data
+    return hourlyData.filter(h => h.Branded + h.Unbranded + h.Generic > 0);
+  }, [filteredTransactions]);
+
   // Calculate store owner influence
   const storeOwnerInfluenceData = React.useMemo(() => {
     const influenceCount = new Map<string, number>();
@@ -57,26 +83,12 @@ const ConsumerBehavior: React.FC<ConsumerBehaviorProps> = ({ transactions, filte
     }));
   }, [filteredTransactions]);
 
-  // Calculate suggestion acceptance rate
-  const suggestionData = React.useMemo(() => {
-    const accepted = filteredTransactions.filter(t => t.audio_signals.suggestion_accepted).length;
-    const rejected = filteredTransactions.length - accepted;
-    
-    return [
-      { name: 'Accepted', value: accepted, percentage: (accepted / filteredTransactions.length) * 100 },
-      { name: 'Rejected', value: rejected, percentage: (rejected / filteredTransactions.length) * 100 }
-    ];
-  }, [filteredTransactions]);
 
   // Calculate purchase funnel
   const purchaseFunnelData = React.useMemo(() => {
     const total = filteredTransactions.length;
-    const withBrandedRequest = filteredTransactions.filter(t => t.audio_signals.request_type === 'branded').length;
     const withInfluence = filteredTransactions.filter(t => 
       t.audio_signals.storeowner_influence !== 'none'
-    ).length;
-    const withSubstitution = filteredTransactions.filter(t => 
-      t.items.some(item => item.was_substituted)
     ).length;
     const completed = total;
 
@@ -210,26 +222,37 @@ const ConsumerBehavior: React.FC<ConsumerBehaviorProps> = ({ transactions, filte
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Request Types */}
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Request Types</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Request Types by Hour</h3>
           <ResponsiveContainer width="100%" height={300}>
-            <PieChart>
-              <Pie
-                data={requestTypeData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-                label={({ name, percentage }) => `${name} ${percentage.toFixed(0)}%`}
-              >
-                {requestTypeData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                ))}
-              </Pie>
-              <Tooltip />
-            </PieChart>
+            <BarChart 
+              data={requestTypeByHour}
+              margin={CHART_CONFIG.margin}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+              <XAxis 
+                dataKey="hour" 
+                interval={2}
+                style={{ fontSize: '12px' }}
+              />
+              <YAxis />
+              <Tooltip 
+                contentStyle={CHART_CONFIG.tooltip.contentStyle}
+                formatter={(value: number) => formatters.number(value)}
+              />
+              <Legend />
+              <Bar dataKey="Branded" stackId="a" fill={REQUEST_TYPE_COLORS.Branded} />
+              <Bar dataKey="Unbranded" stackId="a" fill={REQUEST_TYPE_COLORS.Unbranded} />
+              <Bar dataKey="Generic" stackId="a" fill={REQUEST_TYPE_COLORS.Generic} />
+            </BarChart>
           </ResponsiveContainer>
+          <div className="mt-2 grid grid-cols-3 gap-4 text-sm">
+            {requestTypeData.map((type) => (
+              <div key={type.name} className="text-center">
+                <span className="font-medium">{type.name}:</span>
+                <span className="ml-1 text-gray-600">{type.percentage.toFixed(1)}%</span>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Store Owner Influence */}
@@ -240,7 +263,7 @@ const ConsumerBehavior: React.FC<ConsumerBehaviorProps> = ({ transactions, filte
               <CartesianGrid strokeDasharray="3 3" />
               <XAxis dataKey="name" />
               <YAxis tickFormatter={(value) => `${value}%`} />
-              <Tooltip formatter={(value: number, name: string) => [`${value.toFixed(0)}%`, 'Percentage']} />
+              <Tooltip formatter={(value: number) => [`${value.toFixed(0)}%`, 'Percentage']} />
               <Bar dataKey="percentage" fill="#10B981" />
             </BarChart>
           </ResponsiveContainer>
@@ -251,16 +274,25 @@ const ConsumerBehavior: React.FC<ConsumerBehaviorProps> = ({ transactions, filte
       <div className="bg-white rounded-lg shadow p-6">
         <h3 className="text-lg font-semibold text-gray-900 mb-4">Customer Purchase Journey</h3>
         <ResponsiveContainer width="100%" height={300}>
-          <FunnelChart>
-            <Tooltip />
-            <Funnel
-              dataKey="value"
-              data={purchaseFunnelData}
-              isAnimationActive
-            >
-              <LabelList position="center" fill="#fff" />
-            </Funnel>
-          </FunnelChart>
+          <BarChart 
+            data={purchaseFunnelData}
+            layout="horizontal"
+            margin={CHART_CONFIG.margin}
+          >
+            <CartesianGrid strokeDasharray="3 3" stroke="#f3f4f6" />
+            <XAxis type="number" />
+            <YAxis dataKey="name" type="category" width={120} />
+            <Tooltip 
+              formatter={(value: number) => formatters.number(value)}
+              contentStyle={CHART_CONFIG.tooltip.contentStyle}
+            />
+            <Bar dataKey="value" radius={[0, 4, 4, 0]}>
+              <LabelList dataKey="value" position="right" formatter={formatters.number} />
+              {purchaseFunnelData.map((entry, index) => (
+                <Cell key={`cell-${index}`} fill={entry.fill} />
+              ))}
+            </Bar>
+          </BarChart>
         </ResponsiveContainer>
       </div>
 

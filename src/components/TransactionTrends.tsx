@@ -1,5 +1,5 @@
 import React from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BoxPlot } from 'recharts';
+import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, startOfDay, isWeekend } from 'date-fns';
 import { TrendingUp, Clock, DollarSign, Package } from 'lucide-react';
 import { Transaction } from '../utils/mockDataGenerator';
