@@ -1,8 +1,9 @@
 import React from 'react';
 import { BarChart, Bar, Line, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { Package2, ShoppingCart, TrendingUp, RefreshCw } from 'lucide-react';
-// import { Transaction } from '../utils/mockDataGenerator';
 import { CHART_COLORS, CHART_CONFIG, formatters } from '../utils/chartConfig';
+import SubstitutionSankey from './charts/SubstitutionSankey';
+import { sqliteApiService } from '../services/sqliteApiService';
 
 interface ProductMixSKUProps {
   transactions: any[];
@@ -17,15 +18,30 @@ interface ProductMixSKUProps {
 // Remove this line - using colors from chartConfig instead
 
 const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) => {
+  const [substitutionData, setSubstitutionData] = React.useState<any[]>([]);
+  
+  // Load substitution data
+  React.useEffect(() => {
+    const loadSubstitutionData = async () => {
+      try {
+        const data = await sqliteApiService.getSubstitutionData();
+        setSubstitutionData(data);
+      } catch (error) {
+        console.error('Failed to load substitution data:', error);
+      }
+    };
+    loadSubstitutionData();
+  }, []);
+
   // Apply filters
   const filteredTransactions = React.useMemo(() => {
     return transactions.filter(t => {
-      if (filters.location && t.barangay !== filters.location && t.region !== filters.location) return false;
+      if (filters.location && t.stores?.barangay !== filters.location && t.stores?.region !== filters.location) return false;
       
       // Check if transaction contains filtered items
-      const hasFilteredItems = t.items.some(item => {
-        if (filters.brand && item.brand !== filters.brand) return false;
-        if (filters.category && item.category !== filters.category) return false;
+      const hasFilteredItems = (t.transaction_items || []).some((item: any) => {
+        if (filters.brand && item.brand_name !== filters.brand) return false;
+        if (filters.category && item.product_category !== filters.category) return false;
         if (filters.sku && item.sku_id !== filters.sku) return false;
         return true;
       });
@@ -39,11 +55,11 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
     const categoryMap = new Map<string, number>();
     
     filteredTransactions.forEach(t => {
-      t.items.forEach(item => {
-        if (!filters.brand || item.brand === filters.brand) {
+      (t.transaction_items || []).forEach((item: any) => {
+        if (!filters.brand || item.brand_name === filters.brand) {
           if (!filters.sku || item.sku_id === filters.sku) {
-            const current = categoryMap.get(item.category) || 0;
-            categoryMap.set(item.category, current + (item.quantity * item.price));
+            const current = categoryMap.get(item.product_category) || 0;
+            categoryMap.set(item.product_category, current + (item.quantity * item.unit_price));
           }
         }
       });
@@ -324,6 +340,14 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
               <Bar dataKey="count" fill="#F59E0B" name="Substitutions" />
             </BarChart>
           </ResponsiveContainer>
+        </div>
+      )}
+
+      {/* Product Substitution Flow - Sankey Diagram */}
+      {substitutionData.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Substitution Flow</h3>
+          <SubstitutionSankey substitutionData={substitutionData} />
         </div>
       )}
 

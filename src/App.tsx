@@ -5,7 +5,7 @@ import ProductMixSKU from './components/ProductMixSKU';
 import ConsumerBehavior from './components/ConsumerBehavior';
 import ConsumerProfiling from './components/ConsumerProfiling';
 import AIRecommendationPanel from './components/AIRecommendationPanel';
-import { sqliteDataService } from './services/sqliteDataService';
+import { sqliteApiService } from './services/sqliteApiService';
 
 function App() {
   const [activeModule, setActiveModule] = useState<'trends' | 'products' | 'behavior' | 'profiling'>('trends');
@@ -38,7 +38,7 @@ function App() {
       setLoading(true);
       setError(null);
       
-      const data = await sqliteDataService.getTransactionTrends();
+      const data = await sqliteApiService.getTransactionTrends();
       setTransactions(data);
       
     } catch (err) {
@@ -91,7 +91,7 @@ function App() {
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">Scout Dashboard v4.0.1</h1>
-              <span className="ml-3 text-sm text-gray-500">Philippine Sari-Sari Store Analytics</span>
+              <span className="ml-3 text-sm text-gray-500">Philippine Sari-Sari Store Analytics • Real SQLite Database (50k transactions)</span>
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}

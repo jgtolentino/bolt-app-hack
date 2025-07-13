@@ -2,7 +2,9 @@ import React from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, startOfDay, isWeekend } from 'date-fns';
 import { TrendingUp, Clock, DollarSign, Package } from 'lucide-react';
-// import { TransactionWithDetails } from '../services/sqliteDashboardService';
+import BoxPlot from './charts/BoxPlot';
+import TransactionHeatmap from './charts/TransactionHeatmap';
+import DayToggle from './charts/DayToggle';
 
 interface TransactionTrendsProps {
   transactions: any[];
@@ -233,38 +235,47 @@ const TransactionTrends: React.FC<TransactionTrendsProps> = ({ transactions, fil
         </ResponsiveContainer>
       </div>
 
-      {/* Duration Distribution Box Plot */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-lg font-semibold text-gray-900 mb-4">Transaction Duration Distribution</h3>
-        <div className="flex items-center space-x-8">
-          <div className="flex-1">
-            <p className="text-sm text-gray-600">Distribution Statistics (seconds)</p>
-            {durationData.length > 0 && (
-              <div className="mt-2 grid grid-cols-5 gap-4 text-center">
-                <div>
-                  <p className="text-xs text-gray-500">Min</p>
-                  <p className="font-semibold">{durationData[0].min}s</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Q1</p>
-                  <p className="font-semibold">{durationData[0].q1}s</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Median</p>
-                  <p className="font-semibold">{durationData[0].median}s</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Q3</p>
-                  <p className="font-semibold">{durationData[0].q3}s</p>
-                </div>
-                <div>
-                  <p className="text-xs text-gray-500">Max</p>
-                  <p className="font-semibold">{durationData[0].max}s</p>
-                </div>
-              </div>
-            )}
-          </div>
+      {/* Advanced Visualizations */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Box Plot for Transaction Values */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Transaction Value Distribution</h3>
+          <BoxPlot 
+            data={filteredTransactions.map(t => t.final_amount || 0)}
+            title="Transaction Values (₱)"
+            yAxisLabel="Amount (₱)"
+            color="#10B981"
+          />
         </div>
+
+        {/* Box Plot for Duration */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Transaction Duration Distribution</h3>
+          <BoxPlot 
+            data={filteredTransactions.map(t => t.duration_seconds || 0)}
+            title="Duration (seconds)"
+            yAxisLabel="Seconds"
+            color="#8B5CF6"
+          />
+        </div>
+      </div>
+
+      {/* Transaction Heatmap */}
+      <div className="bg-white rounded-lg shadow p-6">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-lg font-semibold text-gray-900">Transaction Activity Heatmap</h3>
+          <DayToggle 
+            filter={filters.weekVsWeekend || 'all'} 
+            setFilter={(value) => {
+              // This would need to be passed down from parent component
+              console.log('Filter changed to:', value);
+            }} 
+          />
+        </div>
+        <TransactionHeatmap 
+          transactions={filteredTransactions}
+          metric="count"
+        />
       </div>
 
       {/* AI Insight */}

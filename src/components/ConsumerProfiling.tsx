@@ -1,8 +1,9 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LabelList } from 'recharts';
 import { Users, UserCircle, MapPin, Activity } from 'lucide-react';
-// import { Transaction } from '../utils/mockDataGenerator';
 import { CHART_COLORS, CHART_CONFIG } from '../utils/chartConfig';
+import GeographicHeatmap from './charts/GeographicHeatmap';
+import { sqliteApiService } from '../services/sqliteApiService';
 
 interface ConsumerProfilingProps {
   transactions: any[];
@@ -16,13 +17,28 @@ interface ConsumerProfilingProps {
 
 
 const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, filters }) => {
+  const [geographicData, setGeographicData] = React.useState<any[]>([]);
+  
+  // Load geographic data
+  React.useEffect(() => {
+    const loadGeographicData = async () => {
+      try {
+        const data = await sqliteApiService.getGeographicData();
+        setGeographicData(data);
+      } catch (error) {
+        console.error('Failed to load geographic data:', error);
+      }
+    };
+    loadGeographicData();
+  }, []);
+
   // Apply filters
   const filteredTransactions = React.useMemo(() => {
     return transactions.filter(t => {
-      if (filters.gender && t.customer_profile.gender !== filters.gender) return false;
-      if (filters.ageGroup && t.customer_profile.age_bracket !== filters.ageGroup) return false;
-      if (filters.category && !t.items.some(item => item.category === filters.category)) return false;
-      if (filters.brand && !t.items.some(item => item.brand === filters.brand)) return false;
+      if (filters.gender && t.customers?.gender !== filters.gender) return false;
+      if (filters.ageGroup && t.customers?.age_bracket !== filters.ageGroup) return false;
+      if (filters.category && !(t.transaction_items || []).some((item: any) => item.product_category === filters.category)) return false;
+      if (filters.brand && !(t.transaction_items || []).some((item: any) => item.brand_name === filters.brand)) return false;
       return true;
     });
   }, [transactions, filters]);
@@ -32,17 +48,17 @@ const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, fil
     const genderCount = new Map<string, number>();
     
     filteredTransactions.forEach(t => {
-      if (t.customer_profile.gender !== 'unknown') {
-        genderCount.set(t.customer_profile.gender, 
-          (genderCount.get(t.customer_profile.gender) || 0) + 1
-        );
+      const gender = t.customers?.gender;
+      if (gender && gender !== 'unknown') {
+        genderCount.set(gender, (genderCount.get(gender) || 0) + 1);
       }
     });
 
+    const validTransactions = filteredTransactions.filter(t => t.customers?.gender && t.customers.gender !== 'unknown');
     return Array.from(genderCount.entries()).map(([gender, count]) => ({
       name: gender.charAt(0).toUpperCase() + gender.slice(1),
       value: count,
-      percentage: (count / filteredTransactions.filter(t => t.customer_profile.gender !== 'unknown').length) * 100
+      percentage: validTransactions.length > 0 ? (count / validTransactions.length) * 100 : 0
     }));
   }, [filteredTransactions]);
 
@@ -51,10 +67,9 @@ const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, fil
     const ageCount = new Map<string, number>();
     
     filteredTransactions.forEach(t => {
-      if (t.customer_profile.age_bracket !== 'unknown') {
-        ageCount.set(t.customer_profile.age_bracket, 
-          (ageCount.get(t.customer_profile.age_bracket) || 0) + 1
-        );
+      const age = t.customers?.age_bracket;
+      if (age && age !== 'unknown') {
+        ageCount.set(age, (ageCount.get(age) || 0) + 1);
       }
     });
 
@@ -455,6 +470,14 @@ const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, fil
           </table>
         </div>
       </div>
+
+      {/* Geographic Distribution Heatmap */}
+      {geographicData.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Distribution</h3>
+          <GeographicHeatmap geographicData={geographicData} />
+        </div>
+      )}
 
       {/* AI Insight */}
       <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-lg p-6">
