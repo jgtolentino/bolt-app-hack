@@ -130,7 +130,7 @@ export class KeyKeyAgent {
   /**
    * Validate permissions for a request
    */
-  private async validatePermissions(request: any): Promise<any> {
+  private async validatePermissions(_request: any): Promise<any> {
     // Check if requesting agent has necessary permissions
     const agentStats = await this.mcp.getStats()
     
@@ -214,7 +214,7 @@ export class KeyKeyAgent {
   /**
    * Provide auth guidance
    */
-  private async provideAuthGuidance(request: any): Promise<any> {
+  private async provideAuthGuidance(_request: any): Promise<any> {
     return {
       action: 'auth_guidance',
       guidance: [

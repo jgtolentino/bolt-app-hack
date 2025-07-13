@@ -84,7 +84,7 @@ async function testMCPIntegration() {
       console.log('✅ Tool executed successfully')
       console.log('   Result:', toolResult.content[0]?.text?.substring(0, 100) + '...')
     } catch (error) {
-      console.log('⚠️  Tool execution failed (expected if no test data):', error.message)
+      console.log('⚠️  Tool execution failed (expected if no test data):', error instanceof Error ? error.message : String(error))
     }
 
     // Test 5: Test Agent Stats

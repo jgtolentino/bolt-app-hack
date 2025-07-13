@@ -99,9 +99,9 @@ const TransactionHeatmap: React.FC<TransactionHeatmapProps> = ({
 
       <div style={{ height: '400px' }}>
         <ResponsiveHeatMap
-          data={heatmapData}
+          data={heatmapData as any}
           margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
-          valueFormat={(value) => {
+          valueFormat={(value: number) => {
             if (metric === 'count') return `${value}`;
             return `₱${value.toFixed(2)}`;
           }}
@@ -128,8 +128,7 @@ const TransactionHeatmap: React.FC<TransactionHeatmapProps> = ({
               return `${hour - 12}PM`;
             }
           }}
-          cellOpacity={1}
-          cellBorderColor={{ from: 'color', modifiers: [['darker', 0.4]] }}
+          borderColor={{ from: 'color', modifiers: [['darker', 0.4]] }}
           labelTextColor={{ from: 'color', modifiers: [['darker', 1.8]] }}
           colors={{
             type: 'sequential',

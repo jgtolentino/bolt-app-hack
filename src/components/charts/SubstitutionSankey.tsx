@@ -143,17 +143,18 @@ const SubstitutionSankey: React.FC<SubstitutionSankeyProps> = ({
             return label.length > 20 ? label.substring(0, 20) + '...' : label;
           }}
           nodeTooltip={(nodeData) => {
+            const nodeId = nodeData.node.id as string;
             const incoming = sankeyData.links
-              .filter(l => l.target === nodeData.id)
+              .filter(l => l.target === nodeId)
               .reduce((sum, l) => sum + l.value, 0);
             const outgoing = sankeyData.links
-              .filter(l => l.source === nodeData.id)
+              .filter(l => l.source === nodeId)
               .reduce((sum, l) => sum + l.value, 0);
             
             return (
               <div className="bg-white shadow-lg rounded px-3 py-2 text-sm">
                 <div className="font-semibold">
-                  {nodeData.id.replace(/^(brand_|product_)/, '').replace('_retained', ' (Retained)')}
+                  {nodeId.replace(/^(brand_|product_)/, '').replace('_retained', ' (Retained)')}
                 </div>
                 {incoming > 0 && (
                   <div className="text-gray-600">Incoming: {incoming.toLocaleString()}</div>

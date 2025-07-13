@@ -35,7 +35,7 @@ async function checkAgents() {
   })
 
   // Check tools
-  const { data: tools, error: toolsError } = await supabase
+  const { data: tools, error: _toolsError } = await supabase
     .from('mcp_tools')
     .select('*')
 

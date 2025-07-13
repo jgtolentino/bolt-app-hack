@@ -155,7 +155,7 @@ export class ClaudiaAgent {
 
   private async handleDirectly(
     conversationId: string,
-    message: string
+    _message: string
   ): Promise<string> {
     // Execute general query tool
     const result = await this.mcp.executeTool('query_data', {

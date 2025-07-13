@@ -32,7 +32,7 @@ async function testDatabase() {
 
   for (const table of tables) {
     try {
-      const { data, error } = await supabase
+      const { data: _data, error } = await supabase
         .from(table)
         .select('*')
         .limit(1)
@@ -79,9 +79,9 @@ async function testDatabase() {
 
   for (const func of edgeFunctions) {
     try {
-      const { data, error } = await supabase.functions.invoke(func, {
+      const { data: _data, error } = await supabase.functions.invoke(func, {
         body: {},
-        method: 'OPTIONS'
+        method: 'POST' as const
       })
       
       if (error) {

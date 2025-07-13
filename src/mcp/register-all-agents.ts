@@ -42,7 +42,7 @@ async function registerAllAgents() {
       }
 
       // Use upsert to handle conflicts gracefully
-      const { data, error } = await supabase
+      const { data: _data, error } = await supabase
         .from('mcp_agents')
         .upsert({
           name: agent.name,
