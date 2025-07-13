@@ -1,0 +1,13 @@
+# SOPS configuration for secret encryption
+# Uses age for encryption (simple and secure)
+
+creation_rules:
+  # Encrypt all secret files with age
+  - path_regex: secrets\.enc\.ya?ml$
+    age: >-
+      age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p
+  
+  # Encrypt env files
+  - path_regex: \.env\.enc$
+    age: >-
+      age1ql3z7hjy54pw3hyww5ayyfg7zqgvc7w3j2elw8zmrj2kg5sfn9aqmcac8p

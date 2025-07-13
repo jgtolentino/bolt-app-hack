@@ -1,6 +1,6 @@
 import React from 'react';
 import { ResponsiveHeatMap } from '@nivo/heatmap';
-import { format, startOfWeek, addDays } from 'date-fns';
+import { format } from 'date-fns';
 
 interface TransactionHeatmapProps {
   transactions: Array<{
@@ -17,66 +17,68 @@ const TransactionHeatmap: React.FC<TransactionHeatmapProps> = ({
   const heatmapData = React.useMemo(() => {
     // Initialize data structure
     const dayNames = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const hourKeys = Array.from({ length: 24 }, (_, i) => i.toString());
     
-    // Create initial structure with all days and hours
-    const dataMap = new Map<string, Map<number, { count: number; value: number }>>();
-    dayNames.forEach(day => {
-      const hourMap = new Map<number, { count: number; value: number }>();
-      for (let hour = 0; hour < 24; hour++) {
-        hourMap.set(hour, { count: 0, value: 0 });
-      }
-      dataMap.set(day, hourMap);
+    // Create hour keys for the heatmap
+    const hours = Array.from({ length: 24 }, (_, i) => ({
+      id: i.toString(),
+      data: [] as Array<{ x: string; y: number }>
+    }));
+    
+    // Initialize data with zeros
+    dayNames.forEach((day) => {
+      hours.forEach((hour) => {
+        hour.data.push({ 
+          x: day, 
+          y: 0 
+        });
+      });
     });
 
     // Populate with transaction data
     transactions.forEach(transaction => {
       const dayName = format(transaction.timestamp, 'EEEE');
       const hour = transaction.timestamp.getHours();
+      const dayIndex = dayNames.indexOf(dayName);
       
-      const dayData = dataMap.get(dayName);
-      if (dayData) {
-        const hourData = dayData.get(hour) || { count: 0, value: 0 };
-        hourData.count += 1;
-        hourData.value += transaction.transaction_value;
-        dayData.set(hour, hourData);
+      if (dayIndex !== -1 && hours[hour]) {
+        const dataPoint = hours[hour].data[dayIndex];
+        if (metric === 'count') {
+          dataPoint.y += 1;
+        } else if (metric === 'value') {
+          dataPoint.y += transaction.transaction_value;
+        } else { // average - we'll need to track count separately
+          // For simplicity, we'll accumulate and divide later
+          dataPoint.y += transaction.transaction_value;
+        }
       }
     });
 
-    // Convert to Nivo format
-    return dayNames.map(day => {
-      const dayData = dataMap.get(day)!;
-      const row: any = { day };
+    // If metric is average, we need to divide by count
+    if (metric === 'average') {
+      const countMap = new Map<string, number>();
       
-      hourKeys.forEach(hourKey => {
-        const hour = parseInt(hourKey);
-        const hourData = dayData.get(hour) || { count: 0, value: 0 };
-        
-        if (metric === 'count') {
-          row[hourKey] = hourData.count;
-        } else if (metric === 'value') {
-          row[hourKey] = hourData.value;
-        } else { // average
-          row[hourKey] = hourData.count > 0 ? hourData.value / hourData.count : 0;
-        }
+      // First pass: count transactions
+      transactions.forEach(transaction => {
+        const dayName = format(transaction.timestamp, 'EEEE');
+        const hour = transaction.timestamp.getHours();
+        const key = `${dayName}-${hour}`;
+        countMap.set(key, (countMap.get(key) || 0) + 1);
       });
       
-      return row;
-    });
-  }, [transactions, metric]);
+      // Second pass: convert sums to averages
+      hours.forEach((hour, hourIndex) => {
+        hour.data.forEach((dataPoint, dayIndex) => {
+          const key = `${dayNames[dayIndex]}-${hourIndex}`;
+          const count = countMap.get(key) || 0;
+          if (count > 0) {
+            dataPoint.y = dataPoint.y / count;
+          }
+        });
+      });
+    }
 
-  // Calculate max value for color scale
-  const maxValue = React.useMemo(() => {
-    let max = 0;
-    heatmapData.forEach(row => {
-      Object.keys(row).forEach(key => {
-        if (key !== 'day' && row[key] > max) {
-          max = row[key];
-        }
-      });
-    });
-    return max;
-  }, [heatmapData]);
+    return hours;
+  }, [transactions, metric]);
 
   const metricLabels = {
     count: 'Number of Transactions',
@@ -98,25 +100,17 @@ const TransactionHeatmap: React.FC<TransactionHeatmapProps> = ({
       <div style={{ height: '400px' }}>
         <ResponsiveHeatMap
           data={heatmapData}
-          keys={Array.from({ length: 24 }, (_, i) => i.toString())}
-          indexBy="day"
           margin={{ top: 60, right: 90, bottom: 60, left: 90 }}
-          forceSquare={true}
+          valueFormat={(value) => {
+            if (metric === 'count') return `${value}`;
+            return `₱${value.toFixed(2)}`;
+          }}
           axisTop={{
             tickSize: 5,
             tickPadding: 5,
-            tickRotation: 0,
-            legend: '',
-            legendOffset: 46,
-            format: (value) => {
-              const hour = parseInt(value);
-              if (hour % 3 === 0) {
-                return hour === 0 ? '12AM' : 
-                       hour === 12 ? '12PM' : 
-                       hour < 12 ? `${hour}AM` : `${hour-12}PM`;
-              }
-              return '';
-            }
+            tickRotation: -45,
+            legend: 'Day of Week',
+            legendOffset: -40
           }}
           axisRight={null}
           axisBottom={null}
@@ -124,40 +118,22 @@ const TransactionHeatmap: React.FC<TransactionHeatmapProps> = ({
             tickSize: 5,
             tickPadding: 5,
             tickRotation: 0,
-            legend: '',
-            legendOffset: -40
+            legend: 'Hour of Day',
+            legendOffset: -70,
+            format: (value) => {
+              const hour = parseInt(value);
+              if (hour === 0) return '12AM';
+              if (hour === 12) return '12PM';
+              if (hour < 12) return `${hour}AM`;
+              return `${hour - 12}PM`;
+            }
           }}
           cellOpacity={1}
           cellBorderColor={{ from: 'color', modifiers: [['darker', 0.4]] }}
           labelTextColor={{ from: 'color', modifiers: [['darker', 1.8]] }}
-          tooltip={({ xKey, yKey, value, color }) => {
-            const hour = parseInt(xKey);
-            const hourLabel = hour === 0 ? '12:00 AM' : 
-                            hour === 12 ? '12:00 PM' : 
-                            hour < 12 ? `${hour}:00 AM` : `${hour-12}:00 PM`;
-            
-            return (
-              <div className="bg-white shadow-lg rounded px-3 py-2 text-sm">
-                <div className="font-semibold">{yKey} at {hourLabel}</div>
-                <div className="flex items-center gap-2 mt-1">
-                  <div 
-                    className="w-3 h-3 rounded" 
-                    style={{ backgroundColor: color }}
-                  />
-                  <span>
-                    {metric === 'count' ? `${value} transactions` :
-                     metric === 'value' ? `₱${value.toFixed(2)}` :
-                     `₱${value.toFixed(2)} avg`}
-                  </span>
-                </div>
-              </div>
-            );
-          }}
           colors={{
             type: 'sequential',
-            scheme: 'blues',
-            minValue: 0,
-            maxValue: maxValue
+            scheme: 'blues'
           }}
           emptyColor="#f3f4f6"
           legends={[

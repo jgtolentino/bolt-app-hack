@@ -142,30 +142,27 @@ const SubstitutionSankey: React.FC<SubstitutionSankeyProps> = ({
             const label = node.id.replace(/^(brand_|product_)/, '').replace('_retained', '');
             return label.length > 20 ? label.substring(0, 20) + '...' : label;
           }}
-          tooltip={({ node }) => {
-            if (node) {
-              const incoming = sankeyData.links
-                .filter(l => l.target === node.id)
-                .reduce((sum, l) => sum + l.value, 0);
-              const outgoing = sankeyData.links
-                .filter(l => l.source === node.id)
-                .reduce((sum, l) => sum + l.value, 0);
-              
-              return (
-                <div className="bg-white shadow-lg rounded px-3 py-2 text-sm">
-                  <div className="font-semibold">
-                    {node.id.replace(/^(brand_|product_)/, '').replace('_retained', ' (Retained)')}
-                  </div>
-                  {incoming > 0 && (
-                    <div className="text-gray-600">Incoming: {incoming.toLocaleString()}</div>
-                  )}
-                  {outgoing > 0 && (
-                    <div className="text-gray-600">Outgoing: {outgoing.toLocaleString()}</div>
-                  )}
+          nodeTooltip={(nodeData) => {
+            const incoming = sankeyData.links
+              .filter(l => l.target === nodeData.id)
+              .reduce((sum, l) => sum + l.value, 0);
+            const outgoing = sankeyData.links
+              .filter(l => l.source === nodeData.id)
+              .reduce((sum, l) => sum + l.value, 0);
+            
+            return (
+              <div className="bg-white shadow-lg rounded px-3 py-2 text-sm">
+                <div className="font-semibold">
+                  {nodeData.id.replace(/^(brand_|product_)/, '').replace('_retained', ' (Retained)')}
                 </div>
-              );
-            }
-            return null;
+                {incoming > 0 && (
+                  <div className="text-gray-600">Incoming: {incoming.toLocaleString()}</div>
+                )}
+                {outgoing > 0 && (
+                  <div className="text-gray-600">Outgoing: {outgoing.toLocaleString()}</div>
+                )}
+              </div>
+            );
           }}
         />
       </div>

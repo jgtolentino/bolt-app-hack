@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, startOfDay, isWeekend } from 'date-fns';
-import { TrendingUp, Clock, DollarSign, Package, BarChart3, HeatmapIcon, BoxIcon } from 'lucide-react';
+import { TrendingUp, Clock, DollarSign, Package, BarChart3, Grid3x3 as HeatmapIcon, BoxIcon } from 'lucide-react';
 import { Transaction } from '../utils/mockDataGenerator';
 
 // Import new chart components

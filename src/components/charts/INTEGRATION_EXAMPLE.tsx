@@ -1,13 +1,13 @@
-import React from 'react';
 import TransactionTrendsEnhanced from '../TransactionTrendsEnhanced';
 import SubstitutionSankey from './SubstitutionSankey';
 import GeographicHeatmap from './GeographicHeatmap';
+import { Transaction } from '../../utils/mockDataGenerator';
 
 // Example integration showing all new v4.0 components
 
 const DashboardV4Example = () => {
   // Mock data - replace with actual data from your API/database
-  const transactions = [
+  const transactions: Transaction[] = [
     // Your transaction data
   ];
 

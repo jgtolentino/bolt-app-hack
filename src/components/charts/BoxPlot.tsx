@@ -62,7 +62,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({
         data={[
           {
             y: data,
-            type: 'box',
+            type: 'box' as const,
             name: yAxisLabel,
             marker: { 
               color: color,
@@ -72,10 +72,10 @@ const BoxPlot: React.FC<BoxPlotProps> = ({
                 outlierwidth: 2
               }
             },
-            boxpoints: 'outliers',
+            boxpoints: 'outliers' as const,
             jitter: 0.3,
             pointpos: -1.8,
-            boxmean: 'sd',
+            boxmean: 'sd' as const,
             hovertemplate: '%{y}<extra></extra>'
           }
         ]}
@@ -84,7 +84,9 @@ const BoxPlot: React.FC<BoxPlotProps> = ({
           height: 400,
           margin: { t: 20, r: 20, b: 40, l: 60 },
           yaxis: {
-            title: yAxisLabel,
+            title: {
+              text: yAxisLabel
+            },
             tickformat: ',.0f',
             tickprefix: '₱'
           },
@@ -93,7 +95,7 @@ const BoxPlot: React.FC<BoxPlotProps> = ({
           },
           paper_bgcolor: 'rgba(0,0,0,0)',
           plot_bgcolor: 'rgba(0,0,0,0)',
-          hovermode: 'closest'
+          hovermode: 'closest' as const
         }}
         config={{
           displayModeBar: false,

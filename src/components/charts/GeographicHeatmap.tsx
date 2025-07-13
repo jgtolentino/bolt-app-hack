@@ -24,7 +24,6 @@ const GeographicHeatmap: React.FC<GeographicHeatmapProps> = ({
   metric = 'value',
   mapboxToken = process.env.NEXT_PUBLIC_MAPBOX_TOKEN || ''
 }) => {
-  const [hoveredRegion, setHoveredRegion] = React.useState<RegionData | null>(null);
   const [popupInfo, setPopupInfo] = React.useState<{
     longitude: number;
     latitude: number;
@@ -123,21 +122,7 @@ const GeographicHeatmap: React.FC<GeographicHeatmapProps> = ({
           style={{ width: '100%', height: '100%' }}
           mapStyle="mapbox://styles/mapbox/light-v11"
           interactiveLayerIds={['region-fill']}
-          onMouseEnter={(e) => {
-            const feature = e.features?.[0];
-            if (feature && feature.properties) {
-              setHoveredRegion({
-                id: feature.properties.id,
-                name: feature.properties.name,
-                value: feature.properties.value,
-                transactions: feature.properties.transactions,
-                customers: feature.properties.customers,
-                avgBasketSize: feature.properties.avgBasketSize
-              });
-            }
-          }}
-          onMouseLeave={() => setHoveredRegion(null)}
-          onClick={(e) => {
+          onClick={(e: any) => {
             const feature = e.features?.[0];
             if (feature && feature.properties) {
               const coordinates = e.lngLat;
@@ -177,12 +162,7 @@ const GeographicHeatmap: React.FC<GeographicHeatmapProps> = ({
                     colorScale.max,
                     '#084594'
                   ],
-                  'fill-opacity': [
-                    'case',
-                    ['boolean', ['feature-state', 'hover'], false],
-                    0.8,
-                    0.6
-                  ]
+                  'fill-opacity': 0.7
                 }}
               />
               <Layer
@@ -190,12 +170,7 @@ const GeographicHeatmap: React.FC<GeographicHeatmapProps> = ({
                 type="line"
                 paint={{
                   'line-color': '#000',
-                  'line-width': [
-                    'case',
-                    ['boolean', ['feature-state', 'hover'], false],
-                    2,
-                    0.5
-                  ]
+                  'line-width': 1
                 }}
               />
             </Source>

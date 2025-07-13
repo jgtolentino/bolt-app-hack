@@ -1,0 +1,169 @@
+# MCP Agent Status Report
+# Generated: 2024-07-02T20:00:00Z
+
+deployment:
+  database:
+    status: deployed
+    timestamp: 2024-07-02T19:45:00Z
+    tables_created:
+      - mcp_agents
+      - mcp_contexts
+      - mcp_tools
+      - mcp_messages
+      - mcp_resources
+      - mcp_prompts
+      - mcp_agent_tools
+      - mcp_agent_resources
+    rpc_functions: 
+      - mcp_register_agent
+      - mcp_get_agent
+      - mcp_store_context
+      - mcp_get_context
+      - mcp_log_message
+      - mcp_get_conversation
+      - mcp_execute_tool
+      - mcp_send_agent_message
+      - mcp_get_agent_stats
+  edge_functions:
+    status: pending
+    functions:
+      - name: mcp-register-agent
+        status: not_deployed
+      - name: mcp-store-context  
+        status: not_deployed
+      - name: mcp-execute-tool
+        status: not_deployed
+      - name: mcp-send-message
+        status: not_deployed
+
+agents:
+  claudia:
+    id: auto-generated
+    status: active
+    mcp_compatible: true
+    category: system
+    capabilities:
+      model: claude-3-sonnet
+      max_tokens: 4096
+      temperature: 0.7
+    permissions: []
+    description: "Claude-powered assistant for complex tasks"
+    
+  gagambi:
+    id: auto-generated
+    status: active
+    mcp_compatible: true
+    category: enrichment
+    capabilities:
+      data_sources: 
+        - supabase
+        - external_apis
+      batch_processing: true
+    permissions: []
+    description: "Data enrichment and analytics agent"
+    
+  keykey:
+    id: auto-generated
+    status: active
+    mcp_compatible: true
+    category: system
+    capabilities:
+      auth_methods:
+        - jwt
+        - oauth
+        - api_key
+      encryption: true
+    permissions: []
+    description: "Authentication and security agent"
+    
+  iggy:
+    id: auto-generated
+    status: active
+    mcp_compatible: true
+    category: dashboard
+    capabilities:
+      visualization: true
+      ml_models:
+        - regression
+        - clustering
+    permissions: []
+    description: "Insight generation agent"
+    
+  tess:
+    id: auto-generated
+    status: active
+    mcp_compatible: true
+    category: qa
+    capabilities:
+      test_types:
+        - unit
+        - integration
+        - e2e
+      coverage_threshold: 80
+    permissions: []
+    description: "Testing and QA agent"
+
+tools:
+  query_data:
+    type: rpc
+    input_schema:
+      type: object
+      properties:
+        table:
+          type: string
+        filters:
+          type: object
+    output_schema:
+      type: array
+      items:
+        type: object
+        
+  generate_insight:
+    type: edge_function
+    input_schema:
+      type: object
+      properties:
+        data:
+          type: array
+        analysis_type:
+          type: string
+    output_schema:
+      type: object
+      properties:
+        insight:
+          type: string
+        confidence:
+          type: number
+          
+  send_notification:
+    type: external_api
+    input_schema:
+      type: object
+      properties:
+        recipient:
+          type: string
+        message:
+          type: string
+    output_schema:
+      type: object
+      properties:
+        success:
+          type: boolean
+        message_id:
+          type: string
+
+issues:
+  - type: rls_policy
+    table: mcp_messages
+    error: "infinite recursion detected"
+    fix: "Run fix-mcp-messages-rls.sql"
+  - type: edge_functions
+    status: not_deployed
+    reason: "CLI timeout - deploy manually via dashboard"
+
+next_steps:
+  - description: "Fix RLS policy recursion"
+    command: "Run fix-mcp-messages-rls.sql in SQL editor"
+  - description: "Deploy edge functions"
+    method: "Manual via Supabase dashboard"
+    url: "https://supabase.com/dashboard/project/baqlxgwdfjltivlfmsbr/functions"

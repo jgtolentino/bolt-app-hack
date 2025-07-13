@@ -1,0 +1,712 @@
+[
+  {
+    "name": "claudia",
+    "description": "Claude-powered assistant for complex tasks and routing",
+    "category": "system",
+    "capabilities": {
+      "model": "claude-3-sonnet",
+      "max_tokens": 4096,
+      "temperature": 0.7,
+      "tools": ["generate_insight", "send_notification"],
+      "memory_scope": "global",
+      "permissions": ["read", "write", "route"]
+    }
+  },
+  {
+    "name": "gagambi",
+    "description": "Data enrichment and analytics agent",
+    "category": "enrichment",
+    "capabilities": {
+      "data_sources": ["supabase", "external_apis"],
+      "batch_processing": true,
+      "tools": ["query_data"],
+      "memory_scope": "project",
+      "permissions": ["read", "enrich"]
+    }
+  },
+  {
+    "name": "keykey",
+    "description": "Authentication and security agent",
+    "category": "system",
+    "capabilities": {
+      "auth_methods": ["jwt", "oauth", "api_key"],
+      "encryption": true,
+      "tools": ["lockdown"],
+      "memory_scope": "none",
+      "permissions": ["write", "secure"]
+    }
+  },
+  {
+    "name": "iggy",
+    "description": "Insight generation agent",
+    "category": "dashboard",
+    "capabilities": {
+      "visualization": true,
+      "ml_models": ["regression", "clustering"],
+      "tools": ["generate_insight"],
+      "memory_scope": "session",
+      "permissions": ["read", "analyze"]
+    }
+  },
+  {
+    "name": "tess",
+    "description": "Testing and QA agent",
+    "category": "qa",
+    "capabilities": {
+      "test_types": ["unit", "integration", "e2e"],
+      "coverage_threshold": 80,
+      "tools": ["validate_output", "check_consistency"],
+      "memory_scope": "job",
+      "permissions": ["read", "verify"]
+    }
+  },
+  {
+    "name": "dash",
+    "description": "Data visualization agent",
+    "category": "dashboard",
+    "capabilities": {
+      "chart_types": ["line", "bar", "pie", "scatter"],
+      "tools": ["query_data", "render_chart"],
+      "memory_scope": "session",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "echo",
+    "description": "Audio processing and transcription agent",
+    "category": "enrichment",
+    "capabilities": {
+      "audio_formats": ["mp3", "wav", "m4a"],
+      "tools": ["transcribe_audio"],
+      "memory_scope": "transient",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "yummy",
+    "description": "Creative content analysis agent",
+    "category": "enrichment",
+    "capabilities": {
+      "analysis_types": ["sentiment", "emotion", "style"],
+      "tools": ["analyze_creative"],
+      "memory_scope": "project",
+      "permissions": ["read", "score"]
+    }
+  },
+  {
+    "name": "learnbot",
+    "description": "Tutorial and onboarding agent",
+    "category": "system",
+    "capabilities": {
+      "tutorial_types": ["interactive", "video", "text"],
+      "tools": ["fetch_tip", "show_onboarding"],
+      "memory_scope": "session",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "retailbot",
+    "description": "Retail analytics specialist",
+    "category": "dashboard",
+    "capabilities": {
+      "metrics": ["sales", "inventory", "customer"],
+      "tools": ["query_kpi", "predict_sales"],
+      "memory_scope": "session",
+      "permissions": ["read", "predict"]
+    }
+  },
+  {
+    "name": "cesai",
+    "description": "Creative effectiveness scoring agent",
+    "category": "enrichment",
+    "capabilities": {
+      "scoring_models": ["attention", "emotion", "recall"],
+      "tools": ["score_creative", "extract_mood"],
+      "memory_scope": "session",
+      "permissions": ["read", "score"]
+    }
+  },
+  {
+    "name": "devstral",
+    "description": "Development orchestration agent",
+    "category": "system",
+    "capabilities": {
+      "orchestration": true,
+      "tools": ["dispatch_task", "reassign_agent"],
+      "memory_scope": "global",
+      "permissions": ["read", "write", "execute"]
+    }
+  },
+  {
+    "name": "basher",
+    "description": "System command executor",
+    "category": "system",
+    "capabilities": {
+      "command_types": ["bash", "ssh", "docker"],
+      "tools": ["run_ssh", "restart_docker"],
+      "memory_scope": "secure",
+      "permissions": ["execute", "write"]
+    }
+  },
+  {
+    "name": "caca",
+    "description": "Code analysis and QA agent",
+    "category": "qa",
+    "capabilities": {
+      "analysis_types": ["syntax", "style", "security"],
+      "tools": ["validate_output", "check_consistency"],
+      "memory_scope": "job",
+      "permissions": ["read", "verify"]
+    }
+  },
+  {
+    "name": "kalaw",
+    "description": "Entity modeling and taxonomy agent",
+    "category": "enrichment",
+    "capabilities": {
+      "entity_types": ["person", "org", "product", "location"],
+      "tools": ["tag_entity", "update_taxonomy"],
+      "memory_scope": "project",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "tide",
+    "description": "Backend model switching agent",
+    "category": "system",
+    "capabilities": {
+      "model_types": ["openai", "anthropic", "local"],
+      "tools": ["switch_model", "check_latency"],
+      "memory_scope": "transient",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "arkie",
+    "description": "Automated SDR and sales agent",
+    "category": "enrichment",
+    "capabilities": {
+      "sales_stages": ["prospecting", "qualifying", "nurturing"],
+      "tools": ["generate_pitch", "schedule_followup"],
+      "memory_scope": "client",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "plato",
+    "description": "Welcome and mascot agent",
+    "category": "system",
+    "capabilities": {
+      "greeting_types": ["welcome", "goodbye", "help"],
+      "tools": ["welcome_user"],
+      "memory_scope": "none",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "edge",
+    "description": "Sales edge and lead qualification",
+    "category": "enrichment",
+    "capabilities": {
+      "qualification_criteria": ["budget", "authority", "need", "timeline"],
+      "tools": ["qualify_lead", "fetch_cta"],
+      "memory_scope": "session",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "snowwhite",
+    "description": "White-labeling and branding agent",
+    "category": "system",
+    "capabilities": {
+      "branding_elements": ["logo", "colors", "fonts", "copy"],
+      "tools": ["apply_branding", "update_logo"],
+      "memory_scope": "project",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "datuputi",
+    "description": "Master data management agent",
+    "category": "system",
+    "capabilities": {
+      "data_domains": ["customer", "product", "location", "finance"],
+      "tools": ["sync_master_data"],
+      "memory_scope": "enterprise",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "stacey",
+    "description": "Full-stack development agent",
+    "category": "system",
+    "capabilities": {
+      "stack": ["react", "node", "postgres", "docker"],
+      "tools": ["build_ui", "patch_api"],
+      "memory_scope": "project",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "vibetestbot",
+    "description": "System debugging and health checks",
+    "category": "qa",
+    "capabilities": {
+      "check_types": ["api", "database", "cache", "queue"],
+      "tools": ["log_error", "run_healthcheck"],
+      "memory_scope": "session",
+      "permissions": ["read", "log"]
+    }
+  },
+  {
+    "name": "remi",
+    "description": "Idea curation and brainstorming",
+    "category": "enrichment",
+    "capabilities": {
+      "ideation_methods": ["mindmap", "scamper", "random_word"],
+      "tools": ["generate_concepts"],
+      "memory_scope": "session",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "djshuas",
+    "description": "Sound and music composition",
+    "category": "enrichment",
+    "capabilities": {
+      "audio_types": ["jingle", "background", "effects"],
+      "tools": ["compose_jingle"],
+      "memory_scope": "session",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "orb",
+    "description": "Narration and voiceover generation",
+    "category": "enrichment",
+    "capabilities": {
+      "voice_styles": ["professional", "casual", "dramatic"],
+      "tools": ["generate_voiceover"],
+      "memory_scope": "session",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "roselle",
+    "description": "Emotion and sentiment analysis",
+    "category": "enrichment",
+    "capabilities": {
+      "emotion_types": ["joy", "sadness", "anger", "fear", "surprise"],
+      "tools": ["analyze_sentiment"],
+      "memory_scope": "session",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "lana",
+    "description": "Strategy evaluation and planning",
+    "category": "dashboard",
+    "capabilities": {
+      "strategy_frameworks": ["swot", "porter", "blue_ocean"],
+      "tools": ["score_strategy"],
+      "memory_scope": "project",
+      "permissions": ["read", "score"]
+    }
+  },
+  {
+    "name": "iris",
+    "description": "Computer vision and image analysis",
+    "category": "enrichment",
+    "capabilities": {
+      "detection_types": ["object", "face", "text", "scene"],
+      "tools": ["detect_objects", "tag_image"],
+      "memory_scope": "image",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "aura",
+    "description": "Mood detection and atmosphere analysis",
+    "category": "enrichment",
+    "capabilities": {
+      "mood_categories": ["energetic", "calm", "tense", "joyful"],
+      "tools": ["detect_mood"],
+      "memory_scope": "session",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "queenphi",
+    "description": "Strategic advisor and consultant",
+    "category": "system",
+    "capabilities": {
+      "advice_domains": ["business", "technical", "creative"],
+      "tools": ["give_advice"],
+      "memory_scope": "session",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "mariantrivera",
+    "description": "Creative effectiveness architect",
+    "category": "enrichment",
+    "capabilities": {
+      "evaluation_criteria": ["impact", "recall", "emotion", "clarity"],
+      "tools": ["judge_brief"],
+      "memory_scope": "project",
+      "permissions": ["read", "score"]
+    }
+  },
+  {
+    "name": "rica",
+    "description": "Research and insights coordinator",
+    "category": "enrichment",
+    "capabilities": {
+      "research_types": ["market", "user", "competitive"],
+      "tools": ["gather_insights"],
+      "memory_scope": "project",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "tala",
+    "description": "Task allocation and workload balancer",
+    "category": "system",
+    "capabilities": {
+      "allocation_strategies": ["round_robin", "skill_based", "load_based"],
+      "tools": ["allocate_task"],
+      "memory_scope": "global",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "toni",
+    "description": "Time tracking and productivity monitor",
+    "category": "dashboard",
+    "capabilities": {
+      "tracking_metrics": ["time", "efficiency", "focus"],
+      "tools": ["track_time"],
+      "memory_scope": "session",
+      "permissions": ["read", "log"]
+    }
+  },
+  {
+    "name": "lea",
+    "description": "Learning and training facilitator",
+    "category": "system",
+    "capabilities": {
+      "training_formats": ["video", "interactive", "quiz"],
+      "tools": ["create_lesson"],
+      "memory_scope": "session",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "kath",
+    "description": "Knowledge base and documentation manager",
+    "category": "system",
+    "capabilities": {
+      "doc_types": ["api", "user_guide", "faq"],
+      "tools": ["update_docs"],
+      "memory_scope": "global",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "jake",
+    "description": "Just-in-time compiler and optimizer",
+    "category": "system",
+    "capabilities": {
+      "optimization_types": ["speed", "memory", "battery"],
+      "tools": ["optimize_code"],
+      "memory_scope": "job",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "surf",
+    "description": "Web scraping and data extraction",
+    "category": "enrichment",
+    "capabilities": {
+      "scraping_targets": ["html", "api", "pdf"],
+      "tools": ["scrape_web"],
+      "memory_scope": "session",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "winsurf",
+    "description": "Windows automation and UI testing",
+    "category": "qa",
+    "capabilities": {
+      "automation_types": ["click", "type", "screenshot"],
+      "tools": ["automate_ui"],
+      "memory_scope": "session",
+      "permissions": ["execute"]
+    }
+  },
+  {
+    "name": "pulser",
+    "description": "Pulse monitoring and alerting",
+    "category": "system",
+    "capabilities": {
+      "monitor_types": ["heartbeat", "metrics", "logs"],
+      "tools": ["check_pulse"],
+      "memory_scope": "global",
+      "permissions": ["read", "alert"]
+    }
+  },
+  {
+    "name": "codex",
+    "description": "Code generation and documentation",
+    "category": "system",
+    "capabilities": {
+      "languages": ["javascript", "python", "java", "go"],
+      "tools": ["generate_code"],
+      "memory_scope": "project",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "visualsynth",
+    "description": "Visual synthesis and generative art",
+    "category": "enrichment",
+    "capabilities": {
+      "art_styles": ["abstract", "realistic", "surreal"],
+      "tools": ["generate_visual"],
+      "memory_scope": "session",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "deckgen",
+    "description": "Presentation deck generator",
+    "category": "enrichment",
+    "capabilities": {
+      "deck_types": ["pitch", "report", "training"],
+      "tools": ["generate_slide"],
+      "memory_scope": "project",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "feedback",
+    "description": "Feedback collection and analysis",
+    "category": "qa",
+    "capabilities": {
+      "feedback_types": ["survey", "rating", "comment"],
+      "tools": ["collect_feedback"],
+      "memory_scope": "session",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "layoutoptimizer",
+    "description": "UI layout optimization",
+    "category": "system",
+    "capabilities": {
+      "optimization_goals": ["conversion", "usability", "aesthetics"],
+      "tools": ["optimize_layout"],
+      "memory_scope": "project",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "nlpparser",
+    "description": "Natural language parsing and understanding",
+    "category": "enrichment",
+    "capabilities": {
+      "parsing_types": ["intent", "entity", "syntax"],
+      "tools": ["parse_text"],
+      "memory_scope": "session",
+      "permissions": ["read"]
+    }
+  },
+  {
+    "name": "previewengine",
+    "description": "Preview generation and rendering",
+    "category": "system",
+    "capabilities": {
+      "preview_formats": ["image", "video", "3d"],
+      "tools": ["generate_preview"],
+      "memory_scope": "session",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "templatemanager",
+    "description": "Template management and customization",
+    "category": "system",
+    "capabilities": {
+      "template_types": ["email", "landing", "report"],
+      "tools": ["manage_template"],
+      "memory_scope": "project",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "uieditor",
+    "description": "Visual UI editor and builder",
+    "category": "system",
+    "capabilities": {
+      "component_types": ["form", "table", "chart", "layout"],
+      "tools": ["edit_ui"],
+      "memory_scope": "project",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "deployer",
+    "description": "Deployment automation and CI/CD",
+    "category": "system",
+    "capabilities": {
+      "deployment_targets": ["aws", "vercel", "docker"],
+      "tools": ["deploy_app"],
+      "memory_scope": "project",
+      "permissions": ["execute"]
+    }
+  },
+  {
+    "name": "slideforge",
+    "description": "Advanced slide creation and animation",
+    "category": "enrichment",
+    "capabilities": {
+      "animation_types": ["fade", "slide", "zoom", "morph"],
+      "tools": ["forge_slide"],
+      "memory_scope": "project",
+      "permissions": ["write"]
+    }
+  },
+  {
+    "name": "reviewer",
+    "description": "Code and content review automation",
+    "category": "qa",
+    "capabilities": {
+      "review_types": ["code", "content", "design"],
+      "tools": ["review_changes"],
+      "memory_scope": "job",
+      "permissions": ["read", "comment"]
+    }
+  },
+  {
+    "name": "zohomailmcp",
+    "description": "Zoho Mail integration and automation",
+    "category": "system",
+    "capabilities": {
+      "mail_operations": ["send", "receive", "filter", "label"],
+      "tools": ["manage_mail"],
+      "memory_scope": "session",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "taskrouter",
+    "description": "Intelligent task routing and prioritization",
+    "category": "system",
+    "capabilities": {
+      "routing_algorithms": ["priority", "skills", "availability"],
+      "tools": ["route_task"],
+      "memory_scope": "global",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "promptexecutor",
+    "description": "Dynamic prompt execution and chaining",
+    "category": "system",
+    "capabilities": {
+      "execution_modes": ["sequential", "parallel", "conditional"],
+      "tools": ["execute_prompt"],
+      "memory_scope": "session",
+      "permissions": ["execute"]
+    }
+  },
+  {
+    "name": "authzoho",
+    "description": "Zoho authentication and SSO handler",
+    "category": "system",
+    "capabilities": {
+      "auth_flows": ["oauth", "saml", "jwt"],
+      "tools": ["authenticate"],
+      "memory_scope": "secure",
+      "permissions": ["authenticate"]
+    }
+  },
+  {
+    "name": "acistyle",
+    "description": "ACI style guide enforcer",
+    "category": "qa",
+    "capabilities": {
+      "style_rules": ["naming", "formatting", "structure"],
+      "tools": ["enforce_style"],
+      "memory_scope": "project",
+      "permissions": ["read", "validate"]
+    }
+  },
+  {
+    "name": "collaborationagent",
+    "description": "Multi-agent collaboration coordinator",
+    "category": "system",
+    "capabilities": {
+      "collaboration_modes": ["sequential", "parallel", "consensus"],
+      "tools": ["coordinate_agents"],
+      "memory_scope": "global",
+      "permissions": ["read", "write", "coordinate"]
+    }
+  },
+  {
+    "name": "agentprogrammer",
+    "description": "Agent behavior programming and customization",
+    "category": "system",
+    "capabilities": {
+      "programming_paradigms": ["declarative", "reactive", "event_driven"],
+      "tools": ["program_agent"],
+      "memory_scope": "global",
+      "permissions": ["write", "configure"]
+    }
+  },
+  {
+    "name": "manus",
+    "description": "Manual process automation",
+    "category": "system",
+    "capabilities": {
+      "automation_targets": ["forms", "reports", "workflows"],
+      "tools": ["automate_manual"],
+      "memory_scope": "project",
+      "permissions": ["execute"]
+    }
+  },
+  {
+    "name": "same",
+    "description": "Similarity and duplicate detection",
+    "category": "qa",
+    "capabilities": {
+      "similarity_types": ["text", "image", "code"],
+      "tools": ["detect_duplicate"],
+      "memory_scope": "project",
+      "permissions": ["read", "analyze"]
+    }
+  },
+  {
+    "name": "voicecalendar",
+    "description": "Voice-activated calendar management",
+    "category": "system",
+    "capabilities": {
+      "calendar_ops": ["schedule", "reschedule", "remind"],
+      "tools": ["manage_calendar"],
+      "memory_scope": "user",
+      "permissions": ["read", "write"]
+    }
+  },
+  {
+    "name": "claude",
+    "description": "Claude API integration wrapper",
+    "category": "system",
+    "capabilities": {
+      "claude_models": ["claude-3-opus", "claude-3-sonnet", "claude-3-haiku"],
+      "tools": ["call_claude"],
+      "memory_scope": "session",
+      "permissions": ["execute"]
+    }
+  }
+]

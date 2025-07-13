@@ -1,0 +1,158 @@
+version: '3.8'
+
+# Secure Docker Compose configuration with proper secret handling
+# Never put secrets in environment variables or build args
+
+secrets:
+  # Frontend only needs public keys
+  supabase_url:
+    file: ./secrets/SUPABASE_URL
+  supabase_anon_key:
+    file: ./secrets/SUPABASE_ANON_KEY
+  
+  # API service secrets (never exposed to frontend)
+  supabase_service_key:
+    file: ./secrets/SUPABASE_SERVICE_ROLE_KEY
+  openai_key:
+    file: ./secrets/OPENAI_API_KEY
+  anthropic_key:
+    file: ./secrets/ANTHROPIC_API_KEY
+  groq_key:
+    file: ./secrets/GROQ_API_KEY
+  jwt_secret:
+    file: ./secrets/JWT_SECRET
+  
+  # Database secrets
+  db_password:
+    file: ./secrets/DB_PASSWORD
+
+services:
+  # Frontend - only public keys
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        # Build-time args are OK for public values
+        - VITE_APP_VERSION=${VERSION:-1.0.0}
+    ports:
+      - "5173:5173"
+    environment:
+      # Public values only
+      - NODE_ENV=production
+    secrets:
+      - supabase_url
+      - supabase_anon_key
+    volumes:
+      # Mount secrets as files, read at runtime
+      - type: tmpfs
+        target: /app/secrets
+    command: |
+      sh -c '
+        # Read secrets into env at runtime (not build time)
+        export VITE_SUPABASE_URL=$$(cat /run/secrets/supabase_url)
+        export VITE_SUPABASE_ANON_KEY=$$(cat /run/secrets/supabase_anon_key)
+        npm run preview
+      '
+    networks:
+      - app-network
+
+  # API service - has access to service keys
+  api:
+    build:
+      context: ./bolt-api
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+    secrets:
+      - supabase_service_key
+      - openai_key
+      - anthropic_key
+      - groq_key
+      - jwt_secret
+    # Read secrets from files at runtime
+    entrypoint: |
+      sh -c '
+        # Export secrets as env vars at runtime
+        export SUPABASE_SERVICE_ROLE_KEY=$$(cat /run/secrets/supabase_service_key)
+        export OPENAI_API_KEY=$$(cat /run/secrets/openai_key)
+        export ANTHROPIC_API_KEY=$$(cat /run/secrets/anthropic_key)
+        export GROQ_API_KEY=$$(cat /run/secrets/groq_key)
+        export JWT_SECRET=$$(cat /run/secrets/jwt_secret)
+        node dist/index.js
+      '
+    depends_on:
+      - postgres
+    networks:
+      - app-network
+      - db-network
+
+  # Database
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      - POSTGRES_DB=scout
+      - POSTGRES_USER=postgres
+    secrets:
+      - db_password
+    # Set password from secret file
+    entrypoint: |
+      sh -c '
+        export POSTGRES_PASSWORD=$$(cat /run/secrets/db_password)
+        docker-entrypoint.sh postgres
+      '
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - db-network
+
+  # Migration runner (one-time container)
+  migrate:
+    build:
+      context: ./bolt-db
+      dockerfile: Dockerfile.migrate
+    secrets:
+      - db_password
+      - supabase_service_key
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_NAME=scout
+      - DATABASE_USER=postgres
+    entrypoint: |
+      sh -c '
+        # Wait for database
+        until pg_isready -h postgres -U postgres; do
+          echo "Waiting for database..."
+          sleep 2
+        done
+        
+        # Run migrations with password from secret
+        export PGPASSWORD=$$(cat /run/secrets/db_password)
+        export SUPABASE_SERVICE_ROLE_KEY=$$(cat /run/secrets/supabase_service_key)
+        
+        npm run migrate
+      '
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - db-network
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  app-network:
+    driver: bridge
+  db-network:
+    driver: bridge
+    internal: true  # Database network is internal only
