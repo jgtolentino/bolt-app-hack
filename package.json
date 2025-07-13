@@ -9,7 +9,11 @@
     "preview": "vite preview",
     "generate:synthetic": "node scripts/generateSyntheticData.js 50000 data/comprehensive_transactions.csv",
     "build:location": "node scripts/buildLocationDimension.js",
-    "build:location-simple": "node scripts/buildLocationDimensionSimple.js"
+    "build:location-simple": "node scripts/buildLocationDimensionSimple.js",
+    "deploy:supabase": "node scripts/deploy-to-supabase.js",
+    "generate:data": "python scripts/fmcg-tobacco-generator.py",
+    "load:data": "python scripts/postgres-data-loader.py comprehensive_fmcg_tobacco.csv",
+    "setup:database": "npm run deploy:supabase && npm run generate:data"
   },
   "dependencies": {
     "@nivo/core": "^0.99.0",

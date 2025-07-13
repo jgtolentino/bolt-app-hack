@@ -5,12 +5,15 @@ import ProductMixSKU from './components/ProductMixSKU';
 import ConsumerBehavior from './components/ConsumerBehavior';
 import ConsumerProfiling from './components/ConsumerProfiling';
 import AIRecommendationPanel from './components/AIRecommendationPanel';
-import { generateMockData, Transaction } from './utils/mockDataGenerator';
+import { dashboardService } from './services/dashboardService';
+import type { TransactionWithDetails } from './services/dashboardService';
 
 function App() {
   const [activeModule, setActiveModule] = useState<'trends' | 'products' | 'behavior' | 'profiling'>('trends');
   const [showFilters, setShowFilters] = useState(false);
-  const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [transactions, setTransactions] = useState<TransactionWithDetails[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Filters state
   const [filters, setFilters] = useState({
@@ -26,11 +29,26 @@ function App() {
     ageGroup: ''
   });
 
-  // Generate mock data on mount
+  // Load data from Supabase
   useEffect(() => {
-    const mockData = generateMockData(30);
-    setTransactions(mockData);
+    loadData();
   }, []);
+
+  const loadData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const data = await dashboardService.getTransactionTrends();
+      setTransactions(data);
+      
+    } catch (err) {
+      console.error('Failed to load data:', err);
+      setError('Failed to load dashboard data. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // Get unique values for filters
   const filterOptions = React.useMemo(() => {
