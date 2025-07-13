@@ -1,6 +1,6 @@
 {
   "name": "scout-dashboard",
-  "version": "4.0.1",
+  "version": "4.0.2",
   "description": "AI-powered analytics platform for Philippine sari-sari store interactions",
   "type": "module",
   "scripts": {
