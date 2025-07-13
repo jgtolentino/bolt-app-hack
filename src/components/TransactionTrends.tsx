@@ -2,10 +2,10 @@ import React from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import { format, startOfDay, isWeekend } from 'date-fns';
 import { TrendingUp, Clock, DollarSign, Package } from 'lucide-react';
-import { Transaction } from '../utils/mockDataGenerator';
+// import { TransactionWithDetails } from '../services/sqliteDashboardService';
 
 interface TransactionTrendsProps {
-  transactions: Transaction[];
+  transactions: any[];
   filters: {
     timeOfDay?: string;
     region?: string;
@@ -19,11 +19,11 @@ const TransactionTrends: React.FC<TransactionTrendsProps> = ({ transactions, fil
   // Apply filters
   const filteredTransactions = React.useMemo(() => {
     return transactions.filter(t => {
-      if (filters.region && t.region !== filters.region) return false;
-      if (filters.barangay && t.barangay !== filters.barangay) return false;
-      if (filters.category && !t.items.some(item => item.category === filters.category)) return false;
+      if (filters.region && t.stores?.region !== filters.region) return false;
+      if (filters.barangay && t.stores?.barangay !== filters.barangay) return false;
+      if (filters.category && !t.transaction_items?.some((item: any) => item.products?.product_category === filters.category)) return false;
       if (filters.weekVsWeekend !== 'all') {
-        const isWeekendDay = isWeekend(t.timestamp);
+        const isWeekendDay = isWeekend(new Date(t.timestamp));
         if (filters.weekVsWeekend === 'week' && isWeekendDay) return false;
         if (filters.weekVsWeekend === 'weekend' && !isWeekendDay) return false;
       }
@@ -34,19 +34,19 @@ const TransactionTrends: React.FC<TransactionTrendsProps> = ({ transactions, fil
   // Calculate KPIs
   const kpis = React.useMemo(() => {
     const totalTransactions = filteredTransactions.length;
-    const totalValue = filteredTransactions.reduce((sum, t) => sum + t.transaction_value, 0);
+    const totalValue = filteredTransactions.reduce((sum, t) => sum + (t.final_amount || 0), 0);
     const avgValue = totalTransactions > 0 ? totalValue / totalTransactions : 0;
-    const avgDuration = filteredTransactions.reduce((sum, t) => sum + t.duration_seconds, 0) / totalTransactions || 0;
-    const totalUnits = filteredTransactions.reduce((sum, t) => sum + t.units, 0);
+    const avgDuration = filteredTransactions.reduce((sum, t) => sum + (t.duration_seconds || 0), 0) / totalTransactions || 0;
+    const totalUnits = filteredTransactions.reduce((sum, t) => sum + (t.units_total || 0), 0);
 
     // Calculate trends (comparing last 7 days vs previous 7 days)
     const now = new Date();
     const last7Days = filteredTransactions.filter(t => 
-      t.timestamp >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      new Date(t.timestamp) >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     );
     const prev7Days = filteredTransactions.filter(t => 
-      t.timestamp >= new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000) &&
-      t.timestamp < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+      new Date(t.timestamp) >= new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000) &&
+      new Date(t.timestamp) < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
     );
 
     const volumeTrend = prev7Days.length > 0 ? 

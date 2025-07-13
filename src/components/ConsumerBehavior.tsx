@@ -1,11 +1,11 @@
 import React from 'react';
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { Users, MessageCircle, UserCheck, ShoppingBag } from 'lucide-react';
-import { Transaction } from '../utils/mockDataGenerator';
+// import { Transaction } from '../utils/mockDataGenerator';
 import { CHART_COLORS, CHART_CONFIG, formatters } from '../utils/chartConfig';
 
 interface ConsumerBehaviorProps {
-  transactions: Transaction[];
+  transactions: any[];
   filters: {
     category?: string;
     brand?: string;
@@ -24,9 +24,9 @@ const ConsumerBehavior: React.FC<ConsumerBehaviorProps> = ({ transactions, filte
   // Apply filters
   const filteredTransactions = React.useMemo(() => {
     return transactions.filter(t => {
-      if (filters.barangay && t.barangay !== filters.barangay) return false;
-      if (filters.category && !t.items.some(item => item.category === filters.category)) return false;
-      if (filters.brand && !t.items.some(item => item.brand === filters.brand)) return false;
+      if (filters.barangay && t.stores?.barangay !== filters.barangay) return false;
+      if (filters.category && !t.transaction_items?.some((item: any) => item.products?.product_category === filters.category)) return false;
+      if (filters.brand && !t.transaction_items?.some((item: any) => item.products?.brands?.brand_name === filters.brand)) return false;
       return true;
     });
   }, [transactions, filters]);
@@ -106,7 +106,7 @@ const ConsumerBehavior: React.FC<ConsumerBehaviorProps> = ({ transactions, filte
     const cuesMap = new Map<string, number>();
     
     filteredTransactions.forEach(t => {
-      t.audio_signals.indirect_cues.forEach(cue => {
+      (t.audio_signals?.indirect_cues || []).forEach((cue: any) => {
         cuesMap.set(cue, (cuesMap.get(cue) || 0) + 1);
       });
     });

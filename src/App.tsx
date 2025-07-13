@@ -5,7 +5,7 @@ import ProductMixSKU from './components/ProductMixSKU';
 import ConsumerBehavior from './components/ConsumerBehavior';
 import ConsumerProfiling from './components/ConsumerProfiling';
 import AIRecommendationPanel from './components/AIRecommendationPanel';
-import { dashboardService } from './services/dashboardService';
+import { sqliteDataService } from './services/sqliteDataService';
 
 function App() {
   const [activeModule, setActiveModule] = useState<'trends' | 'products' | 'behavior' | 'profiling'>('trends');
@@ -38,7 +38,7 @@ function App() {
       setLoading(true);
       setError(null);
       
-      const data = await dashboardService.getTransactionTrends();
+      const data = await sqliteDataService.getTransactionTrends();
       setTransactions(data);
       
     } catch (err) {

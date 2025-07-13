@@ -1,11 +1,11 @@
 import React from 'react';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, RadarChart, Radar, PolarGrid, PolarAngleAxis, PolarRadiusAxis, LabelList } from 'recharts';
 import { Users, UserCircle, MapPin, Activity } from 'lucide-react';
-import { Transaction } from '../utils/mockDataGenerator';
+// import { Transaction } from '../utils/mockDataGenerator';
 import { CHART_COLORS, CHART_CONFIG } from '../utils/chartConfig';
 
 interface ConsumerProfilingProps {
-  transactions: Transaction[];
+  transactions: any[];
   filters: {
     gender?: '' | 'male' | 'female';
     ageGroup?: string;

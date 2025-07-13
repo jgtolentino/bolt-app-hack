@@ -1,11 +1,11 @@
 import React from 'react';
 import { BarChart, Bar, Line, ComposedChart, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, LabelList, Cell } from 'recharts';
 import { Package2, ShoppingCart, TrendingUp, RefreshCw } from 'lucide-react';
-import { Transaction } from '../utils/mockDataGenerator';
+// import { Transaction } from '../utils/mockDataGenerator';
 import { CHART_COLORS, CHART_CONFIG, formatters } from '../utils/chartConfig';
 
 interface ProductMixSKUProps {
-  transactions: Transaction[];
+  transactions: any[];
   filters: {
     brand?: string;
     category?: string;
