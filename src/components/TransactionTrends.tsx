@@ -12,7 +12,7 @@ interface TransactionTrendsProps {
     timeOfDay?: string;
     region?: string;
     barangay?: string;
-    weekVsWeekend?: 'week' | 'weekend' | 'all';
+    weekVsWeekend?: 'weekdays' | 'weekends' | 'all';
     category?: string;
   };
 }
@@ -26,8 +26,8 @@ const TransactionTrends: React.FC<TransactionTrendsProps> = ({ transactions, fil
       if (filters.category && !t.transaction_items?.some((item: any) => item.products?.product_category === filters.category)) return false;
       if (filters.weekVsWeekend !== 'all') {
         const isWeekendDay = isWeekend(new Date(t.timestamp));
-        if (filters.weekVsWeekend === 'week' && isWeekendDay) return false;
-        if (filters.weekVsWeekend === 'weekend' && !isWeekendDay) return false;
+        if (filters.weekVsWeekend === 'weekdays' && isWeekendDay) return false;
+        if (filters.weekVsWeekend === 'weekends' && !isWeekendDay) return false;
       }
       return true;
     });
@@ -289,7 +289,7 @@ const TransactionTrends: React.FC<TransactionTrendsProps> = ({ transactions, fil
             ? ` Transaction volume has decreased ${Math.abs(kpis.volumeTrend).toFixed(1)}% from last week.`
             : ' Transaction volume remains stable week-over-week.'
           }
-          {filters.weekVsWeekend === 'weekend' && ' Weekend patterns show later morning peaks.'}
+          {filters.weekVsWeekend === 'weekends' && ' Weekend patterns show later morning peaks.'}
         </p>
       </div>
     </div>

@@ -17,14 +17,14 @@ interface ConsumerProfilingProps {
 
 
 const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, filters }) => {
-  const [geographicData, setGeographicData] = React.useState<any[]>([]);
+  const [geographicApiData, setGeographicApiData] = React.useState<any[]>([]);
   
   // Load geographic data
   React.useEffect(() => {
     const loadGeographicData = async () => {
       try {
         const data = await sqliteApiService.getGeographicData();
-        setGeographicData(data);
+        setGeographicApiData(data);
       } catch (error) {
         console.error('Failed to load geographic data:', error);
       }
@@ -472,10 +472,10 @@ const ConsumerProfiling: React.FC<ConsumerProfilingProps> = ({ transactions, fil
       </div>
 
       {/* Geographic Distribution Heatmap */}
-      {geographicData.length > 0 && (
+      {geographicApiData.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Geographic Distribution</h3>
-          <GeographicHeatmap geographicData={geographicData} />
+          <GeographicHeatmap regionData={geographicApiData} />
         </div>
       )}
 

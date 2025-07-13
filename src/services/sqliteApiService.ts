@@ -76,7 +76,7 @@ class SQLiteApiService {
   }
 
   // Get transaction trends with filters
-  async getTransactionTrends(filters: DashboardFilters = []) {
+  async getTransactionTrends(filters: DashboardFilters = {}) {
     const params: Record<string, any> = {};
     
     if (filters.region) params.region = filters.region;

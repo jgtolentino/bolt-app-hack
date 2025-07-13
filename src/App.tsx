@@ -19,7 +19,7 @@ function App() {
     timeOfDay: '',
     region: '',
     barangay: '',
-    weekVsWeekend: 'all' as 'week' | 'weekend' | 'all',
+    weekVsWeekend: 'all' as 'weekdays' | 'weekends' | 'all',
     category: '',
     brand: '',
     sku: '',
@@ -201,8 +201,8 @@ function App() {
                     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
                   >
                     <option value="all">All Days</option>
-                    <option value="week">Weekdays</option>
-                    <option value="weekend">Weekends</option>
+                    <option value="weekdays">Weekdays</option>
+                    <option value="weekends">Weekends</option>
                   </select>
                 </div>
               )}

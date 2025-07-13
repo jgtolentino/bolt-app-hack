@@ -18,14 +18,14 @@ interface ProductMixSKUProps {
 // Remove this line - using colors from chartConfig instead
 
 const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) => {
-  const [substitutionData, setSubstitutionData] = React.useState<any[]>([]);
+  const [substitutionApiData, setSubstitutionApiData] = React.useState<any[]>([]);
   
   // Load substitution data
   React.useEffect(() => {
     const loadSubstitutionData = async () => {
       try {
         const data = await sqliteApiService.getSubstitutionData();
-        setSubstitutionData(data);
+        setSubstitutionApiData(data);
       } catch (error) {
         console.error('Failed to load substitution data:', error);
       }
@@ -176,7 +176,7 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
       uniqueSKUs,
       totalValue,
       avgBasketSize,
-      substitutionRate: substitutionData.rate
+      substitutionRate: substitutionData.rate || 0
     };
   }, [filteredTransactions, substitutionData]);
 
@@ -328,7 +328,7 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
       </div>
 
       {/* Substitution Patterns */}
-      {substitutionData.rate > 0 && (
+      {substitutionData && substitutionData.rate > 0 && substitutionData.byCategory && (
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Substitutions by Category</h3>
           <ResponsiveContainer width="100%" height={200}>
@@ -344,10 +344,10 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
       )}
 
       {/* Product Substitution Flow - Sankey Diagram */}
-      {substitutionData.length > 0 && (
+      {substitutionApiData.length > 0 && (
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Product Substitution Flow</h3>
-          <SubstitutionSankey substitutionData={substitutionData} />
+          <SubstitutionSankey substitutions={substitutionApiData} />
         </div>
       )}
 
