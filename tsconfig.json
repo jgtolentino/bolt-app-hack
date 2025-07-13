@@ -17,5 +17,10 @@
     "noFallthroughCasesInSwitch": true
   },
   "include": ["src"],
+  "exclude": [
+    "src/test-*.ts", 
+    "src/check-mcp-agents.ts",
+    "src/mcp/register-all-agents.ts"
+  ],
   "references": [{ "path": "./tsconfig.node.json" }]
 }
