@@ -90,8 +90,8 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">Scout Dashboard v4.0.1</h1>
-              <span className="ml-3 text-sm text-gray-500">Philippine Sari-Sari Store Analytics • Real SQLite Database (50k transactions)</span>
+              <h1 className="text-2xl font-bold text-gray-900">Scout Dashboard v4.0.2</h1>
+              <span className="ml-3 text-sm text-gray-500">Philippine Sari-Sari Store Analytics • 17 Regions • 50k Transactions (Jun 2024-2025)</span>
             </div>
             <button
               onClick={() => setShowFilters(!showFilters)}
