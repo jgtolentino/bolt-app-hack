@@ -6,12 +6,11 @@ import ConsumerBehavior from './components/ConsumerBehavior';
 import ConsumerProfiling from './components/ConsumerProfiling';
 import AIRecommendationPanel from './components/AIRecommendationPanel';
 import { dashboardService } from './services/dashboardService';
-import type { TransactionWithDetails } from './services/dashboardService';
 
 function App() {
   const [activeModule, setActiveModule] = useState<'trends' | 'products' | 'behavior' | 'profiling'>('trends');
   const [showFilters, setShowFilters] = useState(false);
-  const [transactions, setTransactions] = useState<TransactionWithDetails[]>([]);
+  const [transactions, setTransactions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   
@@ -52,11 +51,11 @@ function App() {
 
   // Get unique values for filters
   const filterOptions = React.useMemo(() => {
-    const regions = [...new Set(transactions.map(t => t.region))];
-    const barangays = [...new Set(transactions.map(t => t.barangay))];
-    const categories = [...new Set(transactions.flatMap(t => t.items.map(i => i.category)))];
-    const brands = [...new Set(transactions.flatMap(t => t.items.map(i => i.brand)))];
-    const ageGroups = [...new Set(transactions.map(t => t.customer_profile.age_bracket))];
+    const regions = [...new Set(transactions.map(t => t.store?.region || t.region))];
+    const barangays = [...new Set(transactions.map(t => t.store?.barangay || t.barangay))];
+    const categories = [...new Set(transactions.flatMap(t => (t.items || []).map((i: any) => i.products?.product_category || i.category)))];
+    const brands = [...new Set(transactions.flatMap(t => (t.items || []).map((i: any) => i.products?.brands?.brand_name || i.brand)))];
+    const ageGroups = [...new Set(transactions.map(t => t.customer?.age_bracket || t.customer_profile?.age_bracket))];
     
     return { regions, barangays, categories, brands, ageGroups };
   }, [transactions]);
@@ -257,28 +256,47 @@ function App() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Module Content (2/3 width) */}
-          <div className="lg:col-span-2">
-            {activeModule === 'trends' && (
-              <TransactionTrends transactions={transactions} filters={getActiveFilters()} />
-            )}
-            {activeModule === 'products' && (
-              <ProductMixSKU transactions={transactions} filters={getActiveFilters()} />
-            )}
-            {activeModule === 'behavior' && (
-              <ConsumerBehavior transactions={transactions} filters={getActiveFilters()} />
-            )}
-            {activeModule === 'profiling' && (
-              <ConsumerProfiling transactions={transactions} filters={getActiveFilters()} />
-            )}
+        {loading ? (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading dashboard data...</p>
+            </div>
           </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <p className="text-red-600 mb-4">{error}</p>
+            <button 
+              onClick={loadData}
+              className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            >
+              Retry
+            </button>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Module Content (2/3 width) */}
+            <div className="lg:col-span-2">
+              {activeModule === 'trends' && (
+                <TransactionTrends transactions={transactions} filters={getActiveFilters()} />
+              )}
+              {activeModule === 'products' && (
+                <ProductMixSKU transactions={transactions} filters={getActiveFilters()} />
+              )}
+              {activeModule === 'behavior' && (
+                <ConsumerBehavior transactions={transactions} filters={getActiveFilters()} />
+              )}
+              {activeModule === 'profiling' && (
+                <ConsumerProfiling transactions={transactions} filters={getActiveFilters()} />
+              )}
+            </div>
 
-          {/* AI Recommendations Panel (1/3 width) */}
-          <div className="lg:col-span-1">
-            <AIRecommendationPanel transactions={transactions} activeModule={activeModule} />
+            {/* AI Recommendations Panel (1/3 width) */}
+            <div className="lg:col-span-1">
+              <AIRecommendationPanel transactions={transactions} activeModule={activeModule} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );

@@ -211,7 +211,7 @@ class DashboardService {
     }>();
 
     data?.forEach(transaction => {
-      const region = transaction.stores.region;
+      const region = (transaction.stores as any).region;
       
       if (!regionMap.has(region)) {
         regionMap.set(region, {
@@ -228,10 +228,10 @@ class DashboardService {
       if (transaction.customer_id) {
         regionData.customers.add(transaction.customer_id);
       }
-      if (transaction.stores.latitude && transaction.stores.longitude) {
+      if ((transaction.stores as any).latitude && (transaction.stores as any).longitude) {
         regionData.coordinates.push({
-          lat: transaction.stores.latitude,
-          lng: transaction.stores.longitude
+          lat: (transaction.stores as any).latitude,
+          lng: (transaction.stores as any).longitude
         });
       }
     });
