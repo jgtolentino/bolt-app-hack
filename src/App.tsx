@@ -6,6 +6,7 @@ import ConsumerBehavior from './components/ConsumerBehavior';
 import ConsumerProfiling from './components/ConsumerProfiling';
 import AIRecommendationPanel from './components/AIRecommendationPanel';
 import { sqliteApiService } from './services/sqliteApiService';
+import { sqliteDataService } from './services/sqliteDataService';
 
 function App() {
   const [activeModule, setActiveModule] = useState<'trends' | 'products' | 'behavior' | 'profiling'>('trends');
@@ -38,7 +39,24 @@ function App() {
       setLoading(true);
       setError(null);
       
-      const data = await sqliteApiService.getTransactionTrends();
+      // Try to load from API first
+      let data;
+      const useMockData = import.meta.env.VITE_USE_MOCK_DATA === 'true';
+      
+      if (useMockData) {
+        // Use mock data when explicitly specified
+        console.log('📊 Using mock data service');
+        data = await sqliteDataService.getTransactionTrends();
+      } else {
+        // Try API (both development and production)
+        try {
+          data = await sqliteApiService.getTransactionTrends();
+        } catch (apiError) {
+          console.warn('SQLite API not available, falling back to mock data:', apiError);
+          data = await sqliteDataService.getTransactionTrends();
+        }
+      }
+      
       setTransactions(data);
       
     } catch (err) {
@@ -51,11 +69,11 @@ function App() {
 
   // Get unique values for filters
   const filterOptions = React.useMemo(() => {
-    const regions = [...new Set(transactions.map(t => t.store?.region || t.region))];
-    const barangays = [...new Set(transactions.map(t => t.store?.barangay || t.barangay))];
-    const categories = [...new Set(transactions.flatMap(t => (t.items || []).map((i: any) => i.products?.product_category || i.category)))];
-    const brands = [...new Set(transactions.flatMap(t => (t.items || []).map((i: any) => i.products?.brands?.brand_name || i.brand)))];
-    const ageGroups = [...new Set(transactions.map(t => t.customer?.age_bracket || t.customer_profile?.age_bracket))];
+    const regions = [...new Set(transactions.map(t => t.stores?.region || t.store?.region || t.region))];
+    const barangays = [...new Set(transactions.map(t => t.stores?.barangay || t.store?.barangay || t.barangay))];
+    const categories = [...new Set(transactions.flatMap(t => (t.transaction_items || t.items || []).map((i: any) => i.products?.product_category || i.category)))];
+    const brands = [...new Set(transactions.flatMap(t => (t.transaction_items || t.items || []).map((i: any) => i.products?.brands?.brand_name || i.brand)))];
+    const ageGroups = [...new Set(transactions.map(t => t.customers?.age_bracket || t.customer?.age_bracket || t.customer_profile?.age_bracket))];
     
     return { regions, barangays, categories, brands, ageGroups };
   }, [transactions]);

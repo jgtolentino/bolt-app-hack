@@ -1,6 +1,6 @@
 import React from 'react';
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { format, startOfDay, isWeekend } from 'date-fns';
+import { format, startOfDay, isWeekend, parseISO } from 'date-fns';
 import { TrendingUp, Clock, DollarSign, Package } from 'lucide-react';
 import BoxPlot from './charts/BoxPlot';
 import TransactionHeatmap from './charts/TransactionHeatmap';
@@ -25,7 +25,8 @@ const TransactionTrends: React.FC<TransactionTrendsProps> = ({ transactions, fil
       if (filters.barangay && t.stores?.barangay !== filters.barangay) return false;
       if (filters.category && !t.transaction_items?.some((item: any) => item.products?.product_category === filters.category)) return false;
       if (filters.weekVsWeekend !== 'all') {
-        const isWeekendDay = isWeekend(new Date(t.timestamp));
+        const date = typeof t.timestamp === 'string' ? parseISO(t.timestamp) : new Date(t.timestamp);
+        const isWeekendDay = isWeekend(date);
         if (filters.weekVsWeekend === 'weekdays' && isWeekendDay) return false;
         if (filters.weekVsWeekend === 'weekends' && !isWeekendDay) return false;
       }
@@ -43,13 +44,15 @@ const TransactionTrends: React.FC<TransactionTrendsProps> = ({ transactions, fil
 
     // Calculate trends (comparing last 7 days vs previous 7 days)
     const now = new Date();
-    const last7Days = filteredTransactions.filter(t => 
-      new Date(t.timestamp) >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    );
-    const prev7Days = filteredTransactions.filter(t => 
-      new Date(t.timestamp) >= new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000) &&
-      new Date(t.timestamp) < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
-    );
+    const last7Days = filteredTransactions.filter(t => {
+      const date = typeof t.timestamp === 'string' ? parseISO(t.timestamp) : new Date(t.timestamp);
+      return date >= new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    });
+    const prev7Days = filteredTransactions.filter(t => {
+      const date = typeof t.timestamp === 'string' ? parseISO(t.timestamp) : new Date(t.timestamp);
+      return date >= new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000) &&
+             date < new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+    });
 
     const volumeTrend = prev7Days.length > 0 ? 
       ((last7Days.length - prev7Days.length) / prev7Days.length) * 100 : 0;
@@ -69,14 +72,15 @@ const TransactionTrends: React.FC<TransactionTrendsProps> = ({ transactions, fil
     const dailyData = new Map<string, { date: string; volume: number; value: number; units: number }>();
     
     filteredTransactions.forEach(t => {
-      const dateKey = format(startOfDay(t.timestamp), 'yyyy-MM-dd');
+      const date = typeof t.timestamp === 'string' ? parseISO(t.timestamp) : new Date(t.timestamp);
+      const dateKey = format(startOfDay(date), 'yyyy-MM-dd');
       const existing = dailyData.get(dateKey) || { date: dateKey, volume: 0, value: 0, units: 0 };
       
       dailyData.set(dateKey, {
         date: dateKey,
         volume: existing.volume + 1,
-        value: existing.value + t.transaction_value,
-        units: existing.units + t.units
+        value: existing.value + (t.final_amount || t.transaction_value || 0),
+        units: existing.units + (t.units_total || t.units || 0)
       });
     });
 
@@ -98,12 +102,13 @@ const TransactionTrends: React.FC<TransactionTrendsProps> = ({ transactions, fil
     }
 
     filteredTransactions.forEach(t => {
-      const hour = t.timestamp.getHours();
+      const date = typeof t.timestamp === 'string' ? parseISO(t.timestamp) : new Date(t.timestamp);
+      const hour = date.getHours();
       const existing = hourlyMap.get(hour)!;
       hourlyMap.set(hour, {
         hour,
         volume: existing.volume + 1,
-        value: existing.value + t.transaction_value
+        value: existing.value + (t.final_amount || t.transaction_value || 0)
       });
     });
 

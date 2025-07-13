@@ -39,8 +39,10 @@ class SQLiteApiService {
   private baseUrl: string;
   
   constructor() {
-    // Default to localhost:3001, can be overridden via environment
-    this.baseUrl = process.env.REACT_APP_SQLITE_API_URL || 'http://localhost:3001';
+    // Use environment variable for API URL, with fallback to localhost
+    // In production, this should be set to your deployed API server
+    this.baseUrl = import.meta.env.VITE_SQLITE_API_URL || 
+      (import.meta.env.PROD ? 'https://mcp-sqlite-server.onrender.com' : 'http://localhost:3001');
   }
 
   private async fetchApi(endpoint: string, params?: Record<string, any>): Promise<any> {

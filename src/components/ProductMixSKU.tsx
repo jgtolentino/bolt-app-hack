@@ -24,10 +24,16 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
   React.useEffect(() => {
     const loadSubstitutionData = async () => {
       try {
+        // Skip API call if using mock data
+        if (import.meta.env.VITE_USE_MOCK_DATA === 'true') {
+          console.log('Skipping substitution API in mock data mode');
+          return;
+        }
         const data = await sqliteApiService.getSubstitutionData();
         setSubstitutionApiData(data);
       } catch (error) {
         console.error('Failed to load substitution data:', error);
+        // Continue without substitution data
       }
     };
     loadSubstitutionData();
@@ -90,11 +96,15 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
     const brandMap = new Map<string, number>();
     
     filteredTransactions.forEach(t => {
-      t.items.forEach(item => {
-        if (!filters.category || item.category === filters.category) {
+      (t.transaction_items || t.items || []).forEach((item: any) => {
+        const category = item.products?.product_category || item.category;
+        const brand = item.products?.brands?.brand_name || item.brand;
+        const price = item.unit_price || item.price;
+        
+        if (!filters.category || category === filters.category) {
           if (!filters.sku || item.sku_id === filters.sku) {
-            const current = brandMap.get(item.brand) || 0;
-            brandMap.set(item.brand, current + (item.quantity * item.price));
+            const current = brandMap.get(brand) || 0;
+            brandMap.set(brand, current + (item.quantity * price));
           }
         }
       });
@@ -111,21 +121,26 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
     const skuMap = new Map<string, { name: string; quantity: number; value: number; brand: string; category: string }>();
     
     filteredTransactions.forEach(t => {
-      t.items.forEach(item => {
-        if ((!filters.brand || item.brand === filters.brand) &&
-            (!filters.category || item.category === filters.category)) {
+      (t.transaction_items || t.items || []).forEach((item: any) => {
+        const brand = item.products?.brands?.brand_name || item.brand;
+        const category = item.products?.product_category || item.category;
+        const productName = item.products?.product_name || item.product_name;
+        const price = item.unit_price || item.price;
+        
+        if ((!filters.brand || brand === filters.brand) &&
+            (!filters.category || category === filters.category)) {
           const existing = skuMap.get(item.sku_id) || {
-            name: item.product_name,
+            name: productName,
             quantity: 0,
             value: 0,
-            brand: item.brand,
-            category: item.category
+            brand: brand,
+            category: category
           };
           
           skuMap.set(item.sku_id, {
             ...existing,
             quantity: existing.quantity + item.quantity,
-            value: existing.value + (item.quantity * item.price)
+            value: existing.value + (item.quantity * price)
           });
         }
       });
@@ -141,17 +156,19 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
   // Calculate substitution patterns
   const substitutionData = React.useMemo(() => {
     const substitutions = filteredTransactions.flatMap(t => 
-      t.items.filter(item => item.was_substituted)
+      (t.transaction_items || t.items || []).filter((item: any) => item.was_substituted)
     );
     
-    const substitutionRate = filteredTransactions.length > 0 
-      ? (substitutions.length / filteredTransactions.flatMap(t => t.items).length) * 100 
+    const allItems = filteredTransactions.flatMap(t => t.transaction_items || t.items || []);
+    const substitutionRate = allItems.length > 0 
+      ? (substitutions.length / allItems.length) * 100 
       : 0;
 
     const substitutionsByCategory = new Map<string, number>();
-    substitutions.forEach(item => {
-      substitutionsByCategory.set(item.category, 
-        (substitutionsByCategory.get(item.category) || 0) + 1
+    substitutions.forEach((item: any) => {
+      const category = item.products?.product_category || item.category;
+      substitutionsByCategory.set(category, 
+        (substitutionsByCategory.get(category) || 0) + 1
       );
     });
 
@@ -165,9 +182,12 @@ const ProductMixSKU: React.FC<ProductMixSKUProps> = ({ transactions, filters }) 
 
   // Calculate KPIs
   const kpis = React.useMemo(() => {
-    const totalItems = filteredTransactions.flatMap(t => t.items);
-    const uniqueSKUs = new Set(totalItems.map(item => item.sku_id)).size;
-    const totalValue = totalItems.reduce((sum, item) => sum + (item.quantity * item.price), 0);
+    const totalItems = filteredTransactions.flatMap(t => t.transaction_items || t.items || []);
+    const uniqueSKUs = new Set(totalItems.map((item: any) => item.sku_id)).size;
+    const totalValue = totalItems.reduce((sum, item: any) => {
+      const price = item.unit_price || item.price;
+      return sum + (item.quantity * price);
+    }, 0);
     const avgBasketSize = filteredTransactions.length > 0 
       ? totalItems.length / filteredTransactions.length 
       : 0;
