@@ -49,7 +49,7 @@ async function testConnection() {
     } else {
       console.log('✅ MCP tables exist!')
       if (agentsData && agentsData.length > 0) {
-        console.log('   Found agents:', agentsData.map(a => a.name).join(', '))
+        console.log('   Found agents:', agentsData.map((a: any) => a.name).join(', '))
       }
     }
 

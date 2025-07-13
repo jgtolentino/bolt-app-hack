@@ -25,7 +25,7 @@ async function checkAgents() {
 
   console.log(`Found ${agents?.length || 0} agents:\n`)
   
-  agents?.forEach(agent => {
+  agents?.forEach((agent: any) => {
     console.log(`✅ ${agent.name}`)
     console.log(`   Category: ${agent.category}`)
     console.log(`   Status: ${agent.status}`)
@@ -40,7 +40,7 @@ async function checkAgents() {
     .select('*')
 
   console.log(`\n📦 Found ${tools?.length || 0} tools:`)
-  tools?.forEach(tool => {
+  tools?.forEach((tool: any) => {
     console.log(`- ${tool.name}: ${tool.description}`)
   })
 }

@@ -24,7 +24,7 @@ async function registerAllAgents() {
     return
   }
 
-  const existingNames = new Set(existingAgents?.map(a => a.name) || [])
+  const existingNames = new Set(existingAgents?.map((a: any) => a.name) || [])
   console.log(`Found ${existingNames.size} existing agents\n`)
 
   let registered = 0
