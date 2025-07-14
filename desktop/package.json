@@ -1,0 +1,80 @@
+{
+  "name": "scout-analytics-desktop",
+  "version": "1.0.0",
+  "description": "Scout Analytics Desktop - Native offline analytics for retail intelligence",
+  "main": "dist/main/index.js",
+  "scripts": {
+    "dev": "npm run build:main && electron .",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "cd ../.. && npm run build && cp -r dist ../../desktop/dist/renderer",
+    "build": "npm run build:main && npm run build:renderer",
+    "start": "electron .",
+    "pack": "electron-builder --dir",
+    "dist": "electron-builder",
+    "dist:mac": "electron-builder --mac",
+    "dist:win": "electron-builder --win",
+    "dist:linux": "electron-builder --linux",
+    "postinstall": "electron-builder install-app-deps",
+    "test": "jest"
+  },
+  "keywords": ["scout", "analytics", "retail", "electron", "desktop"],
+  "author": "Jake Tolentino",
+  "license": "UNLICENSED",
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.8",
+    "@types/node": "^20.10.5",
+    "electron": "^28.1.0",
+    "electron-builder": "^24.9.1",
+    "typescript": "^5.3.3"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.2.2",
+    "electron-updater": "^6.1.7",
+    "electron-store": "^8.1.0",
+    "electron-log": "^5.0.3"
+  },
+  "build": {
+    "appId": "ai.scout.analytics.desktop",
+    "productName": "Scout Analytics",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "category": "public.app-category.business",
+      "icon": "assets/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "assets/entitlements.mac.plist",
+      "entitlementsInherit": "assets/entitlements.mac.plist",
+      "notarize": {
+        "teamId": "YOUR_TEAM_ID"
+      }
+    },
+    "win": {
+      "target": ["nsis", "msi"],
+      "icon": "assets/icon.ico",
+      "certificateFile": "cert.pfx",
+      "certificatePassword": ""
+    },
+    "linux": {
+      "target": ["AppImage", "deb", "rpm"],
+      "icon": "assets/icon.png",
+      "category": "Office"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "deleteAppDataOnUninstall": true
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "scout-analytics",
+      "repo": "desktop-releases"
+    }
+  }
+}

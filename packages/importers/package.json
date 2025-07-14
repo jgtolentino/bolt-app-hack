@@ -1,0 +1,63 @@
+{
+  "name": "@scout/importers",
+  "version": "1.0.0",
+  "description": "Scout BI File Importers - PowerBI and Tableau import functionality",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "jest",
+    "lint": "eslint . --ext .ts,.tsx",
+    "clean": "rm -rf dist"
+  },
+  "keywords": [
+    "powerbi",
+    "tableau",
+    "import",
+    "bi",
+    "data-visualization",
+    "scout"
+  ],
+  "author": "Scout Analytics",
+  "license": "MIT",
+  "dependencies": {
+    "xml2js": "^0.6.2",
+    "unzipper": "^0.10.14"
+  },
+  "devDependencies": {
+    "@types/xml2js": "^0.4.14",
+    "@types/unzipper": "^0.10.9",
+    "@types/node": "^20.0.0",
+    "typescript": "^5.0.0",
+    "jest": "^29.0.0",
+    "@types/jest": "^29.0.0",
+    "ts-jest": "^29.0.0",
+    "eslint": "^8.0.0",
+    "@typescript-eslint/parser": "^6.0.0",
+    "@typescript-eslint/eslint-plugin": "^6.0.0"
+  },
+  "peerDependencies": {
+    "better-sqlite3": "^9.0.0"
+  },
+  "optionalDependencies": {
+    "tableau-hyper-api": "^0.0.18"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "files": [
+    "dist/**/*",
+    "index.d.ts",
+    "README.md"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/scout-analytics/scout.git",
+    "directory": "packages/importers"
+  },
+  "bugs": {
+    "url": "https://github.com/scout-analytics/scout/issues"
+  },
+  "homepage": "https://github.com/scout-analytics/scout#readme"
+}

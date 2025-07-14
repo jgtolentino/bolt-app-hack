@@ -5,12 +5,29 @@ import ProductMixSKU from './components/ProductMixSKU';
 import ConsumerBehavior from './components/ConsumerBehavior';
 import ConsumerProfiling from './components/ConsumerProfiling';
 import AIRecommendationPanel from './components/AIRecommendationPanel';
-import { generateMockData, Transaction } from './utils/mockDataGenerator';
+import { Transaction } from './utils/mockDataGenerator';
+import { getTransactionsWithFallback } from './services/apiService';
+import { DesktopStatusBar } from './components/DesktopStatusBar';
+
+// Check if running in Electron
+const isElectron = !!(window as any).scoutAPI;
+let desktopService: any = null;
+
+// Dynamically import desktop service if in Electron
+if (isElectron) {
+  import('../desktop/src/renderer/desktopIntegration').then(module => {
+    desktopService = module.desktopService;
+  }).catch(() => {
+    console.warn('Desktop integration not available');
+  });
+}
 
 function App() {
   const [activeModule, setActiveModule] = useState<'trends' | 'products' | 'behavior' | 'profiling'>('trends');
   const [showFilters, setShowFilters] = useState(false);
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // Filters state
   const [filters, setFilters] = useState({
@@ -26,11 +43,25 @@ function App() {
     ageGroup: ''
   });
 
-  // Generate mock data on mount
+  // Fetch data from API or fall back to mock data
   useEffect(() => {
-    const mockData = generateMockData(30);
-    setTransactions(mockData);
-  }, []);
+    const fetchData = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const data = await getTransactionsWithFallback(filters);
+        setTransactions(data);
+      } catch (err: any) {
+        console.error('Failed to fetch data:', err);
+        setError(err.message);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchData();
+  }, [filters.region, filters.barangay, filters.category]);
 
   // Get unique values for filters
   const filterOptions = React.useMemo(() => {
@@ -239,29 +270,59 @@ function App() {
 
       {/* Main Content */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Module Content (2/3 width) */}
-          <div className="lg:col-span-2">
-            {activeModule === 'trends' && (
-              <TransactionTrends transactions={transactions} filters={getActiveFilters()} />
-            )}
-            {activeModule === 'products' && (
-              <ProductMixSKU transactions={transactions} filters={getActiveFilters()} />
-            )}
-            {activeModule === 'behavior' && (
-              <ConsumerBehavior transactions={transactions} filters={getActiveFilters()} />
-            )}
-            {activeModule === 'profiling' && (
-              <ConsumerProfiling transactions={transactions} filters={getActiveFilters()} />
-            )}
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center h-64">
+            <div className="text-center">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+              <p className="text-gray-600">Loading data...</p>
+            </div>
           </div>
+        )}
+        
+        {/* Error State */}
+        {error && !isLoading && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-800">
+              <strong>Error loading data:</strong> {error}
+            </p>
+            <p className="text-red-600 text-sm mt-2">
+              The dashboard is using sample data. Live data connection may be unavailable.
+            </p>
+          </div>
+        )}
+        
+        {/* Main Content Grid */}
+        {!isLoading && (
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            {/* Module Content (2/3 width) */}
+            <div className="lg:col-span-2">
+              {activeModule === 'trends' && (
+                <TransactionTrends transactions={transactions} filters={getActiveFilters()} />
+              )}
+              {activeModule === 'products' && (
+                <ProductMixSKU transactions={transactions} filters={getActiveFilters()} />
+              )}
+              {activeModule === 'behavior' && (
+                <ConsumerBehavior transactions={transactions} filters={getActiveFilters()} />
+              )}
+              {activeModule === 'profiling' && (
+                <ConsumerProfiling transactions={transactions} filters={getActiveFilters()} />
+              )}
+            </div>
 
-          {/* AI Recommendations Panel (1/3 width) */}
-          <div className="lg:col-span-1">
-            <AIRecommendationPanel transactions={transactions} activeModule={activeModule} />
+            {/* AI Recommendations Panel (1/3 width) */}
+            <div className="lg:col-span-1">
+              <AIRecommendationPanel transactions={transactions} activeModule={activeModule} />
+            </div>
           </div>
-        </div>
+        )}
       </div>
+      
+      {/* Desktop Status Bar - Only show in Electron */}
+      {isElectron && desktopService && (
+        <DesktopStatusBar desktopService={desktopService} />
+      )}
     </div>
   );
 }

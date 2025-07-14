@@ -1,0 +1,177 @@
+{
+  "version": "3.0",
+  "title": "Basic Sales Dashboard",
+  "description": "A simple dashboard showing sales metrics and trends",
+  "author": "Scout Analytics",
+  "tags": ["sales", "basic", "template"],
+  
+  "layout": "grid",
+  "columns": 12,
+  "rowHeight": 100,
+  "margin": [10, 10],
+  "padding": [20, 20],
+  
+  "datasource": {
+    "type": "supabase",
+    "connection": "default",
+    "schema": "public",
+    "cache": true
+  },
+  
+  "charts": [
+    {
+      "id": "kpi_total_sales",
+      "type": "kpi.card",
+      "title": "Total Sales",
+      "query": "SELECT SUM(peso_value) AS total_sales FROM transactions WHERE timestamp >= CURRENT_DATE - INTERVAL '30 days'",
+      "position": { "x": 0, "y": 0, "w": 3, "h": 2 },
+      "encoding": {
+        "text": {
+          "field": "total_sales",
+          "type": "quantitative",
+          "format": "currency"
+        }
+      },
+      "style": {
+        "theme": "default"
+      }
+    },
+    
+    {
+      "id": "kpi_transaction_count",
+      "type": "kpi.card", 
+      "title": "Transactions",
+      "query": "SELECT COUNT(*) AS transaction_count FROM transactions WHERE timestamp >= CURRENT_DATE - INTERVAL '30 days'",
+      "position": { "x": 3, "y": 0, "w": 3, "h": 2 },
+      "encoding": {
+        "text": {
+          "field": "transaction_count",
+          "type": "quantitative"
+        }
+      }
+    },
+    
+    {
+      "id": "chart_sales_by_region",
+      "type": "bar.vertical",
+      "title": "Sales by Region",
+      "query": "SELECT s.region, SUM(t.peso_value) AS sales FROM transactions t JOIN stores s ON t.store_id = s.id WHERE t.timestamp >= CURRENT_DATE - INTERVAL '30 days' GROUP BY s.region ORDER BY sales DESC",
+      "position": { "x": 6, "y": 0, "w": 6, "h": 4 },
+      "encoding": {
+        "x": { "field": "region", "type": "nominal" },
+        "y": { "field": "sales", "type": "quantitative", "aggregate": "sum" }
+      },
+      "style": {
+        "showGrid": true,
+        "showTooltip": true
+      }
+    },
+    
+    {
+      "id": "chart_daily_trend",
+      "type": "line.basic",
+      "title": "Daily Sales Trend",
+      "query": "SELECT DATE(timestamp) as date, SUM(peso_value) as daily_sales FROM transactions WHERE timestamp >= CURRENT_DATE - INTERVAL '30 days' GROUP BY DATE(timestamp) ORDER BY date",
+      "position": { "x": 0, "y": 2, "w": 6, "h": 4 },
+      "encoding": {
+        "x": { "field": "date", "type": "temporal" },
+        "y": { "field": "daily_sales", "type": "quantitative" }
+      },
+      "style": {
+        "showGrid": true,
+        "strokeWidth": 2,
+        "pointSize": 4
+      }
+    },
+    
+    {
+      "id": "chart_top_products",
+      "type": "bar.horizontal",
+      "title": "Top Products",
+      "query": "SELECT p.name, SUM(ti.quantity * ti.price) as revenue FROM transaction_items ti JOIN products p ON ti.product_id = p.id JOIN transactions t ON ti.transaction_id = t.id WHERE t.timestamp >= CURRENT_DATE - INTERVAL '30 days' GROUP BY p.id, p.name ORDER BY revenue DESC LIMIT 10",
+      "position": { "x": 0, "y": 6, "w": 6, "h": 4 },
+      "encoding": {
+        "x": { "field": "revenue", "type": "quantitative" },
+        "y": { "field": "name", "type": "nominal" }
+      }
+    },
+    
+    {
+      "id": "table_recent_transactions",
+      "type": "table.basic",
+      "title": "Recent Transactions",
+      "query": "SELECT t.id, t.timestamp, s.name as store, t.peso_value, t.payment_method FROM transactions t JOIN stores s ON t.store_id = s.id ORDER BY t.timestamp DESC LIMIT 50",
+      "position": { "x": 6, "y": 6, "w": 6, "h": 4 }
+    }
+  ],
+  
+  "filters": [
+    {
+      "id": "date_range",
+      "field": "timestamp", 
+      "component": "daterange",
+      "label": "Date Range",
+      "defaultValue": ["2024-01-01", "2024-12-31"],
+      "position": "top"
+    },
+    
+    {
+      "id": "region_filter",
+      "field": "region",
+      "component": "multiselect", 
+      "label": "Regions",
+      "options": [
+        { "label": "NCR", "value": "NCR" },
+        { "label": "Region I", "value": "Region I" },
+        { "label": "Region II", "value": "Region II" },
+        { "label": "Region III", "value": "Region III" },
+        { "label": "Region IV-A", "value": "Region IV-A" }
+      ],
+      "position": "top"
+    }
+  ],
+  
+  "settings": {
+    "theme": "light",
+    "refreshInterval": 300000,
+    "showTitle": true,
+    "showFilters": true,
+    "allowExport": true,
+    "allowEdit": false,
+    "responsive": true
+  },
+  
+  "plugins": [],
+  
+  "connectors": [
+    {
+      "name": "supabase",
+      "version": "^1.0.0"
+    }
+  ],
+  
+  "deployment": {
+    "target": ["desktop", "web"],
+    "environments": {
+      "development": {
+        "datasource": "supabase://dev.scout.local",
+        "variables": {
+          "CACHE_TTL": "60"
+        }
+      },
+      "production": {
+        "datasource": "supabase://prod.scout.com",
+        "variables": {
+          "CACHE_TTL": "300"
+        }
+      }
+    },
+    "publish": {
+      "channel": "stable",
+      "visibility": "public",
+      "category": "sales",
+      "keywords": ["sales", "analytics", "dashboard"],
+      "license": "MIT"
+    }
+  }
+}
