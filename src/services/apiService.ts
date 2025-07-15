@@ -19,17 +19,20 @@ if (isElectron) {
 
 // Configuration from environment variables
 const API_CONFIG = {
-  // Direct MCP SQLite Server endpoint (bypasses proxy)
-  baseUrl: import.meta.env.VITE_API_BASE_URL || 'https://mcp-sqlite-server-1.onrender.com',
+  // Primary: TBWA Unified Platform (via Vercel proxy)
+  baseUrl: '/api/proxy',
   
-  // Fallback to local proxy if needed
-  fallbackUrl: '/api/proxy',
+  // Direct TBWA Unified Platform (for development)
+  tbwaDirectUrl: import.meta.env.VITE_TBWA_UNIFIED_API_URL || 'http://localhost:3000',
+  
+  // Legacy: MCP SQLite Server
+  mcpUrl: import.meta.env.VITE_MCP_API_URL || 'https://mcp-sqlite-server-1.onrender.com',
   
   // Timeout in milliseconds
   timeout: Number(import.meta.env.VITE_API_TIMEOUT) || 30000,
   
-  // Use direct connection or proxy
-  useDirect: import.meta.env.VITE_USE_DIRECT_API !== 'false',
+  // Use direct connection for development
+  useDirect: import.meta.env.VITE_USE_DIRECT_API === 'true' || window.location.hostname === 'localhost',
   
   // Use mock data as fallback
   useMockFallback: import.meta.env.VITE_USE_MOCK_FALLBACK !== 'false'
@@ -53,8 +56,14 @@ class ApiService {
   private baseUrl: string;
   
   constructor() {
-    this.baseUrl = API_CONFIG.useDirect ? API_CONFIG.baseUrl : API_CONFIG.fallbackUrl;
-    console.log('🔧 API Service initialized with:', this.baseUrl);
+    // Choose API endpoint based on environment
+    if (API_CONFIG.useDirect && window.location.hostname === 'localhost') {
+      this.baseUrl = API_CONFIG.tbwaDirectUrl;
+      console.log('🔧 API Service initialized with TBWA Direct:', this.baseUrl);
+    } else {
+      this.baseUrl = API_CONFIG.baseUrl;
+      console.log('🔧 API Service initialized with Proxy:', this.baseUrl);
+    }
   }
   
   /**
@@ -152,26 +161,105 @@ class ApiService {
       }
     });
     
-    // Check if using MCP SQLite server pattern
-    const endpoint = this.baseUrl.includes('mcp-sqlite-server') 
-      ? `/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`
-      : `/api/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    // Use appropriate endpoint based on API type
+    let endpoint;
+    if (this.baseUrl.includes('localhost:3000')) {
+      // Direct TBWA Unified Platform
+      endpoint = `/api/scout/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    } else if (this.baseUrl.includes('/api/proxy')) {
+      // Via Vercel proxy
+      endpoint = `/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    } else {
+      // Legacy MCP server
+      endpoint = `/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    }
     
     const data = await this.request<any[]>(endpoint);
     
+    // Handle different response formats
+    let transactions = data;
+    if (data && data.data) transactions = data.data;
+    if (data && data.transactions) transactions = data.transactions;
+    
     // Transform timestamps to Date objects
-    return transformTimestamp(data);
+    return transformTimestamp(transactions);
+  }
+  
+  /**
+   * Get handshake events (Scout Analytics integration)
+   */
+  async getHandshakeEvents(filters: Record<string, any> = {}) {
+    const queryParams = new URLSearchParams();
+    Object.entries(filters).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        queryParams.append(key, String(value));
+      }
+    });
+    
+    let endpoint;
+    if (this.baseUrl.includes('localhost:3000')) {
+      endpoint = `/api/scout/handshakes${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    } else if (this.baseUrl.includes('/api/proxy')) {
+      endpoint = `/handshakes${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    } else {
+      endpoint = `/handshakes${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
+    }
+    
+    const data = await this.request<any[]>(endpoint);
+    let handshakes = data;
+    if (data && data.data) handshakes = data.data;
+    
+    return transformTimestamp(handshakes);
   }
   
   /**
    * Get hourly patterns
    */
   async getHourlyPatterns() {
-    const endpoint = this.baseUrl.includes('mcp-sqlite-server') 
-      ? '/hourly-patterns' 
-      : '/api/hourly-patterns';
-    const data = await this.request<any[]>(endpoint);
-    return transformTimestamp(data);
+    // Use handshake events for hourly patterns in unified platform
+    try {
+      const handshakes = await this.getHandshakeEvents();
+      return this.generateHourlyPatterns(handshakes);
+    } catch (error) {
+      console.warn('Using fallback hourly patterns:', error);
+      return this.generateMockHourlyPatterns();
+    }
+  }
+  
+  /**
+   * Generate hourly patterns from handshake data
+   */
+  private generateHourlyPatterns(handshakes: any[]) {
+    const hourlyData = Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      count: 0,
+      total_value: 0,
+      avg_value: 0
+    }));
+    
+    handshakes.forEach(handshake => {
+      const hour = new Date(handshake.timestamp).getHours();
+      hourlyData[hour].count++;
+      hourlyData[hour].total_value += handshake.transaction_value || 0;
+    });
+    
+    hourlyData.forEach(data => {
+      data.avg_value = data.count > 0 ? data.total_value / data.count : 0;
+    });
+    
+    return hourlyData;
+  }
+  
+  /**
+   * Generate mock hourly patterns
+   */
+  private generateMockHourlyPatterns() {
+    return Array.from({ length: 24 }, (_, hour) => ({
+      hour,
+      count: Math.floor(Math.random() * 100) + 20,
+      total_value: Math.floor(Math.random() * 50000) + 10000,
+      avg_value: Math.floor(Math.random() * 2000) + 500
+    }));
   }
   
   /**
@@ -205,13 +293,34 @@ class ApiService {
   }
   
   /**
-   * Get stats
+   * Get unified dashboard stats
    */
   async getStats() {
-    const endpoint = this.baseUrl.includes('mcp-sqlite-server') 
-      ? '/stats' 
-      : '/api/stats';
-    return this.request<any>(endpoint);
+    let endpoint;
+    if (this.baseUrl.includes('localhost:3000')) {
+      endpoint = '/api/insights/dashboard';
+    } else if (this.baseUrl.includes('/api/proxy')) {
+      endpoint = '/dashboard';
+    } else {
+      endpoint = '/stats';
+    }
+    
+    const data = await this.request<any>(endpoint);
+    
+    // Transform unified platform response to expected format
+    if (data.metrics) {
+      return {
+        total_transactions: data.metrics.totalHandshakes || 0,
+        total_revenue: data.metrics.quarterlyRevenue || 0,
+        avg_transaction_value: data.metrics.quarterlyRevenue / (data.metrics.totalHandshakes || 1),
+        active_campaigns: data.metrics.activeCampaigns || 0,
+        employee_utilization: data.metrics.employeeUtilization || 0,
+        client_satisfaction: data.metrics.clientSatisfaction || 0,
+        palette_effectiveness: data.metrics.paletteEffectiveness || 0
+      };
+    }
+    
+    return data;
   }
   
   /**
