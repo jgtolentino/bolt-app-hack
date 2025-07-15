@@ -12,7 +12,7 @@ const API_ENDPOINTS = {
     health: 'http://localhost:3000/health'
   },
   
-  // Vercel proxy endpoints (production)
+  // Vercel proxy endpoints (production) - TBWA Unified Platform only
   proxy: {
     transactions: 'https://bolt-app-hack.vercel.app/api/proxy/transactions',
     handshakes: 'https://bolt-app-hack.vercel.app/api/proxy/handshakes',
@@ -69,14 +69,14 @@ async function runTests() {
   };
   
   // Test local endpoints (if running)
-  console.log('\n📍 Testing Local TBWA Unified Platform...');
+  console.log('\n📍 Testing Local TBWA Unified Platform (SQLite-free)...');
   for (const [name, url] of Object.entries(API_ENDPOINTS.local)) {
     results.local[name] = await testEndpoint(`Local ${name}`, url);
     await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting
   }
   
   // Test proxy endpoints
-  console.log('\n🌐 Testing Vercel Proxy Endpoints...');
+  console.log('\n🌐 Testing Vercel Proxy Endpoints (TBWA Unified only)...');
   for (const [name, url] of Object.entries(API_ENDPOINTS.proxy)) {
     results.proxy[name] = await testEndpoint(`Proxy ${name}`, url);
     await new Promise(resolve => setTimeout(resolve, 500)); // Rate limiting

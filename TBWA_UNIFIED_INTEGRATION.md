@@ -43,7 +43,7 @@ Scout Dashboard (bolt-app-hack)
 ```bash
 # Production (Vercel)
 TBWA_UNIFIED_API_URL=http://localhost:3000
-MCP_SQLITE_API_URL=https://mcp-sqlite-server-1.onrender.com
+VERCEL_DEPLOYMENT_ID=tbwa-unified-only-v1.0
 
 # Development (Local)
 VITE_TBWA_UNIFIED_API_URL=http://localhost:3000
@@ -54,8 +54,7 @@ VITE_USE_MOCK_FALLBACK=true
 ### Fallback Chain
 
 1. **TBWA Unified Platform** (Primary)
-2. **MCP SQLite Server** (Fallback)
-3. **Mock Data** (Final fallback)
+2. **Mock Data** (Fallback - no SQLite dependency)
 
 ## 🚀 Quick Start
 

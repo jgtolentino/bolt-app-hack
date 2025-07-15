@@ -15,9 +15,6 @@ const API_CONFIG = {
   // Primary: TBWA Unified Platform
   tbwaApiUrl: process.env.TBWA_UNIFIED_API_URL || 'http://localhost:3000',
   
-  // Fallback: MCP SQLite Server
-  mcpApiUrl: process.env.MCP_SQLITE_API_URL || 'https://mcp-sqlite-server-1.onrender.com',
-  
   // Request timeout
   timeout: 15000
 };
@@ -62,34 +59,10 @@ export default async function handler(req, res) {
     } catch (tbwaError) {
       console.warn('⚠️ TBWA Unified Platform unavailable:', tbwaError.message);
       
-      // Fallback to MCP SQLite Server
-      try {
-        const mcpUrl = `${API_CONFIG.mcpApiUrl}/transactions${buildQueryString(req.query)}`;
-        console.log('🔍 Trying MCP SQLite Server:', mcpUrl);
-        
-        const mcpResponse = await fetchWithTimeout(mcpUrl, {
-          method: req.method,
-          headers: {
-            'Content-Type': 'application/json',
-            'Accept': 'application/json'
-          }
-        });
-        
-        if (mcpResponse.ok) {
-          data = await mcpResponse.json();
-          source = 'mcp-sqlite';
-          console.log('✅ MCP SQLite Server responded:', data?.length || 'unknown', 'items');
-        } else {
-          throw new Error(`MCP API returned ${mcpResponse.status}`);
-        }
-      } catch (mcpError) {
-        console.warn('⚠️ MCP SQLite Server unavailable:', mcpError.message);
-        
-        // Final fallback: mock data
-        data = generateMockTransactions();
-        source = 'mock';
-        console.log('📊 Using mock transaction data');
-      }
+      // Fallback directly to mock data (no SQLite)
+      data = generateMockTransactions();
+      source = 'mock';
+      console.log('📊 Using mock transaction data');
     }
 
     // Transform data to ensure consistent format

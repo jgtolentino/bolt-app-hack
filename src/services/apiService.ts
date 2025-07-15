@@ -25,9 +25,6 @@ const API_CONFIG = {
   // Direct TBWA Unified Platform (for development)
   tbwaDirectUrl: import.meta.env.VITE_TBWA_UNIFIED_API_URL || 'http://localhost:3000',
   
-  // Legacy: MCP SQLite Server
-  mcpUrl: import.meta.env.VITE_MCP_API_URL || 'https://mcp-sqlite-server-1.onrender.com',
-  
   // Timeout in milliseconds
   timeout: Number(import.meta.env.VITE_API_TIMEOUT) || 30000,
   
@@ -170,7 +167,7 @@ class ApiService {
       // Via Vercel proxy
       endpoint = `/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     } else {
-      // Legacy MCP server
+      // Default proxy endpoint
       endpoint = `/transactions${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     }
     
@@ -202,6 +199,7 @@ class ApiService {
     } else if (this.baseUrl.includes('/api/proxy')) {
       endpoint = `/handshakes${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     } else {
+      // Default proxy endpoint
       endpoint = `/handshakes${queryParams.toString() ? '?' + queryParams.toString() : ''}`;
     }
     
@@ -302,7 +300,8 @@ class ApiService {
     } else if (this.baseUrl.includes('/api/proxy')) {
       endpoint = '/dashboard';
     } else {
-      endpoint = '/stats';
+      // Default proxy endpoint
+      endpoint = '/dashboard';
     }
     
     const data = await this.request<any>(endpoint);
