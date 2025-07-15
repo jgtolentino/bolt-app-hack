@@ -1,0 +1,437 @@
+// TBWA Unified Platform Database Schema
+// Generated for Lions Palette + Scout Analytics + HRIS Integration
+// Date: July 15, 2025
+
+Project TBWAUnifiedPlatform {
+  database_type: 'PostgreSQL'
+  Note: '''
+    # TBWA Unified Platform Database
+    
+    Integrates three core business systems:
+    - Lions Palette Forge (Creative color analysis)
+    - Scout Analytics (Philippine retail intelligence) 
+    - TBWA HRIS (Employee management)
+    
+    Built on Supabase with real-time capabilities
+  '''
+}
+
+// ======================
+// CAMPAIGNS & LIONS PALETTE
+// ======================
+
+Table campaigns {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  name varchar(255) [not null]
+  palette_colors text[] [not null, note: 'Array of hex color codes']
+  effectiveness decimal(5,2) [default: 0, note: 'Effectiveness score 0-100']
+  region varchar(100) [note: 'Target region (NCR, Luzon, Visayas, Mindanao)']
+  start_date timestamptz [not null]
+  end_date timestamptz
+  status varchar(50) [default: 'draft', note: 'draft | active | completed']
+  metadata jsonb [default: '{}', note: 'Additional campaign data']
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+  
+  indexes {
+    status [name: 'idx_campaigns_status']
+    region [name: 'idx_campaigns_region']
+    (start_date, end_date) [name: 'idx_campaigns_dates']
+  }
+  
+  Note: 'Lions Palette campaign data with color analysis'
+}
+
+// ======================
+// SCOUT ANALYTICS
+// ======================
+
+Table handshake_events {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  timestamp timestamptz [not null, note: 'When the handshake occurred']
+  location varchar(255) [not null, note: 'Store or venue name']
+  region varchar(100) [not null, note: 'Philippine region']
+  transaction_value decimal(10,2) [note: 'Transaction amount in PHP']
+  product_category varchar(100) [note: 'Product category purchased']
+  campaign_ids uuid[] [default: '{}', note: 'Related campaign UUIDs']
+  customer_demographic jsonb [default: '{}', note: 'Age, gender, preferences']
+  metadata jsonb [default: '{}', note: 'Additional handshake data']
+  created_at timestamptz [default: `now()`]
+  
+  indexes {
+    timestamp [name: 'idx_handshake_timestamp']
+    region [name: 'idx_handshake_region']
+    campaign_ids [type: gin, name: 'idx_handshake_campaigns']
+  }
+  
+  Note: 'Scout Analytics handshake events - consumer interactions'
+}
+
+Table stores {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  store_name varchar(255) [not null]
+  region varchar(100) [not null]
+  barangay varchar(255)
+  latitude decimal(10,8)
+  longitude decimal(11,8)
+  store_type varchar(50) [note: 'sari-sari, mall, department, etc.']
+  monthly_revenue decimal(12,2)
+  active boolean [default: true]
+  metadata jsonb [default: '{}']
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+  
+  indexes {
+    region [name: 'idx_stores_region']
+    store_type [name: 'idx_stores_type']
+    (latitude, longitude) [name: 'idx_stores_location']
+  }
+  
+  Note: 'Philippine retail stores and venues'
+}
+
+Table products {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  product_name varchar(255) [not null]
+  product_category varchar(100) [not null]
+  brand_name varchar(255)
+  unit_price decimal(10,2)
+  sku varchar(100) [unique]
+  active boolean [default: true]
+  metadata jsonb [default: '{}']
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+  
+  indexes {
+    product_category [name: 'idx_products_category']
+    brand_name [name: 'idx_products_brand']
+    sku [name: 'idx_products_sku']
+  }
+  
+  Note: 'Product catalog for Scout Analytics'
+}
+
+Table transactions {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  store_id uuid [ref: > stores.id]
+  customer_id varchar(255)
+  transaction_value decimal(10,2) [not null]
+  final_amount decimal(10,2) [not null]
+  payment_method varchar(50) [note: 'Cash, GCash, Credit, Utang/Lista']
+  transaction_date timestamptz [not null]
+  duration_seconds integer
+  units_total integer
+  campaign_ids uuid[] [default: '{}']
+  metadata jsonb [default: '{}']
+  created_at timestamptz [default: `now()`]
+  
+  indexes {
+    store_id [name: 'idx_transactions_store']
+    transaction_date [name: 'idx_transactions_date']
+    payment_method [name: 'idx_transactions_payment']
+    campaign_ids [type: gin, name: 'idx_transactions_campaigns']
+  }
+  
+  Note: 'Scout Analytics transaction records'
+}
+
+Table transaction_items {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  transaction_id uuid [ref: > transactions.id]
+  product_id uuid [ref: > products.id]
+  quantity integer [not null]
+  unit_price decimal(10,2) [not null]
+  total_price decimal(10,2) [not null]
+  
+  indexes {
+    transaction_id [name: 'idx_transaction_items_transaction']
+    product_id [name: 'idx_transaction_items_product']
+  }
+  
+  Note: 'Individual items within transactions'
+}
+
+// ======================
+// HRIS & EMPLOYEES
+// ======================
+
+Table employees {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  email varchar(255) [unique, not null]
+  name varchar(255) [not null]
+  department varchar(100) [note: 'Creative, Account Management, Strategy, etc.']
+  role varchar(100) [note: 'Job title or position']
+  photo_url text [note: 'Profile photo for face recognition']
+  face_encoding text [note: 'Encoded face data for attendance verification']
+  salary decimal(10,2)
+  hire_date date
+  active boolean [default: true]
+  metadata jsonb [default: '{}']
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+  
+  indexes {
+    email [name: 'idx_employees_email']
+    department [name: 'idx_employees_department']
+    active [name: 'idx_employees_active']
+  }
+  
+  Note: 'TBWA employee records with biometric data'
+}
+
+Table attendance {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  employee_id uuid [ref: > employees.id, not null]
+  clock_in timestamptz [not null]
+  clock_out timestamptz
+  location varchar(255) [note: 'Office location or remote']
+  verification_score decimal(3,2) [note: 'Face recognition confidence 0-1']
+  status varchar(50) [default: 'pending', note: 'pending | verified | rejected']
+  work_hours decimal(4,2) [note: 'Calculated hours worked']
+  metadata jsonb [default: '{}']
+  created_at timestamptz [default: `now()`]
+  
+  indexes {
+    employee_id [name: 'idx_attendance_employee']
+    clock_in [name: 'idx_attendance_clock_in']
+    status [name: 'idx_attendance_status']
+  }
+  
+  Note: 'Photo-verified attendance records'
+}
+
+Table expenses {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  employee_id uuid [ref: > employees.id, not null]
+  merchant varchar(255) [not null]
+  amount decimal(10,2) [not null]
+  date date [not null]
+  category varchar(100) [note: 'Travel, Meals, Office Supplies, etc.']
+  receipt_url text [note: 'OCR-processed receipt image']
+  items jsonb [default: '[]', note: 'Extracted line items from receipt']
+  status varchar(50) [default: 'pending', note: 'pending | approved | rejected']
+  approved_by uuid [ref: > employees.id]
+  approved_at timestamptz
+  metadata jsonb [default: '{}']
+  created_at timestamptz [default: `now()`]
+  updated_at timestamptz [default: `now()`]
+  
+  indexes {
+    employee_id [name: 'idx_expenses_employee']
+    date [name: 'idx_expenses_date']
+    status [name: 'idx_expenses_status']
+    approved_by [name: 'idx_expenses_approver']
+  }
+  
+  Note: 'OCR-processed expense claims'
+}
+
+// ======================
+// AI INSIGHTS & ANALYTICS
+// ======================
+
+Table insight_correlations {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  type varchar(100) [not null, note: 'palette-performance, employee-effectiveness, etc.']
+  finding text [not null, note: 'AI-generated insight description']
+  confidence decimal(3,2) [not null, note: 'AI confidence score 0-1']
+  affected_entities text[] [default: '{}', note: 'Campaign IDs, employee IDs, etc.']
+  recommendation text [note: 'Actionable recommendation']
+  data_points integer [note: 'Number of data points used']
+  algorithm varchar(100) [note: 'AI algorithm used']
+  metadata jsonb [default: '{}']
+  created_at timestamptz [default: `now()`]
+  
+  indexes {
+    type [name: 'idx_insights_type']
+    confidence [name: 'idx_insights_confidence']
+    created_at [name: 'idx_insights_date']
+  }
+  
+  Note: 'Cross-platform AI-generated insights'
+}
+
+Table performance_metrics {
+  id uuid [primary key, default: `uuid_generate_v4()`]
+  entity_type varchar(50) [not null, note: 'campaign | employee | region | store']
+  entity_id uuid [not null, note: 'References ID from relevant table']
+  metric_name varchar(100) [not null, note: 'revenue, satisfaction, effectiveness, etc.']
+  metric_value decimal(10,2) [not null]
+  period_start date [not null]
+  period_end date [not null]
+  calculation_method varchar(100) [note: 'How the metric was calculated']
+  metadata jsonb [default: '{}']
+  created_at timestamptz [default: `now()`]
+  
+  indexes {
+    (entity_type, entity_id) [name: 'idx_metrics_entity']
+    (period_start, period_end) [name: 'idx_metrics_period']
+    metric_name [name: 'idx_metrics_name']
+  }
+  
+  Note: 'Performance metrics for all entities'
+}
+
+// ======================
+// RELATIONSHIPS
+// ======================
+
+// Campaigns can be associated with handshake events
+Ref: campaigns.id <> handshake_events.campaign_ids [note: 'Many-to-many via array']
+
+// Transactions link campaigns via handshake events
+Ref: campaigns.id <> transactions.campaign_ids [note: 'Many-to-many via array']
+
+// Employee hierarchy and approval chains
+Ref: employees.id < expenses.approved_by [note: 'Expense approver']
+
+// Store performance can be measured
+Ref: stores.id - performance_metrics.entity_id [note: 'Store performance metrics']
+
+// Employee performance tracking  
+Ref: employees.id - performance_metrics.entity_id [note: 'Employee performance metrics']
+
+// Campaign performance measurement
+Ref: campaigns.id - performance_metrics.entity_id [note: 'Campaign performance metrics']
+
+// ======================
+// VIEWS & MATERIALIZED VIEWS
+// ======================
+
+// Virtual table for campaign performance analysis
+Table campaign_performance_view {
+  campaign_id uuid [primary key]
+  campaign_name varchar(255)
+  palette_colors text[]
+  region varchar(100)
+  effectiveness decimal(5,2)
+  handshake_count integer
+  avg_transaction_value decimal(10,2)
+  total_revenue decimal(12,2)
+  engaged_employees integer
+  
+  Note: 'Materialized view combining campaigns, handshakes, and employee data'
+}
+
+// Virtual table for employee attendance summary
+Table employee_attendance_summary_view {
+  employee_id uuid [primary key]
+  employee_name varchar(255)
+  department varchar(100)
+  total_days integer
+  verified_days integer
+  attendance_rate decimal(5,2)
+  avg_verification_score decimal(3,2)
+  total_hours decimal(8,2)
+  
+  Note: 'Materialized view for employee attendance analytics'
+}
+
+// Virtual table for regional performance
+Table regional_performance_view {
+  region varchar(100) [primary key]
+  total_stores integer
+  handshake_count integer
+  avg_transaction_value decimal(10,2)
+  active_campaigns integer
+  avg_campaign_effectiveness decimal(5,2)
+  total_revenue decimal(12,2)
+  employee_count integer
+  
+  Note: 'Materialized view for regional business intelligence'
+}
+
+// ======================
+// ENUM TYPES
+// ======================
+
+Enum campaign_status {
+  draft
+  active
+  completed
+  paused
+  cancelled
+}
+
+Enum attendance_status {
+  pending
+  verified
+  rejected
+  manual_override
+}
+
+Enum expense_status {
+  pending
+  approved
+  rejected
+  reimbursed
+}
+
+Enum payment_method {
+  cash
+  gcash
+  credit_card
+  debit_card
+  "utang/lista"
+  bank_transfer
+}
+
+Enum philippine_regions {
+  NCR
+  "CAR (Cordillera Administrative Region)"
+  "Region I (Ilocos Region)"
+  "Region II (Cagayan Valley)"
+  "Region III (Central Luzon)"
+  "Region IV-A (CALABARZON)"
+  "Region IV-B (MIMAROPA)"
+  "Region V (Bicol Region)"
+  "Region VI (Western Visayas)"
+  "Region VII (Central Visayas)" 
+  "Region VIII (Eastern Visayas)"
+  "Region IX (Zamboanga Peninsula)"
+  "Region X (Northern Mindanao)"
+  "Region XI (Davao Region)"
+  "Region XII (SOCCSKSARGEN)"
+  "Region XIII (Caraga)"
+  "BARMM (Bangsamoro Autonomous Region)"
+}
+
+// ======================
+// NOTES
+// ======================
+
+Note database_architecture {
+  '''
+  # TBWA Unified Platform Database Architecture
+  
+  ## Core Integration Points:
+  
+  1. **Lions Palette → Scout Analytics**
+     - Campaign colors influence handshake effectiveness
+     - A/B testing of palette performance by region
+  
+  2. **Scout Analytics → HRIS**
+     - High-performing regions get more employee allocation
+     - Attendance correlates with campaign success
+  
+  3. **Cross-Platform AI**
+     - Insight correlations identify hidden patterns
+     - Performance metrics track all entity types
+  
+  ## Key Features:
+  
+  - **Real-time subscriptions** via Supabase
+  - **Row-level security** for data protection
+  - **Materialized views** for fast analytics
+  - **JSONB metadata** for flexible schema evolution
+  - **Geographic indexing** for location-based queries
+  - **Array support** for many-to-many relationships
+  
+  ## Philippine Context:
+  
+  - **Regional specificity** for 18 Philippine regions
+  - **Local payment methods** including utang/lista
+  - **Cultural considerations** in customer demographics
+  - **Sari-sari store support** in store types
+  '''
+}
