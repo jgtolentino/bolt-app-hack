@@ -70,6 +70,7 @@
   ],
   "env": {
     "TBWA_UNIFIED_API_URL": "http://localhost:3000",
-    "MCP_SQLITE_API_URL": "https://mcp-sqlite-server-1.onrender.com"
+    "MCP_SQLITE_API_URL": "https://mcp-sqlite-server-1.onrender.com",
+    "VERCEL_DEPLOYMENT_ID": "tbwa-integration-v1.0"
   }
 }
